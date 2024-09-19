@@ -10,6 +10,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { User } from './schema/user.schema';
+import { CreateUserDto } from './dtos/user.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -22,7 +23,10 @@ export class UserController {
     status: 201,
     description: 'The user has been successfully created.',
   })
-  async create(@Body() createUserDto: any): Promise<User> {
+  
+  async create(
+    @Body() createUserDto: CreateUserDto,
+  ): Promise<{ message: string }> {
     return this.userService.create(createUserDto);
   }
 
@@ -30,14 +34,14 @@ export class UserController {
   @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({ status: 200, description: 'Returns all users.' })
   async findAll(): Promise<User[]> {
-    return this.userService.findAll();
+    return this.userService.getAllUsers();
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a user by ID' })
   @ApiResponse({ status: 200, description: 'Returns a user.' })
   async findOne(@Param('id') id: string): Promise<User> {
-    return this.userService.findOne(id);
+    return this.userService.getUserById(id);
   }
 
   @Put(':id')

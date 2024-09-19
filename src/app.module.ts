@@ -9,10 +9,12 @@ import { CompanyController } from './company/company.controller';
 import { CompanyModule } from './company/company.module';
 import { MailService } from './mail/mail.service';
 import { MailModule } from './mail/mail.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
-    MongooseModule.forRoot(process.env.MONGODB_URI),
+    ConfigModule.forRoot({ isGlobal: true }),
+    MongooseModule.forRoot(process.env.MONGODB_URL),
     UserModule,
     CompanyFormModule,
     OwnerApplicantFormModule,
@@ -21,8 +23,11 @@ import { MailModule } from './mail/mail.module';
     MailModule,
   ],
   controllers: [CompanyController],
-  providers: [SeedService, MailService],
+  providers: [
+    // SeedService,
+    MailService,
+  ],
 })
 export class AppModule {
-  constructor(private readonly seedService: SeedService) {}
+  constructor() {} // private readonly seedService: SeedService
 }
