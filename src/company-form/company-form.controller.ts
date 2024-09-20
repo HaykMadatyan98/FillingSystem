@@ -1,12 +1,15 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { CompanyFormService } from './company-form.service';
+import { CompanyFormDto } from './dtos/company-form.dto';
+import { ApiTags } from '@nestjs/swagger';
 
-@Controller('company-form')
+@ApiTags('form')
+@Controller('form')
 export class CompanyFormController {
   constructor(private readonly reportingCompanyService: CompanyFormService) {}
 
-  @Post()
-  async create(@Body() createCompanyFormDto: any) {
+  @Post('company')
+  async create(@Body() createCompanyFormDto: CompanyFormDto) {
     return this.reportingCompanyService.create(createCompanyFormDto);
   }
 }

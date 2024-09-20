@@ -1,19 +1,24 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { LoginDto, SendEmailDto } from './dtos/auth.dto';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { LocalAuthGuard } from './guards/local-auth.guard';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('register')
-  async register(
-    @Body() body: { email: string; password: string; role: string },
-  ) {
-    return this.authService.register(body.email, body.password, body.role);
+  @Post('email')
+  @ApiBody({ type: SendEmailDto })
+  async sendValidateEmail(@Body() body: SendEmailDto) {
+    return this.authService.sendValidationEmail(body);
   }
 
   @Post('login')
-  async login(@Body() body: { email: string; password: string }) {
-    return this.authService.login(body.email, body.password);
+  @ApiBody({ type: LoginDto })
+  async login(@Body() body: LoginDto): Promise<any> {
+    //change
+    return this.authService.login(body.email, body.oneTimePass);
   }
 }

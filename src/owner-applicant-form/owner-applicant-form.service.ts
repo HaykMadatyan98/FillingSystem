@@ -18,10 +18,19 @@ export class OwnerApplicantFormService {
     private ownerFormModel: Model<OwnerFormDocument>,
   ) {}
 
-  async create(createCompanyApplicantDto: any): Promise<ApplicantForm> {
+  async changeApplicantForm(
+    createCompanyApplicantDto: any,
+  ): Promise<ApplicantForm> {
     const createdApplicant = new this.applicantFormModel(
       createCompanyApplicantDto,
     );
     return createdApplicant.save();
+  }
+
+  async changeOwnerForm(
+    createCompanyApplicantDto: any,
+  ): Promise<ApplicantForm> {
+    const createdOwner = new this.applicantFormModel(createCompanyApplicantDto);
+    return createdOwner.save();
   }
 }
