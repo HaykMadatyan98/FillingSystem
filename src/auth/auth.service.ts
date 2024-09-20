@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { MailService } from '@/mail/mail.service';
 import { UserService } from '@/user/user.service';
-import { ExpirationTimes } from './constants';
+import { ExpirationTimes } from '../constants';
 
 @Injectable()
 export class AuthService {

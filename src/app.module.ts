@@ -18,7 +18,7 @@ import { MailModule } from './mail/mail.module';
     ConfigModule.forRoot({
       envFilePath: '.env',
     }),
-    MongooseModule.forRoot(process.env.MONGODB_URI),
+    MongooseModule.forRoot(process.env.MONGODB_URL),
     UserModule,
     CompanyFormModule,
     OwnerApplicantFormModule,
