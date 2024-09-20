@@ -23,7 +23,6 @@ export class UserController {
     status: 201,
     description: 'The user has been successfully created.',
   })
-  
   async create(
     @Body() createUserDto: CreateUserDto,
   ): Promise<{ message: string }> {

@@ -6,10 +6,10 @@ export type CompanyFormDocument = CompanyForm & Document;
 @Schema({ _id: false })
 class RepCompanyInfo {
   @Prop({ default: false })
-  requestToReceiveFID: Boolean;
+  requestToReceiveFID: boolean;
 
   @Prop({ default: false })
-  foreignPooled: Boolean;
+  foreignPooled: boolean;
 }
 
 @Schema({ _id: false })

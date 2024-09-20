@@ -11,12 +11,18 @@ export class OwnerApplicantFormController {
   ) {}
 
   @Post('/applicant')
-  async changeApplicantForm(@Body() createApplicantFormDto: CreateApplicantFormDto) {
-    return this.applicantFormService.changeApplicantForm(createApplicantFormDto);
+  async changeApplicantForm(
+    @Body() createApplicantFormDto: CreateApplicantFormDto,
+  ) {
+    return this.applicantFormService.changeApplicantForm(
+      createApplicantFormDto,
+    );
   }
 
   @Post('/owner')
-  async changeOwnerForm(@Body() createApplicantFormDto: CreateApplicantFormDto) {
+  async changeOwnerForm(
+    @Body() createApplicantFormDto: CreateApplicantFormDto,
+  ) {
     return this.applicantFormService.changeOwnerForm(createApplicantFormDto);
   }
 }

@@ -1,7 +1,7 @@
+import Handlebars from 'handlebars';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as SendGrid from '@sendgrid/mail';
-import Handlebars from 'handlebars';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
