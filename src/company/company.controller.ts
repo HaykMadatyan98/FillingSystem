@@ -57,7 +57,7 @@ export class CompanyController {
     )
     companyFile: Express.Multer.File,
   ) {
-    console.log(companyFile);
+
     return this.companyService.addCsvDataIntoDb(companyFile);
   }
 

@@ -20,5 +20,6 @@ import { OwnerApplicantFormController } from './owner-applicant-form.controller'
   ],
   providers: [OwnerApplicantFormService],
   controllers: [OwnerApplicantFormController],
+  exports: [OwnerApplicantFormService],
 })
 export class OwnerApplicantFormModule {}

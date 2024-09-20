@@ -13,7 +13,7 @@ export async function sanitizeData(rawData: any): Promise<{
     repCompanyInfo: {
       requestToReceiveFID:
         rawData['Applicant Existing Report Company'] === 'true',
-      foreignPooled: false, 
+      foreignPooled: false,
     },
     names: {
       legalName: rawData['Legal Name'] || '',
@@ -74,9 +74,6 @@ export async function sanitizeData(rawData: any): Promise<{
       docImg: {
         blobId: rawData['Applicant Doc Image Blob ID'] || '',
         blobUrl: rawData['Applicant Doc Image Blob URL'] || '',
-        fileName: '', // Set if you have a filename
-        size: 0, // Set if you have a size
-        format: '', // Set if you have a format
       },
     },
   };
@@ -107,18 +104,15 @@ export async function sanitizeData(rawData: any): Promise<{
       postalCode: rawData['Owner Postal Code'] || '',
     },
     identificationDetails: {
-      docType: '', // Set if applicable
-      docNumber: '', // Set if applicable
-      countryOrJurisdiction: '', // Set if applicable
-      state: '', // Set if applicable
+      docType: rawData['Owner Doc Type'] || '',
+      docNumber: rawData['Owner Doc Number'] || '',
+      countryOrJurisdiction: rawData['Owner Country Jurisdiction'] || '',
+      state: rawData['Applicant Doc State'] || '',
       localOrTribal: '',
       otherLocalOrTribalDesc: '',
       docImg: {
-        blobId: '', // Set if applicable
-        blobUrl: '', // Set if applicable
-        fileName: '', // Set if applicable
-        size: 0, // Set if applicable
-        format: '', // Set if applicable
+        blobId: rawData['Owner Doc Image Blob ID'] || '',
+        blobUrl: rawData['Owner Doc Image Blob URL'] || '',
       },
     },
   };

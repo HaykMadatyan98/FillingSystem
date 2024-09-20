@@ -33,4 +33,31 @@ export class OwnerApplicantFormService {
     const createdOwner = new this.applicantFormModel(createCompanyApplicantDto);
     return createdOwner.save();
   }
+
+  async createApplicantFormFromCsv(applicantFormData) {
+    const applicantData = new this.applicantFormModel({
+      applicant: applicantFormData.applicant,
+      applicantFinCENID: applicantFormData.applicantFinCENID,
+      personalInfo: applicantFormData.personalInfo,
+      address: applicantFormData.address,
+      identificationDetails: applicantFormData.identificationDetails,
+    });
+
+    await applicantData.save();
+    return applicantData._id;
+  }
+
+  async createOwnerFormFromCsv(ownerFormData) {
+    const ownerData = new this.ownerFormModel({
+      beneficialOwner: ownerFormData.beneficialOwner,
+      ownerFinCENID: ownerFormData.ownerFinCENID,
+      exemptEntity: ownerFormData.exemptEntity,
+      personalInfo: ownerFormData.personalInfo,
+      residentialAddress: ownerFormData.residentialAddress,
+      identificationDetails: ownerFormData.identificationDetails,
+    });
+
+    await ownerData.save();
+    return ownerData._id;
+  }
 }
