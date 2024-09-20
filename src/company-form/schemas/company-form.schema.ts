@@ -14,7 +14,7 @@ class RepCompanyInfo {
 
 @Schema({ _id: false })
 class LegalAndAltNames {
-  @Prop() 
+  @Prop()
   legalName: string;
 
   @Prop()

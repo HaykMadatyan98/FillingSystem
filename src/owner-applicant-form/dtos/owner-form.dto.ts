@@ -94,7 +94,7 @@ class ExemptEntityDto {
 export class CreateOwnerFormDto {
   @ApiProperty({ required: false })
   @IsOptional()
-  beneficalOwner?: BeneficialOwnerDto;
+  beneficialOwner?: BeneficialOwnerDto;
 
   @ApiProperty({ required: false })
   @IsOptional()

@@ -1,6 +1,6 @@
 interface ErrorDetail {
   message: string;
-  description?: string; 
+  description?: string;
   status?: number;
 }
 

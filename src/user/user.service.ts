@@ -14,7 +14,7 @@ export class UserService {
     const createdUser = new this.userModel(createUserDto);
     await createdUser.save();
 
-    return { message: 'account succesfully created' };
+    return { message: 'account successfully created' };
   }
 
   async changeUserOtp(

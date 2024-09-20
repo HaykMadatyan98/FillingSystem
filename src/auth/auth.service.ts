@@ -20,7 +20,7 @@ export class AuthService {
     await this.userService.changeUserOtp(email, oneTimePass);
     this.mailerService.sendOTPtoEmail(oneTimePass, email);
 
-    return { message: 'succesfully sended' };
+    return { message: 'successfully sended' };
   }
 
   async login(email: string, oneTimePass: number): Promise<any> {
@@ -47,7 +47,7 @@ export class AuthService {
     );
     // change
     return {
-      message: 'succesfully signed in',
+      message: 'successfully signed in',
       // id: user._id,
       accessToken: accessToken,
       refreshToken: refreshToken,

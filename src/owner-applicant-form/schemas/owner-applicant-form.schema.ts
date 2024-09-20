@@ -135,7 +135,7 @@ export class ApplicantForm {
 @Schema({ timestamps: true })
 export class OwnerForm {
   @Prop()
-  beneficalOwner: BeneficialOwner;
+  beneficialOwner: BeneficialOwner;
 
   @Prop()
   ownerFinCENID: FinCENID;

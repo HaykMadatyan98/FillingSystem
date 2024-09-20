@@ -13,11 +13,11 @@ class Forms {
   @Prop({ type: MongoSchema.Types.ObjectId, ref: 'CompanyForm' })
   company: CompanyForm;
 
-  @Prop({ type: MongoSchema.Types.ObjectId, ref: 'ApplicantForm' })
+  @Prop({ type: [MongoSchema.Types.ObjectId], ref: 'ApplicantForm' })
   applicants: ApplicantForm[];
 
-  @Prop({ type: MongoSchema.Types.ObjectId, ref: 'OwnerForm' })
-  owner: OwnerForm[];
+  @Prop({ type: [MongoSchema.Types.ObjectId], ref: 'OwnerForm' })
+  owners: OwnerForm[];
 }
 
 @Schema()
@@ -31,7 +31,7 @@ export class Company {
   @Prop()
   expTime: Date;
 
-  @Prop()
+  @Prop({ type: Forms })
   forms: Forms;
 }
 

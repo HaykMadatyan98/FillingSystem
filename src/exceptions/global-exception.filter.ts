@@ -11,7 +11,7 @@ import { ExceptionResponse } from './exceptions.interface';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger(GlobalExceptionFilter.name); 
+  private readonly logger = new Logger(GlobalExceptionFilter.name);
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -31,7 +31,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       typeof exceptionResponse === 'object' && 'message' in exceptionResponse
         ? (exceptionResponse as ExceptionResponse)
         : { message: String(exceptionResponse) };
-
 
     this.logger.error(
       `Error occurred: ${responseObject.message}`,
