@@ -36,7 +36,7 @@ class Image {
 @Schema({ _id: false })
 class ExistingCompanyApplicant {
   @Prop()
-  existingReportCompany: boolean;
+  isExistingCompany: boolean;
 }
 
 @Schema({ _id: false })
@@ -51,10 +51,10 @@ class PersonalInformation {
   lastOrLegalName: string;
 
   @Prop()
-  firstname: string;
+  firstName: string;
 
   @Prop()
-  middlename: string;
+  middleName: string;
 
   @Prop()
   suffix: string;
@@ -111,7 +111,7 @@ class IdentificationAndJurisdiction {
 @Schema({ _id: false })
 class ExemptEntity {
   @Prop()
-  exemptEntity: boolean;
+  isExemptEntity: boolean;
 }
 
 @Schema({ timestamps: true })
@@ -123,13 +123,13 @@ export class ApplicantForm {
   applicantFinCENID: FinCENID;
 
   @Prop()
-  personalInformation: PersonalInformation;
+  personalInfo: PersonalInformation;
 
   @Prop()
-  currentAddress: CurrentAddress;
+  address: CurrentAddress;
 
   @Prop()
-  identificationAndJurisdiction: IdentificationAndJurisdiction;
+  identificationDetails: IdentificationAndJurisdiction;
 }
 
 @Schema({ timestamps: true })
@@ -138,16 +138,19 @@ export class OwnerForm {
   beneficalOwner: BeneficialOwner;
 
   @Prop()
-  ownerFinCENId: FinCENID;
+  ownerFinCENID: FinCENID;
 
   @Prop()
   exemptEntity: ExemptEntity;
 
   @Prop()
-  personalInformation: PersonalInformation;
+  personalInfo: PersonalInformation;
 
   @Prop()
-  residentalAddress: CurrentAddress;
+  residentialAddress: CurrentAddress;
+
+  @Prop()
+  identificationDetails: IdentificationAndJurisdiction;
 }
 
 export const OwnerFormSchema = SchemaFactory.createForClass(OwnerForm);

@@ -25,7 +25,7 @@ class LegalAndAltNamesDto {
   altName?: string;
 }
 
-class IdentifyFormDto {
+class TaxInformation {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
@@ -89,9 +89,9 @@ export class CompanyFormDto {
   @IsOptional()
   formationJurisdiction?: JurisdictionOfFormationDto;
 
-  @ApiProperty({ type: IdentifyFormDto, required: false })
+  @ApiProperty({ type: TaxInformation, required: false })
   @IsOptional()
-  identifyForm?: IdentifyFormDto;
+  taxInfo?: TaxInformation;
 
   @ApiProperty({ type: CompanyAddressDto, required: false })
   @IsOptional()

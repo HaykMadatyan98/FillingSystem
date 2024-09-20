@@ -13,7 +13,7 @@ class ExistingCompanyApplicantDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsBoolean()
-  existingReportCompany?: boolean;
+  isExistingCompany?: boolean;
 }
 
 // DTO for FinCENID
@@ -34,12 +34,12 @@ class PersonalInformationDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  firstname?: string;
+  firstName?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  middlename?: string;
+  middleName?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -168,13 +168,13 @@ export class CreateApplicantFormDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  personalInformation?: PersonalInformationDto;
+  personalInfo?: PersonalInformationDto;
 
   @ApiProperty({ required: false })
   @IsOptional()
-  currentAddress?: CurrentAddressDto;
+  address?: CurrentAddressDto;
 
   @ApiProperty({ required: false })
   @IsOptional()
-  identificationAndJurisdiction?: IdentificationAndJurisdictionDto;
+  identificationDetails?: IdentificationAndJurisdictionDto;
 }

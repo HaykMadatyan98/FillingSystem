@@ -14,7 +14,7 @@ class RepCompanyInfo {
 
 @Schema({ _id: false })
 class LegalAndAltNames {
-  @Prop()
+  @Prop() 
   legalName: string;
 
   @Prop()
@@ -22,7 +22,7 @@ class LegalAndAltNames {
 }
 
 @Schema({ _id: false })
-class IdentifyForm {
+class TaxInformation {
   @Prop()
   taxType: string;
 
@@ -69,7 +69,7 @@ export class CompanyForm {
   formationJurisdiction: JurisdictionOfFormation;
 
   @Prop()
-  identifyForm: IdentifyForm;
+  taxInfo: TaxInformation;
 
   @Prop()
   address: CompanyAddress;

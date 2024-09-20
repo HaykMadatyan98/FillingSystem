@@ -31,12 +31,12 @@ class PersonalInformationDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  firstname?: string;
+  firstName?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  middlename?: string;
+  middleName?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -87,7 +87,7 @@ class ExemptEntityDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsBoolean()
-  exemptEntity?: boolean;
+  isExemptEntity?: boolean;
 }
 
 // DTO for OwnerForm
@@ -106,9 +106,9 @@ export class CreateOwnerFormDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  personalInformation?: PersonalInformationDto;
+  personalInfo?: PersonalInformationDto;
 
   @ApiProperty({ required: false })
   @IsOptional()
-  residentalAddress?: CurrentAddressDto;
+  residentialAddress?: CurrentAddressDto;
 }
