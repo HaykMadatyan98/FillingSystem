@@ -29,12 +29,12 @@ class TaxInformation {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  taxType?: string;
+  taxIdType?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
-  taxNumber?: number;
+  taxIdNumber?: number;
 
   @ApiProperty({ required: false })
   @IsOptional()

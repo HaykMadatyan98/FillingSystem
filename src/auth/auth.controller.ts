@@ -1,8 +1,13 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto, SendEmailDto } from './dtos/auth.dto';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
-
+import {
+  ApiBody,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { ErrorMessages, ResponseMessages } from '@/constants';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
@@ -10,14 +15,18 @@ export class AuthController {
 
   @Post('email')
   @ApiBody({ type: SendEmailDto })
+  @ApiOkResponse({ description: ResponseMessages.otpWasSent.message })
+  @ApiNotFoundResponse({
+    description: ErrorMessages.UserWithEnteredEmailNotFound.message,
+  })
   async sendValidateEmail(@Body() body: SendEmailDto) {
     return this.authService.sendValidationEmail(body);
   }
 
   @Post('login')
   @ApiBody({ type: LoginDto })
+  @ApiOkResponse({ description: ResponseMessages.succesfullLogin.message })
   async login(@Body() body: LoginDto): Promise<any> {
-    //change
     return this.authService.login(body.email, body.oneTimePass);
   }
 }

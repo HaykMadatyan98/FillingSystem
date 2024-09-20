@@ -6,7 +6,7 @@ import {
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongoSchema } from 'mongoose';
 
-export type ReportingCompanyDocument = Company & Document;
+export type CompanyDocument = Company & Document;
 
 @Schema({ _id: false })
 class Forms {
@@ -25,14 +25,14 @@ export class Company {
   @Prop()
   name: string;
 
-  @Prop()
+  @Prop({ default: 0 })
   answerCount: number;
 
-  @Prop()
+  @Prop({ default: () => new Date(Date.now() + 24 * 60 * 60 * 1000) })
   expTime: Date;
 
   @Prop({ type: Forms })
   forms: Forms;
 }
 
-export const ReportingCompanySchema = SchemaFactory.createForClass(Company);
+export const CompanySchema = SchemaFactory.createForClass(Company);

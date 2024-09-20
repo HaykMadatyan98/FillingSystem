@@ -27,7 +27,7 @@ import { MailModule } from './mail/mail.module';
     MailModule,
   ],
   providers: [MailService],
-  controllers: [CompanyController],
+  controllers: [],
   // controllers: [CsvController, CompanyController],
   // providers: [SeedService, CsvService, MailService],
 })

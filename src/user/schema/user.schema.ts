@@ -21,6 +21,9 @@ export class User {
 
   @Prop({ default: null })
   oneTimePass: number | null;
+
+  @Prop({ })
+  companies: []
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

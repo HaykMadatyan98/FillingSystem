@@ -15,22 +15,26 @@ export class MailService {
   }
 
   async sendOTPtoEmail(oneTimePass: number, email: string): Promise<void> {
-    const templatePath = path.join(
-      path.resolve(),
-      '/src/mail/templates/oneTimePass.hbs',
-    );
+    try {
+      const templatePath = path.join(
+        path.resolve(),
+        '/src/mail/templates/oneTimePass.hbs',
+      );
 
-    const template = fs.readFileSync(templatePath, 'utf-8');
-    const compiledFile = Handlebars.compile(template);
-    const htmlContent = compiledFile({ oneTimePass });
+      const template = fs.readFileSync(templatePath, 'utf-8');
+      const compiledFile = Handlebars.compile(template);
+      const htmlContent = compiledFile({ oneTimePass });
 
-    const mail: SendGrid.MailDataRequired = {
-      to: email,
-      from: this.emailFrom,
-      subject: 'Email Confirmation',
-      html: htmlContent,
-    };
+      const mail: SendGrid.MailDataRequired = {
+        to: email,
+        from: this.emailFrom,
+        subject: 'Email Confirmation',
+        html: htmlContent,
+      };
 
-    await SendGrid.send(mail);
+      await SendGrid.send(mail);
+    } catch (error) {
+      // write error exception and add in future the part where information will be saved in db
+    }
   }
 }

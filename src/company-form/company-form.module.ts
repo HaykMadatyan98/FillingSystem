@@ -12,5 +12,6 @@ import { CompanyFormController } from './company-form.controller';
   ],
   providers: [CompanyFormService],
   controllers: [CompanyFormController],
+  exports: [CompanyFormService],
 })
 export class CompanyFormModule {}

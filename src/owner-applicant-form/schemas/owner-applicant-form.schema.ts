@@ -65,7 +65,7 @@ class PersonalInformation {
 
 @Schema({ _id: false })
 class CurrentAddress {
-  @Prop({ enum: AddressTypeEnum })
+  @Prop({ enum: AddressTypeEnum, required: false })
   type: AddressTypeEnum;
 
   @Prop()

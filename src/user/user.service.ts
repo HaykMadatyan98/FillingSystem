@@ -4,7 +4,7 @@ import { Model } from 'mongoose';
 import { User, UserDocument } from './schema/user.schema';
 import { CreateUserDto } from './dtos/user.dto';
 import { CustomNotFoundException } from '@/exceptions/not-found.exception';
-import { ErrorMessages } from '@/constants/errors';
+import { ErrorMessages } from '@/constants/error-messages';
 
 @Injectable()
 export class UserService {

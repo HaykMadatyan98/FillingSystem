@@ -24,10 +24,10 @@ class LegalAndAltNames {
 @Schema({ _id: false })
 class TaxInformation {
   @Prop()
-  taxType: string;
+  taxIdType: string;
 
   @Prop()
-  taxNumber: number;
+  taxIdNumber: number;
 
   @Prop()
   countryOrJurisdiction: string;

@@ -18,11 +18,6 @@ export class CsvService {
     @InjectModel(OwnerForm.name) private ownerFormModel: Model<OwnerForm>,
   ) {}
 
-  async importCSV(filePath: string): Promise<void> {
-    const results = await this.parseCSV(filePath);
-    await Promise.all(results.map((row) => this.processRow(row)));
-  }
-
   private parseCSV(filePath: string): Promise<any[]> {
     return new Promise((resolve, reject) => {
       const results = [];
@@ -32,6 +27,11 @@ export class CsvService {
         .on('end', () => resolve(results))
         .on('error', reject);
     });
+  }
+
+  async importCSV(filePath: string): Promise<void> {
+    const results = await this.parseCSV(filePath);
+    await Promise.all(results.map((row) => this.processRow(row)));
   }
 
   private async processRow(row: any): Promise<void> {
@@ -55,7 +55,7 @@ export class CsvService {
       companyData.forms.owners.push(...owners);
       companyData.forms.company = newCompanyInfo;
 
-      await companyData.save();
+      // await companyData.save();
     } catch (error) {
       console.error('Error processing row:', error);
     }
@@ -90,8 +90,8 @@ export class CsvService {
         altName: row['Alternate Name'],
       };
       companyData.taxInfo = {
-        taxType: row['Tax ID Type'],
-        taxNumber: row['Tax ID Number'],
+        taxIdType: row['Tax ID Type'],
+        taxIdNumber: row['Tax ID Number'],
         countryOrJurisdiction: row['Country/Jurisdiction'],
       };
       companyData.formationJurisdiction.countryOrJurisdiction =

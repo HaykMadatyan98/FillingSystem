@@ -9,7 +9,7 @@ export class CustomNotFoundException extends HttpException {
     const response: ExceptionResponse = {
       message,
       description,
-      status: 404, // Static status for Not Found
+      status: 404, 
     };
     super(response, 404);
   }
