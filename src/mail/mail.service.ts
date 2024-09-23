@@ -34,6 +34,7 @@ export class MailService {
 
       await SendGrid.send(mail);
     } catch (error) {
+      console.log(error);
       // write error exception and add in future the part where information will be saved in db
     }
   }

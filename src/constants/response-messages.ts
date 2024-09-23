@@ -4,7 +4,7 @@ interface ResponseMessage {
 }
 
 export const ResponseMessages: Record<string, ResponseMessage> = {
-  succesfullLogin: {
+  successfulLogin: {
     message: 'Sign-in successful.',
     status: 200,
   },

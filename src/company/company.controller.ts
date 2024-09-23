@@ -7,11 +7,10 @@ import {
   Patch,
   Post,
   UploadedFile,
-  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { CompanyService } from './company.service';
-import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+// import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 
@@ -57,11 +56,10 @@ export class CompanyController {
     )
     companyFile: Express.Multer.File,
   ) {
-
     return this.companyService.addCsvDataIntoDb(companyFile);
   }
 
-  // change comapny data (admin)
+  // change company data (admin)
   @Patch()
   async updateCompanyData() {}
 

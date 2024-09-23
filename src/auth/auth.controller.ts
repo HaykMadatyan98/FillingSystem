@@ -25,7 +25,7 @@ export class AuthController {
 
   @Post('login')
   @ApiBody({ type: LoginDto })
-  @ApiOkResponse({ description: ResponseMessages.succesfullLogin.message })
+  @ApiOkResponse({ description: ResponseMessages.successfulLogin.message })
   async login(@Body() body: LoginDto): Promise<any> {
     return this.authService.login(body.email, body.oneTimePass);
   }

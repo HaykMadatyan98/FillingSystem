@@ -1,12 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Company, CompanyDocument } from './schemas/company.schema';
 import { Model } from 'mongoose';
 import * as csvParser from 'csv-parser';
 import * as Stream from 'stream';
 import { CompanyFormService } from '@/company-form/company-form.service';
-import { CustomException } from '@/exceptions/custom-exception';
-import { CustomNotFoundException } from '@/exceptions/not-found.exception';
+// import { CustomException } from '@/exceptions/custom-exception';
+// import { CustomNotFoundException } from '@/exceptions/not-found.exception';
 import { sanitizeData } from '@/utils/sanitizer.util';
 import { OwnerApplicantFormService } from '@/owner-applicant-form/owner-applicant-form.service';
 
@@ -37,7 +37,7 @@ export class CompanyService {
   }
 
   async changeCompanyData(row) {
-    let company = await this.getCompanyByTaxId(Number(row['Tax ID Number']));
+    const company = await this.getCompanyByTaxId(Number(row['Tax ID Number']));
     const sanitizedData = await sanitizeData(row);
 
     if (!company) {
