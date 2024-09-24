@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from './schema/user.schema';
 import { CreateUserDto } from './dtos/user.dto';
 import { CustomNotFoundException } from '@/exceptions/not-found.exception';
 import { ErrorMessages } from '@/constants/error-messages';
-import moment from 'moment';
+import * as moment from 'moment';
 
 @Injectable()
 export class UserService {
