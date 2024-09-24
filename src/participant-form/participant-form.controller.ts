@@ -10,21 +10,6 @@ export class ParticipantFormController {
     private readonly participantFormService: ParticipantFormService,
   ) {}
 
-  // @Post('/applicant')
-  // async changeApplicantForm(
-  //   @Body() createApplicantFormDto: CreateApplicantFormDto,
-  // ) {
-  //   return this.applicantFormService.changeApplicantForm(
-  //     createApplicantFormDto,
-  //   );
-  // }
-
-  // @Post('/owner')
-  // async changeOwnerForm(
-  //   @Body() createApplicantFormDto: CreateApplicantFormDto,
-  // ) {
-  //   return this.applicantFormService.changeOwnerForm(createApplicantFormDto);
-  // }
   // @Post('/participant')
   // async changeParticipantData(
   //   @Body() participantData: CreateParticipantFormDto,
