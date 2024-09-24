@@ -33,9 +33,10 @@ class TaxInformation {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsNumber()
-  taxIdNumber?: number;
+  @IsString()
+  taxIdNumber?: string;
 
+  // add regexp
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
@@ -46,7 +47,7 @@ class JurisdictionOfFormationDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  countryOrJurisdiction?: string;
+  countryOrJurisdictionOfFormation?: string;
 }
 
 class CompanyAddressDto {

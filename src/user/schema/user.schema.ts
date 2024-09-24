@@ -25,8 +25,14 @@ export class User {
   @Prop({ default: null })
   oneTimeExpiration: string | null;
 
-  @Prop({})
+  @Prop()
   companies: [];
+
+  // @Prop({ required: true })
+  // finCENID: string;
+
+  // @Prop({ required: true })
+  // docNum: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

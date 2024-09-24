@@ -3,7 +3,7 @@ import * as jwt from 'jsonwebtoken';
 import { MailService } from '@/mail/mail.service';
 import { UserService } from '@/user/user.service';
 import { ExpirationTimes } from '../constants';
-import { SendEmailBodyDto } from './dtos/auth.dto';
+import { SendEmailBodyDto, SendEmailDto } from './dtos/auth.dto';
 import moment from 'moment';
 
 @Injectable()
@@ -16,18 +16,10 @@ export class AuthService {
     private userService: UserService,
   ) {}
 
-  async sendValidationEmail(emails: SendEmailBodyDto) {
-    const emailPromises = emails.emails.map(async ({ email }) => {
-      if (!email) {
-        throw new Error('Email is undefined');
-      }
-
-      const oneTimePass = Math.floor(100000 + Math.random() * 900000);
-      await this.userService.changeUserOtp(email, oneTimePass);
-      await this.mailerService.sendOTPtoEmail(oneTimePass, email);
-    });
-
-    await Promise.all(emailPromises);
+  async sendValidationEmail(email: string) {
+    const oneTimePass = Math.floor(100000 + Math.random() * 900000);
+    await this.userService.changeUserOtp(email, oneTimePass);
+    await this.mailerService.sendOTPtoEmail(oneTimePass, email);
 
     return { message: 'successfully sent' };
   }

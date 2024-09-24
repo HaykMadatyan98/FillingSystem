@@ -27,7 +27,7 @@ class TaxInformation {
   taxIdType: string;
 
   @Prop()
-  taxIdNumber: number;
+  taxIdNumber: string;
 
   @Prop()
   countryOrJurisdiction: string;
@@ -36,7 +36,7 @@ class TaxInformation {
 @Schema({ _id: false })
 class JurisdictionOfFormation {
   @Prop()
-  countryOrJurisdiction: string;
+  countryOrJurisdictionOfFormation: string;
 }
 
 @Schema({ _id: false })

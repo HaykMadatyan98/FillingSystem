@@ -3,7 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './user/user.module';
 import { CompanyFormModule } from './company-form/company-form.module';
-import { OwnerApplicantFormModule } from './owner-applicant-form/owner-applicant-form.module';
+import { ParticipantFormModule } from './participant-form/participant-form.module';
 import { AuthModule } from './auth/auth.module';
 // import { SeedService } from './seed/seed.service';
 // import { CsvController } from './csv/import-csv.controller';
@@ -21,7 +21,7 @@ import { MailModule } from './mail/mail.module';
     MongooseModule.forRoot(process.env.MONGODB_URL),
     UserModule,
     CompanyFormModule,
-    OwnerApplicantFormModule,
+    ParticipantFormModule,
     AuthModule,
     CompanyModule,
     MailModule,

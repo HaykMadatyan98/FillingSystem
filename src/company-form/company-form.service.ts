@@ -18,22 +18,33 @@ export class CompanyFormService {
     return createdCompany.save();
   }
 
-  async getCompanyFormByTaxId(taxIdNumber: number) {
-    const companyForm = await this.companyFormModel.findOne({
-      taxIdNumber: taxIdNumber,
-    });
+  async getCompanyFormIdByTaxId(taxIdNumber: number) {
+    const companyForm = await this.companyFormModel.findOne(
+      {
+        taxIdNumber: taxIdNumber,
+      },
+      { id: 1 },
+    );
 
-    return companyForm;
+    return companyForm ? companyForm.id : companyForm;
   }
 
-  async createCompanyFormFromCsv(companyFormData) {
-    const companyData = new this.companyFormModel({
-      repCompanyInfo: companyFormData.repCompanyInfo,
-      names: companyFormData.names,
-      formationJurisdiction: companyFormData.formationJurisdiction,
-      taxInfo: companyFormData.taxInfo,
-      address: companyFormData.address,
-    });
+  // add interface
+  async createCompanyFormFromCsv(companyFormData: any) {
+    const companyData = new this.companyFormModel({ ...companyFormData });
+
+    await companyData.save();
+    return { id: companyData._id, companyName: companyData.names.legalName };
+  }
+
+  // add interface
+  async updateCompanyFormFromCsv(companyFormData: any, companyFormDataId: any) {
+    let companyData = await this.companyFormModel.findById(companyFormDataId);
+
+    const updateDataKeys = Object.keys(companyFormData);
+    for (let i of updateDataKeys) {
+      companyData[i] = { ...companyData[i], ...companyFormData[i] };
+    }
 
     await companyData.save();
     return { id: companyData._id, companyName: companyData.names.legalName };

@@ -1,8 +1,5 @@
 import { CompanyForm } from '@/company-form/schemas/company-form.schema';
-import {
-  OwnerForm,
-  ApplicantForm,
-} from '@/owner-applicant-form/schemas/owner-applicant-form.schema';
+import { ParticipantForm } from '@/participant-form/schemas/participant-form.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongoSchema } from 'mongoose';
 
@@ -13,11 +10,11 @@ class Forms {
   @Prop({ type: MongoSchema.Types.ObjectId, ref: 'CompanyForm' })
   company: CompanyForm;
 
-  @Prop({ type: [MongoSchema.Types.ObjectId], ref: 'ApplicantForm' })
-  applicants: ApplicantForm[];
+  @Prop({ type: [MongoSchema.Types.ObjectId], ref: 'ParticipantForm' })
+  applicants: ParticipantForm[];
 
-  @Prop({ type: [MongoSchema.Types.ObjectId], ref: 'OwnerForm' })
-  owners: OwnerForm[];
+  @Prop({ type: [MongoSchema.Types.ObjectId], ref: 'ParticipantForm' })
+  owners: ParticipantForm[];
 }
 
 @Schema()

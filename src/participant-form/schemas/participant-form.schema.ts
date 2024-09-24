@@ -1,8 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-export type ApplicantFormDocument = ApplicantForm & Document;
-export type OwnerFormDocument = OwnerForm & Document;
+export type ParticipantFormDocument = ParticipantForm & Document;
 
 enum AddressTypeEnum {
   BUSINESS = 'business',
@@ -13,24 +12,6 @@ enum AddressTypeEnum {
 class BeneficialOwner {
   @Prop()
   isParentOrGuard: boolean;
-}
-
-@Schema({ _id: false })
-class Image {
-  @Prop()
-  blobId: string;
-
-  @Prop()
-  blobUrl: string;
-
-  @Prop()
-  fileName: string;
-
-  @Prop()
-  size: number;
-
-  @Prop()
-  format: string;
 }
 
 @Schema({ _id: false })
@@ -65,8 +46,8 @@ class PersonalInformation {
 
 @Schema({ _id: false })
 class CurrentAddress {
-  @Prop({ enum: AddressTypeEnum, required: false })
-  type: AddressTypeEnum;
+  @Prop({ required: false })
+  type: string;
 
   @Prop()
   address: string;
@@ -105,7 +86,7 @@ class IdentificationAndJurisdiction {
   otherLocalOrTribalDesc: string;
 
   @Prop()
-  docImg: Image;
+  docImg: string;
 }
 
 @Schema({ _id: false })
@@ -115,12 +96,18 @@ class ExemptEntity {
 }
 
 @Schema({ timestamps: true })
-export class ApplicantForm {
-  @Prop()
+export class ParticipantForm {
+  @Prop({ required: false })
   applicant: ExistingCompanyApplicant;
 
+  @Prop({ required: false })
+  exemptEntity: ExemptEntity;
+
   @Prop()
-  applicantFinCENID: FinCENID;
+  beneficialOwner: BeneficialOwner;
+
+  @Prop()
+  finCENID: FinCENID;
 
   @Prop()
   personalInfo: PersonalInformation;
@@ -132,26 +119,5 @@ export class ApplicantForm {
   identificationDetails: IdentificationAndJurisdiction;
 }
 
-@Schema({ timestamps: true })
-export class OwnerForm {
-  @Prop()
-  beneficialOwner: BeneficialOwner;
-
-  @Prop()
-  ownerFinCENID: FinCENID;
-
-  @Prop()
-  exemptEntity: ExemptEntity;
-
-  @Prop()
-  personalInfo: PersonalInformation;
-
-  @Prop()
-  residentialAddress: CurrentAddress;
-
-  @Prop()
-  identificationDetails: IdentificationAndJurisdiction;
-}
-
-export const OwnerFormSchema = SchemaFactory.createForClass(OwnerForm);
-export const ApplicantFormSchema = SchemaFactory.createForClass(ApplicantForm);
+export const ParticipantFormSchema =
+  SchemaFactory.createForClass(ParticipantForm);

@@ -52,6 +52,13 @@ class PersonalInformationDto {
   dateOfBirth?: Date;
 }
 
+class BeneficialOwnerDto {
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsBoolean()
+  isParentOrGuard?: boolean;
+}
+
 // Enum for Address Type
 enum AddressTypeEnum {
   BUSINESS = 'business',
@@ -91,34 +98,6 @@ class CurrentAddressDto {
   postalCode?: string;
 }
 
-// DTO for Image
-class ImageDto {
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  blobId?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  blobUrl?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  fileName?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsNumber()
-  size?: number;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  format?: string;
-}
-
 // DTO for Identification and Jurisdiction
 class IdentificationAndJurisdictionDto {
   @ApiProperty({ required: false })
@@ -153,18 +132,34 @@ class IdentificationAndJurisdictionDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  docImg?: ImageDto;
+  docImg?: string;
+}
+
+// DTO for Exempt Entity
+class ExemptEntityDto {
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsBoolean()
+  isExemptEntity?: boolean;
 }
 
 // DTO for ApplicantForm
-export class CreateApplicantFormDto {
+export class CreateParticipantFormDto {
   @ApiProperty({ required: false })
   @IsOptional()
   applicant?: ExistingCompanyApplicantDto;
 
   @ApiProperty({ required: false })
   @IsOptional()
-  applicantFinCENID?: FinCENIDDto;
+  beneficialOwner?: BeneficialOwnerDto;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  finCENID?: FinCENIDDto;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  exemptEntity?: ExemptEntityDto;
 
   @ApiProperty({ required: false })
   @IsOptional()

@@ -1,6 +1,6 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginDto, SendEmailBodyDto } from './dtos/auth.dto';
+import { LoginDto, SendEmailBodyDto, SendEmailDto } from './dtos/auth.dto';
 import {
   ApiBody,
   ApiNotFoundResponse,
@@ -14,13 +14,13 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('email')
-  @ApiBody({ type: SendEmailBodyDto })
+  @ApiBody({ type: SendEmailDto })
   @ApiOkResponse({ description: ResponseMessages.otpWasSent.message })
   @ApiNotFoundResponse({
     description: ErrorMessages.UserWithEnteredEmailNotFound.message,
   })
-  async sendValidateEmail(@Body() body: SendEmailBodyDto) {
-    return this.authService.sendValidationEmail(body);
+  async sendValidateEmail(@Body() body: SendEmailDto) {
+    return this.authService.sendValidationEmail(body.email);
   }
 
   @Post('login')

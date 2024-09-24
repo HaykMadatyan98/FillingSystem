@@ -38,4 +38,31 @@ export class MailService {
       // write error exception and add in future the part where information will be saved in db
     }
   }
+
+  async sendEmailToParticipants(emails) {
+    const emailPromises = emails.map(async ({ email }) => {
+      try {
+        const templatePath = path.join(
+          path.resolve(),
+          '/src/mail/templates/participantEmail.hbs', // path to participant Email hbs file
+        );
+
+        const template = fs.readFileSync(templatePath, 'utf-8');
+        const compiledFile = Handlebars.compile(template);
+        const htmlContent = compiledFile({}); // the data which need to add in handlebars file
+
+        const mail: SendGrid.MailDataRequired = {
+          to: email,
+          from: this.emailFrom,
+          subject: 'Participant Mails', // change 
+          html: htmlContent,
+        };
+
+        await SendGrid.send(mail);
+      } catch (error) {
+        // catch error and save data into db
+      }
+      await Promise.all(emailPromises);
+    });
+  }
 }
