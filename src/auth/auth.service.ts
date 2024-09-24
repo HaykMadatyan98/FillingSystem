@@ -3,6 +3,8 @@ import * as jwt from 'jsonwebtoken';
 import { MailService } from '@/mail/mail.service';
 import { UserService } from '@/user/user.service';
 import { ExpirationTimes } from '../constants';
+import { SendEmailDto } from './dtos/auth.dto';
+import moment from 'moment';
 
 @Injectable()
 export class AuthService {
@@ -14,11 +16,13 @@ export class AuthService {
     private userService: UserService,
   ) {}
 
-  async sendValidationEmail({ email }) {
-    const oneTimePass = Math.floor(100000 + Math.random() * 900000);
+  async sendValidationEmail(emails: SendEmailDto[]) {
+    emails.forEach(async ({ email }) => {
+      const oneTimePass = Math.floor(100000 + Math.random() * 900000);
 
-    await this.userService.changeUserOtp(email, oneTimePass);
-    this.mailerService.sendOTPtoEmail(oneTimePass, email);
+      await this.userService.changeUserOtp(email, oneTimePass);
+      this.mailerService.sendOTPtoEmail(oneTimePass, email);
+    });
 
     return { message: 'successfully sended' };
   }
@@ -26,7 +30,11 @@ export class AuthService {
   async login(email: string, oneTimePass: number): Promise<any> {
     const user = await this.userService.getUserByEmail(email);
 
-    if (!user || user.oneTimePass !== oneTimePass) {
+    if (
+      !user ||
+      user.oneTimePass !== oneTimePass ||
+      moment(user.oneTimeExpiration).isBefore(moment())
+    ) {
       throw new Error('Invalid credentials');
     }
 

@@ -22,6 +22,9 @@ export class User {
   @Prop({ default: null })
   oneTimePass: number | null;
 
+  @Prop({ default: null })
+  oneTimeExpiration: string | null;
+
   @Prop({})
   companies: [];
 }

@@ -19,7 +19,7 @@ export class AuthController {
   @ApiNotFoundResponse({
     description: ErrorMessages.UserWithEnteredEmailNotFound.message,
   })
-  async sendValidateEmail(@Body() body: SendEmailDto) {
+  async sendValidateEmail(@Body() body: SendEmailDto[]) {
     return this.authService.sendValidationEmail(body);
   }
 

@@ -5,6 +5,7 @@ import { User, UserDocument } from './schema/user.schema';
 import { CreateUserDto } from './dtos/user.dto';
 import { CustomNotFoundException } from '@/exceptions/not-found.exception';
 import { ErrorMessages } from '@/constants/error-messages';
+import moment from 'moment';
 
 @Injectable()
 export class UserService {
@@ -30,6 +31,7 @@ export class UserService {
     }
 
     user.oneTimePass = oneTimePass;
+    user.oneTimeExpiration = moment().add(1, 'hour').toString();
     await user.save();
   }
 
