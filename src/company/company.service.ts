@@ -5,8 +5,6 @@ import { Model } from 'mongoose';
 import * as csvParser from 'csv-parser';
 import * as Stream from 'stream';
 import { CompanyFormService } from '@/company-form/company-form.service';
-import { CustomException } from '@/exceptions/custom-exception';
-import { CustomNotFoundException } from '@/exceptions/not-found.exception';
 // import { sanitizeData } from '@/utils/sanitizer.util';
 import { ParticipantFormService } from '@/participant-form/participant-form.service';
 import { sanitizeData } from '@/utils/sanitizer.util';
@@ -63,6 +61,7 @@ export class CompanyService {
         ),
       );
       participantsData.forEach((participant) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         participant[0]
           ? applicantsIds.push(participant[1])
           : ownersIds.push(participant[1]);

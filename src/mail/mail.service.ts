@@ -54,12 +54,13 @@ export class MailService {
         const mail: SendGrid.MailDataRequired = {
           to: email,
           from: this.emailFrom,
-          subject: 'Participant Mails', // change 
+          subject: 'Participant Mails', // change
           html: htmlContent,
         };
 
         await SendGrid.send(mail);
       } catch (error) {
+        console.log(error);
         // catch error and save data into db
       }
       await Promise.all(emailPromises);

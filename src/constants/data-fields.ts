@@ -6,7 +6,7 @@ export enum CompanyData {
   ['Company Tax Id Type'] = 'taxInfo.taxIdType',
   ['Company Tax Id Number'] = 'taxInfo.taxIdNumber',
   ['Company Country/Jurisdiction'] = 'taxInfo.countryOrJurisdiction',
-  ['Company Country/Jurisdioction of Formation'] = 'formationJurisdiction.countryOrJurisdictionOfFormation',
+  ['Company Country/Jurisdiction of Formation'] = 'formationJurisdiction.countryOrJurisdictionOfFormation',
   ['Company Address'] = 'address.address',
   ['Company City'] = 'address.city',
   ['US or Territory'] = 'address.usOrUsTerritory',

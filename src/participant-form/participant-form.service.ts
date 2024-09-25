@@ -28,11 +28,11 @@ export class ParticipantFormService {
   }
 
   async changeParticipantForm(participantData: any, participantFormId: any) {
-    let participant =
+    const participant =
       await this.participantFormModel.findById(participantFormId);
 
     const updateDataKeys = Object.keys(participantData);
-    for (let i of updateDataKeys) {
+    for (const i of updateDataKeys) {
       participant[i] = { ...participant[i], ...participantData[i] };
     }
 
@@ -41,7 +41,7 @@ export class ParticipantFormService {
   }
 
   async findParticipantFormByDocNum(docNum: string) {
-    let participantForm = await this.participantFormModel.findOne({
+    const participantForm = await this.participantFormModel.findOne({
       ['identificationDetails.docNum']: docNum,
     });
 

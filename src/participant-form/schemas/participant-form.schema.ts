@@ -3,10 +3,10 @@ import { Document } from 'mongoose';
 
 export type ParticipantFormDocument = ParticipantForm & Document;
 
-enum AddressTypeEnum {
-  BUSINESS = 'business',
-  RESIDENTIAL = 'residential',
-}
+// enum AddressTypeEnum {
+//   BUSINESS = 'business',
+//   RESIDENTIAL = 'residential',
+// }
 
 @Schema({ _id: false })
 class BeneficialOwner {

@@ -5,7 +5,6 @@ import {
   IsOptional,
   IsString,
   IsEnum,
-  IsNumber,
 } from 'class-validator';
 
 // DTO for Existing Company Applicant

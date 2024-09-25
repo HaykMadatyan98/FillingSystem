@@ -3,7 +3,6 @@ import * as jwt from 'jsonwebtoken';
 import { MailService } from '@/mail/mail.service';
 import { UserService } from '@/user/user.service';
 import { ExpirationTimes } from '../constants';
-import { SendEmailBodyDto, SendEmailDto } from './dtos/auth.dto';
 import moment from 'moment';
 
 @Injectable()

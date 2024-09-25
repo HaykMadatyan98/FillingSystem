@@ -1,7 +1,6 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { ParticipantFormService } from './participant-form.service';
 import { ApiTags } from '@nestjs/swagger';
-import { CreateParticipantFormDto } from './dtos/participant-form.dto';
 
 @ApiTags('form')
 @Controller('form')

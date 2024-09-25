@@ -39,10 +39,10 @@ export class CompanyFormService {
 
   // add interface
   async updateCompanyFormFromCsv(companyFormData: any, companyFormDataId: any) {
-    let companyData = await this.companyFormModel.findById(companyFormDataId);
+    const companyData = await this.companyFormModel.findById(companyFormDataId);
 
     const updateDataKeys = Object.keys(companyFormData);
-    for (let i of updateDataKeys) {
+    for (const i of updateDataKeys) {
       companyData[i] = { ...companyData[i], ...companyFormData[i] };
     }
 
