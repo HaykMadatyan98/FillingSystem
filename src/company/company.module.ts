@@ -14,5 +14,6 @@ import { ParticipantFormModule } from '@/participant-form/participant-form.modul
   ],
   providers: [CompanyService],
   controllers: [CompanyController],
+  exports: [CompanyService],
 })
 export class CompanyModule {}

@@ -23,7 +23,10 @@ export class Company {
   name: string;
 
   @Prop({ default: 0 })
-  answerCount: number;
+  answersCount: number;
+
+  @Prop({ default: 0 })
+  reqFieldsCount: number;
 
   @Prop({ default: () => new Date(Date.now() + 24 * 60 * 60 * 1000) })
   expTime: Date;

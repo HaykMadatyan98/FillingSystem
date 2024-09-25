@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Company, CompanyDocument } from './schemas/company.schema';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import * as csvParser from 'csv-parser';
 import * as Stream from 'stream';
 import { CompanyFormService } from '@/company-form/company-form.service';
 // import { sanitizeData } from '@/utils/sanitizer.util';
 import { ParticipantFormService } from '@/participant-form/participant-form.service';
 import { sanitizeData } from '@/utils/sanitizer.util';
+import { calculateTotalFieldsForCompany } from '@/utils/req-field.util';
 
 @Injectable()
 export class CompanyService {
@@ -26,7 +27,6 @@ export class CompanyService {
       bufferStream
         .pipe(csvParser({ separator: ',', quote: '"' }))
         .on('data', (data) => {
-          // console.log(data, 'data');
           results.push(data);
         })
         .on('end', () => resolve(results))
@@ -80,17 +80,74 @@ export class CompanyService {
         companyFormId,
       );
 
-      // const changeApplicant = await Promise.all(sanitizedData.participants.map((participant) => {
-      //   const existParticipant = this.participantFormService.findParticipantFormByDocNum(participant.identificationDetails.docNumber)
+      await Promise.all(
+        sanitizedData.participants.map(async (participant) => {
+          const existParticipant =
+            await this.participantFormService.findParticipantFormByDocNumAndIds(
+              participant.identificationDetails.docNumber,
+              [...company.forms.owners, ...company.forms.applicants],
+            );
 
-      //   if (existParticipant) {
-      //     // change and save
-      //     // existParticipant.save()
-      //   } else {
-      //     // create new
-      //   }
-
-      // }))
+          if (existParticipant) {
+            if (
+              company.forms.applicants.includes(existParticipant['id']) ||
+              company.forms.owners.includes(existParticipant['id'])
+            ) {
+              await this.participantFormService.changeParticipantForm(
+                participant,
+                existParticipant['id'],
+              );
+            } else {
+              const newParticipant =
+                await this.participantFormService.createParticipantFormFromCsv(
+                  participant,
+                );
+              newParticipant[0]
+                ? company.forms.applicants.push(newParticipant[1])
+                : company.forms.owners.push(newParticipant[1]);
+            }
+          } else {
+            const newParticipant =
+              await this.participantFormService.createParticipantFormFromCsv(
+                participant,
+              );
+            newParticipant[0]
+              ? company.forms.applicants.push(newParticipant[1])
+              : company.forms.owners.push(newParticipant[1]);
+          }
+        }),
+      );
+      await company.save();
+      await this.calculateRequireFieldsCount(company[`id`] as string);
     }
+  }
+
+  async calculateRequireFieldsCount(companyId: string) {
+    let company = await this.companyModel
+      .findById(companyId)
+      .select('-expTime -createdAt -updatedAt')
+      .populate({
+        path: 'forms.company forms.applicants forms.owners',
+        select:
+          '-_id -__v -repCompanyInfo -createdAt -updatedAt -personalInfo.suffix -personalInfo.middleName -applicant -beneficialOwner -exemptEntity',
+      })
+      .lean();
+
+    const count = await calculateTotalFieldsForCompany(company);
+    await this.companyModel.findOneAndUpdate(
+      { _id: companyId },
+      { answersCount: count[0], reqFieldsCount: count[1] },
+      { new: true },
+    );
+    return company;
+  }
+
+  async getCompaniesByIds(companyIds: string[]) {
+    const companies = await this.companyModel.find({
+      _id: { $in: companyIds.map((id) => new mongoose.Types.ObjectId(id)) },
+    });
+    // .select('-forms');
+
+    return companies;
   }
 }

@@ -7,7 +7,13 @@ import {
   Body,
   Param,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiParam,
+} from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { User } from './schema/user.schema';
 import { CreateUserDto } from './dtos/user.dto';
@@ -64,5 +70,50 @@ export class UserController {
   })
   async remove(@Param('id') id: string): Promise<void> {
     return this.userService.remove(id);
+  }
+
+  @Post('company/:id')
+  @ApiOperation({ summary: 'add company(or companies) to user' })
+  @ApiResponse({
+    status: 200,
+    description: 'succesfully added',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'The unique identifier (ID) for the user',
+    type: String,
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        companyIds: {
+          type: 'array',
+          items: {
+            type: 'string',
+            description: 'The unique identifier (ID) for the entity',
+          },
+          description: 'Array of unique identifiers for companies',
+        },
+      },
+      required: ['companyIds'],
+    },
+  })
+  async addCompaniesToUser(
+    @Param('id') userId: string,
+    @Body() body: { companyIds: string[] },
+  ) {
+    await this.userService.addCompaniesToUser(userId, body.companyIds);
+  }
+
+  @Get('user/:id')
+  @ApiParam({
+    name: 'id',
+    description: 'The unique identifier (ID) for the user',
+    type: String,
+  })
+  @ApiOperation({ summary: 'get user company data' })
+  async getUserCompanyData(@Param('id') userId: string) {
+    return this.userService.getUserCompanyData(userId);
   }
 }

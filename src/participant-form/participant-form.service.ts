@@ -33,7 +33,9 @@ export class ParticipantFormService {
 
     const updateDataKeys = Object.keys(participantData);
     for (const i of updateDataKeys) {
-      participant[i] = { ...participant[i], ...participantData[i] };
+      if (i !== 'isApplicant') {
+        participant[i] = { ...participant[i], ...participantData[i] };
+      }
     }
 
     await participant.save();
@@ -42,7 +44,16 @@ export class ParticipantFormService {
 
   async findParticipantFormByDocNum(docNum: string) {
     const participantForm = await this.participantFormModel.findOne({
-      ['identificationDetails.docNum']: docNum,
+      ['identificationDetails.docNumber']: docNum,
+    });
+
+    return participantForm;
+  }
+
+  async findParticipantFormByDocNumAndIds(docNum: string, ids: any) {
+    const participantForm = await this.participantFormModel.findOne({
+      'identificationDetails.docNumber': docNum,
+      _id: { $in: ids },
     });
 
     return participantForm;

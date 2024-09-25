@@ -1,8 +1,10 @@
 import {
+  Body,
   Controller,
   Delete,
   FileTypeValidator,
   Get,
+  Param,
   ParseFilePipe,
   Patch,
   Post,
@@ -12,7 +14,13 @@ import {
 import { CompanyService } from './company.service';
 // import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 
 @ApiTags('company')
 @Controller('company')

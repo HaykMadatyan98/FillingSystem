@@ -6,10 +6,14 @@ import { CreateUserDto } from './dtos/user.dto';
 import { CustomNotFoundException } from '@/exceptions/not-found.exception';
 import { ErrorMessages } from '@/constants/error-messages';
 import * as moment from 'moment';
+import { CompanyService } from '@/company/company.service';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private readonly companyService: CompanyService,
+  ) {}
 
   async create(createUserDto: CreateUserDto): Promise<{ message: string }> {
     const createdUser = new this.userModel(createUserDto);
@@ -55,5 +59,23 @@ export class UserService {
 
   async remove(id: string): Promise<void> {
     await this.userModel.findByIdAndDelete(id).exec();
+  }
+
+  async addCompaniesToUser(userId: string, companyIds: string[]) {
+    await this.userModel.findOneAndUpdate(
+      { _id: userId },
+      { $addToSet: { companies: { $each: companyIds } } },
+      { new: true },
+    );
+  }
+
+  // add exceptions
+  async getUserCompanyData(userId: string) {
+    const user = await this.userModel.findById(userId, {
+      companies: 1,
+      _id: 0,
+    });
+
+    return await this.companyService.getCompaniesByIds(user.companies);
   }
 }
