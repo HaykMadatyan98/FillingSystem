@@ -7,7 +7,8 @@ import * as Stream from 'stream';
 import { CompanyFormService } from '@/company-form/company-form.service';
 import { ParticipantFormService } from '@/participant-form/participant-form.service';
 import { sanitizeData } from '@/utils/sanitizer.util';
-import { calculateTotalFieldsForCompany } from '@/utils/req-field.util';
+import { companyResponseMsgs } from './constants';
+// import { calculateTotalFieldsForCompany } from '@/utils/req-field.util';
 
 @Injectable()
 export class CompanyService {
@@ -33,6 +34,8 @@ export class CompanyService {
     });
 
     await Promise.all(results.map((row) => this.changeCompanyData(row)));
+
+    return companyResponseMsgs.csvUploadSuccesfull;
   }
 
   async changeCompanyData(row) {
@@ -40,9 +43,11 @@ export class CompanyService {
       row['Tax ID Number'],
     );
 
-    let company = await this.companyModel.findOne({
-      'forms.company': companyFormId,
-    });
+    let company =
+      companyFormId &&
+      (await this.companyModel.findOne({
+        'forms.company': companyFormId,
+      }));
 
     const sanitizedData = await sanitizeData(row);
 
@@ -51,8 +56,10 @@ export class CompanyService {
         await this.companyFormService.createCompanyFormFromCsv(
           sanitizedData.company,
         );
+
       const ownersIds = [];
       const applicantsIds = [];
+      let answerCount = companyForm.answerCount;
 
       const participantsData = await Promise.all(
         sanitizedData.participants.map((participant) =>
@@ -61,23 +68,36 @@ export class CompanyService {
       );
       participantsData.forEach((participant) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+
         participant[0]
           ? applicantsIds.push(participant[1])
           : ownersIds.push(participant[1]);
+
+        answerCount += participant[2];
       });
 
       company = new this.companyModel({
         ['forms.company']: companyForm.id,
         ['forms.applicants']: applicantsIds,
         ['forms.owners']: ownersIds,
-        name: sanitizedData.company.names.legalName,
+        name: companyForm.companyName,
       });
+
+      company.answersCount = answerCount;
+      company.reqFieldsCount =
+        company.forms.applicants.length * 15 +
+        company.forms.owners.length * 11 +
+        9;
+
       await company.save();
     } else {
-      await this.companyFormService.updateCompanyFormFromCsv(
-        sanitizedData.company,
-        companyFormId,
-      );
+      const updatedCompanyForm =
+        await this.companyFormService.updateCompanyFormFromCsv(
+          sanitizedData.company,
+          companyFormId,
+        );
+
+      company.answersCount += updatedCompanyForm.answerCountDiff;
 
       await Promise.all(
         sanitizedData.participants.map(async (participant) => {
@@ -88,24 +108,14 @@ export class CompanyService {
             );
 
           if (existParticipant) {
-            if (
-              company.forms.applicants.includes(existParticipant['id']) ||
-              company.forms.owners.includes(existParticipant['id'])
-            ) {
+            const changedParticipant =
               await this.participantFormService.changeParticipantForm(
                 participant,
                 existParticipant['id'],
+                participant['isApplicant'] === 'true' ? true : false,
               );
-            } else {
-              const newParticipant =
-                await this.participantFormService.createParticipantFormFromCsv(
-                  participant,
-                );
-              // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-              newParticipant[0]
-                ? company.forms.applicants.push(newParticipant[1])
-                : company.forms.owners.push(newParticipant[1]);
-            }
+
+            company.answersCount += changedParticipant.answerCountDifference;
           } else {
             const newParticipant =
               await this.participantFormService.createParticipantFormFromCsv(
@@ -115,32 +125,19 @@ export class CompanyService {
             newParticipant[0]
               ? company.forms.applicants.push(newParticipant[1])
               : company.forms.owners.push(newParticipant[1]);
+
+            company.answersCount += newParticipant[2];
           }
+
+          company.reqFieldsCount =
+            company.forms.applicants.length * 15 +
+            company.forms.owners.length * 11 +
+            9;
+
+          await company.save();
         }),
       );
-      await company.save();
-      await this.calculateRequireFieldsCount(company[`id`] as string);
     }
-  }
-
-  async calculateRequireFieldsCount(companyId: string) {
-    const company = await this.companyModel
-      .findById(companyId)
-      .select('-expTime -createdAt -updatedAt')
-      .populate({
-        path: 'forms.company forms.applicants forms.owners',
-        select:
-          '-_id -__v -repCompanyInfo -createdAt -updatedAt -personalInfo.suffix -personalInfo.middleName -applicant -beneficialOwner -exemptEntity',
-      })
-      .lean();
-
-    const count = await calculateTotalFieldsForCompany(company);
-    await this.companyModel.findOneAndUpdate(
-      { _id: companyId },
-      { answersCount: count[0], reqFieldsCount: count[1] },
-      { new: true },
-    );
-    return company;
   }
 
   async getCompaniesByIds(companyIds: string[]) {

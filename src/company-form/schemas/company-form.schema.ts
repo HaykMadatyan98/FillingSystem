@@ -27,7 +27,7 @@ class TaxInformation {
   taxIdType: string;
 
   @Prop({ required: true })
-  taxIdNumber: number;
+  taxIdNumber: string;
 
   @Prop()
   countryOrJurisdiction: string;

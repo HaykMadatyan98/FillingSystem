@@ -5,6 +5,11 @@ import {
   ParticipantForm,
   ParticipantFormDocument,
 } from './schemas/participant-form.schema';
+import { calculateRequiredFieldsCount } from '@/utils/req-field.util';
+import {
+  requiredApplicantFields,
+  requiredOwnerFields,
+} from '@/company/constants';
 
 @Injectable()
 export class ParticipantFormService {
@@ -24,12 +29,27 @@ export class ParticipantFormService {
     const participant = new this.participantFormModel(companyParticipantData);
 
     await participant.save();
-    return isApplicant ? [true, participant.id] : [false, participant.id];
+
+    const requiredFieldsCount = await calculateRequiredFieldsCount(
+      participant,
+      isApplicant ? requiredApplicantFields : requiredOwnerFields,
+    );
+
+    return [isApplicant, participant.id, requiredFieldsCount];
   }
 
-  async changeParticipantForm(participantData: any, participantFormId: any) {
+  async changeParticipantForm(
+    participantData: any,
+    participantFormId: any,
+    isApplicant: boolean,
+  ) {
     const participant =
       await this.participantFormModel.findById(participantFormId);
+
+    const requiredFieldsCountBefore = await calculateRequiredFieldsCount(
+      participant,
+      isApplicant ? requiredApplicantFields : requiredOwnerFields,
+    );
 
     const updateDataKeys = Object.keys(participantData);
     for (const i of updateDataKeys) {
@@ -38,8 +58,17 @@ export class ParticipantFormService {
       }
     }
 
+    const requiredFieldsCountAfter = await calculateRequiredFieldsCount(
+      participant,
+      isApplicant ? requiredApplicantFields : requiredOwnerFields,
+    );
+
     await participant.save();
-    return { id: participant._id };
+    return {
+      id: participant._id,
+      answerCountDifference:
+        requiredFieldsCountBefore - requiredFieldsCountAfter,
+    };
   }
 
   async findParticipantFormByDocNumAndIds(docNum: string, ids: any) {

@@ -43,8 +43,12 @@ export class Company {
   @Prop({ type: Forms })
   forms: Forms;
 
-  @Prop({ default: [], type: MongoSchema.Types.ObjectId, ref: 'User' })
-  users: User[];
+  @Prop({
+    type: MongoSchema.Types.ObjectId,
+    ref: 'User',
+    required: false,
+  })
+  user: User;
 }
 
 export const CompanySchema = SchemaFactory.createForClass(Company);
