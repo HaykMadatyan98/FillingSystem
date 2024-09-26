@@ -11,6 +11,6 @@ export const companyResponseMsgs: Record<string, IResponseMessage> = {
     message: 'One-time password sent.',
   },
   accountCreated: {
-    message: 'Account succesfully created',
+    message: 'Account successfully created',
   },
 };

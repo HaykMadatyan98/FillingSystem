@@ -101,6 +101,7 @@ export class CompanyService {
                 await this.participantFormService.createParticipantFormFromCsv(
                   participant,
                 );
+              // eslint-disable-next-line @typescript-eslint/no-unused-expressions
               newParticipant[0]
                 ? company.forms.applicants.push(newParticipant[1])
                 : company.forms.owners.push(newParticipant[1]);
@@ -110,6 +111,7 @@ export class CompanyService {
               await this.participantFormService.createParticipantFormFromCsv(
                 participant,
               );
+            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             newParticipant[0]
               ? company.forms.applicants.push(newParticipant[1])
               : company.forms.owners.push(newParticipant[1]);
@@ -122,7 +124,7 @@ export class CompanyService {
   }
 
   async calculateRequireFieldsCount(companyId: string) {
-    let company = await this.companyModel
+    const company = await this.companyModel
       .findById(companyId)
       .select('-expTime -createdAt -updatedAt')
       .populate({
@@ -151,10 +153,12 @@ export class CompanyService {
   }
 
   async createNewCompany(payload: any) {
+    console.log(payload);
     throw new NotImplementedException('not implemented yet');
   }
 
   async deleteCompanyById(companyId: string) {
+    console.log(companyId);
     throw new NotImplementedException('not implemented yet');
   }
 }

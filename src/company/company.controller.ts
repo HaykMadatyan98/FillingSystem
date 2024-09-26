@@ -8,20 +8,13 @@ import {
   ParseFilePipe,
   Post,
   UploadedFile,
-  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { CompanyService } from './company.service';
 // import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
-import {
-  ApiBody,
-  ApiConsumes,
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-} from '@nestjs/swagger';
-import { RolesGuard } from '@/auth/guards/role.guard';
+import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+// import { RolesGuard } from '@/auth/guards/role.guard';
 
 @ApiTags('company')
 @Controller('company')

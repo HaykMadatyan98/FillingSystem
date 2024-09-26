@@ -1,8 +1,4 @@
-import {
-  HttpException,
-  Injectable,
-  NotImplementedException,
-} from '@nestjs/common';
+import { Injectable, NotImplementedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
@@ -57,10 +53,13 @@ export class CompanyFormService {
   }
 
   async getCompanyFormById(companyFormId: string) {
+    console.log(companyFormId);
     throw new NotImplementedException('Not implemented yet');
   }
 
-  async changeCompanyFormById(companyFormid: string, payload: any) {
+  async changeCompanyFormById(companyFormId: string, payload: any) {
+    console.log(companyFormId, payload);
+
     throw new NotImplementedException('Not implemented yet');
   }
 }

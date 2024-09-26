@@ -5,6 +5,6 @@ export interface IResponseMessage {
 
 export const userResponseMsgs: Record<string, IResponseMessage> = {
   accountCreated: {
-    message: 'Account succesfully created',
+    message: 'Account successfully created',
   },
 };

@@ -56,10 +56,12 @@ export class ParticipantFormService {
   }
 
   async getParticipantFormById(participantFormId: string) {
+    console.log(participantFormId);
     throw new NotImplementedException('not implemented yet');
   }
 
   async deleteParticipantFormById(participantFormId: string) {
+    console.log(participantFormId);
     throw new NotImplementedException('not implemented yet');
   }
 }

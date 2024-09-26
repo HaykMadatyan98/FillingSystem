@@ -76,7 +76,7 @@ export class UserController {
   @ApiOperation({ summary: 'add company(or companies) to user' })
   @ApiResponse({
     status: 200,
-    description: 'succesfully added',
+    description: 'successfully added',
   })
   @ApiParam({
     name: 'id',

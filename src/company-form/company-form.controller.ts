@@ -1,6 +1,6 @@
-import { Controller, Post, Body, Patch, Get, Param } from '@nestjs/common';
+import { Controller, Body, Patch, Get, Param } from '@nestjs/common';
 import { CompanyFormService } from './company-form.service';
-import { CompanyFormDto } from './dtos/company-form.dto';
+// import { CompanyFormDto } from './dtos/company-form.dto';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('form')
@@ -20,6 +20,6 @@ export class CompanyFormController {
   // get
   @Get('/company/:id')
   async getCompanyFormById(@Param('companyFormId') companyFormId: string) {
-    return this.companyFormService.getCompanyFormById(companyFormId)
+    return this.companyFormService.getCompanyFormById(companyFormId);
   }
 }
