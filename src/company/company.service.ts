@@ -1,11 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotImplementedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Company, CompanyDocument } from './schemas/company.schema';
 import mongoose, { Model } from 'mongoose';
 import * as csvParser from 'csv-parser';
 import * as Stream from 'stream';
 import { CompanyFormService } from '@/company-form/company-form.service';
-// import { sanitizeData } from '@/utils/sanitizer.util';
 import { ParticipantFormService } from '@/participant-form/participant-form.service';
 import { sanitizeData } from '@/utils/sanitizer.util';
 import { calculateTotalFieldsForCompany } from '@/utils/req-field.util';
@@ -149,5 +148,13 @@ export class CompanyService {
     // .select('-forms');
 
     return companies;
+  }
+
+  async createNewCompany(payload: any) {
+    throw new NotImplementedException('not implemented yet');
+  }
+
+  async deleteCompanyById(companyId: string) {
+    throw new NotImplementedException('not implemented yet');
   }
 }

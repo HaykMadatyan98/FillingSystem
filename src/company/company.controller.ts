@@ -6,9 +6,9 @@ import {
   Get,
   Param,
   ParseFilePipe,
-  Patch,
   Post,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { CompanyService } from './company.service';
@@ -21,25 +21,28 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
+import { RolesGuard } from '@/auth/guards/role.guard';
 
 @ApiTags('company')
 @Controller('company')
 export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
 
-  // get all company data (admin)
   @Get()
+  // @UseGuards(RolesGuard)
   async getAllCompanies() {}
 
-  // get company by id
-  @Get(':id')
-  async getCompanyById() {}
+  @Get(':companyId')
+  async getCompanyById(@Param('companyId') companyId) {
+    return this.getCompanyById(companyId);
+  }
 
-  // create a company with unique params (admin)
   @Post()
-  async createNewCompany() {}
+  // @UseGuards(RolesGuard)
+  async createNewCompany(@Body() body: any) {
+    return this.companyService.createNewCompany(body);
+  }
 
-  // add uploaded csv data into db (admin)
   @Post('csv')
   //   @UseGuards(JwtAuthGuard, RolesGuard)
   @UseInterceptors(FileInterceptor('company'))
@@ -67,11 +70,9 @@ export class CompanyController {
     return this.companyService.addCsvDataIntoDb(companyFile);
   }
 
-  // change company data (admin)
-  @Patch()
-  async updateCompanyData() {}
-
-  // delete company data (admin)
-  @Delete()
-  async deleteCompany() {}
+  @Delete(':companyId')
+  // @UseGuards(RolesGuard)
+  async deleteCompany(@Param('companyId') companyId) {
+    return this.companyService.deleteCompanyById(companyId);
+  }
 }

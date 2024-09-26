@@ -7,7 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { ExceptionResponse } from './exceptions.interface';
+import { IExceptionResponse } from './interfaces/exceptions.interface';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
@@ -27,9 +27,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         ? exception.getResponse()
         : { message: 'Internal server error' };
 
-    const responseObject: ExceptionResponse =
+    const responseObject: IExceptionResponse =
       typeof exceptionResponse === 'object' && 'message' in exceptionResponse
-        ? (exceptionResponse as ExceptionResponse)
+        ? (exceptionResponse as IExceptionResponse)
         : { message: String(exceptionResponse) };
 
     this.logger.error(

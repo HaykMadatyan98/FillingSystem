@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from './schema/user.schema';
 import { CreateUserDto } from './dtos/user.dto';
-import { CustomNotFoundException } from '@/exceptions/not-found.exception';
-import { ErrorMessages } from '@/constants/error-messages';
 import * as moment from 'moment';
 import { CompanyService } from '@/company/company.service';
+import { errorMessages } from '@/exceptions/constants/error-messages';
+import { userResponseMsgs } from './constants';
 
 @Injectable()
 export class UserService {
@@ -19,7 +19,7 @@ export class UserService {
     const createdUser = new this.userModel(createUserDto);
     await createdUser.save();
 
-    return { message: 'account successfully created' };
+    return userResponseMsgs.accountCreated;
   }
 
   async changeUserOtp(
@@ -29,9 +29,7 @@ export class UserService {
     const user = await this.userModel.findOne({ email });
 
     if (!user) {
-      throw new CustomNotFoundException(
-        ErrorMessages.UserWithEnteredEmailNotFound,
-      );
+      throw new NotFoundException(errorMessages.userNotFound);
     }
 
     user.oneTimePass = oneTimePass;
@@ -71,10 +69,12 @@ export class UserService {
 
   // add exceptions
   async getUserCompanyData(userId: string) {
-    const user = await this.userModel.findById(userId, {
-      companies: 1,
-      _id: 0,
-    });
+    const user = await this.userModel
+      .findById(userId, {
+        companies: 1,
+        _id: 0,
+      })
+      .select('-companies.forms');
 
     return await this.companyService.getCompaniesByIds(user.companies);
   }

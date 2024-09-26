@@ -34,7 +34,7 @@ class TaxInformation {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  taxIdNumber?: string;
+  taxIdNumber?: number;
 
   // add regexp
   @ApiProperty({ required: false })
@@ -93,6 +93,56 @@ export class CompanyFormDto {
   @ApiProperty({ type: TaxInformation, required: false })
   @IsOptional()
   taxInfo?: TaxInformation;
+
+  @ApiProperty({ type: CompanyAddressDto, required: false })
+  @IsOptional()
+  address?: CompanyAddressDto;
+}
+
+class CreateLegalAndAltNamesDto {
+  @ApiProperty({ required: true })
+  @IsString()
+  legalName: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  altName?: string;
+}
+
+class CreateTaxInformation {
+  @ApiProperty({ required: true })
+  @IsOptional()
+  @IsString()
+  taxIdType: string;
+
+  @ApiProperty({ required: true })
+  @IsOptional()
+  @IsString()
+  taxIdNumber: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  countryOrJurisdiction?: string;
+}
+
+export class CreateCompanyFormDto {
+  @ApiProperty({ type: RepCompanyInfoDto, required: false })
+  @IsOptional()
+  repCompanyInfo?: RepCompanyInfoDto;
+
+  @ApiProperty({ type: LegalAndAltNamesDto })
+  @IsOptional()
+  names: CreateLegalAndAltNamesDto;
+
+  @ApiProperty({ type: JurisdictionOfFormationDto, required: false })
+  @IsOptional()
+  formationJurisdiction?: JurisdictionOfFormationDto;
+
+  @ApiProperty({ type: TaxInformation })
+  @IsOptional()
+  taxInfo: CreateTaxInformation;
 
   @ApiProperty({ type: CompanyAddressDto, required: false })
   @IsOptional()

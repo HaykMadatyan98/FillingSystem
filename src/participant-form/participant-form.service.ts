@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotImplementedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
@@ -42,14 +42,6 @@ export class ParticipantFormService {
     return { id: participant._id };
   }
 
-  async findParticipantFormByDocNum(docNum: string) {
-    const participantForm = await this.participantFormModel.findOne({
-      ['identificationDetails.docNumber']: docNum,
-    });
-
-    return participantForm;
-  }
-
   async findParticipantFormByDocNumAndIds(docNum: string, ids: any) {
     const participantForm = await this.participantFormModel.findOne({
       'identificationDetails.docNumber': docNum,
@@ -57,5 +49,17 @@ export class ParticipantFormService {
     });
 
     return participantForm;
+  }
+
+  async createParticipantForm() {
+    throw new NotImplementedException('not implemented yet');
+  }
+
+  async getParticipantFormById(participantFormId: string) {
+    throw new NotImplementedException('not implemented yet');
+  }
+
+  async deleteParticipantFormById(participantFormId: string) {
+    throw new NotImplementedException('not implemented yet');
   }
 }

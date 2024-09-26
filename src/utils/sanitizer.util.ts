@@ -1,4 +1,4 @@
-import { ParticipantData, CompanyData } from '@/constants/data-fields';
+import { ParticipantData, CompanyData } from '@/company/constants';
 
 export async function sanitizeData(
   data: Record<string, string>,

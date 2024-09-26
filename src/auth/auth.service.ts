@@ -1,9 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { MailService } from '@/mail/mail.service';
 import { UserService } from '@/user/user.service';
-import { ExpirationTimes } from '../constants';
 import moment from 'moment';
+import { errorMessages } from '@/exceptions/constants/error-messages';
+import {
+  authResponseMsgs,
+  IResponseMessage,
+  ExpirationTimes,
+  ILoginResponse,
+} from '@/auth/constants';
 
 @Injectable()
 export class AuthService {
@@ -15,15 +21,16 @@ export class AuthService {
     private userService: UserService,
   ) {}
 
-  async sendValidationEmail(email: string) {
+  async sendValidationEmail(email: string): Promise<IResponseMessage> {
     const oneTimePass = Math.floor(100000 + Math.random() * 900000);
     await this.userService.changeUserOtp(email, oneTimePass);
     await this.mailerService.sendOTPtoEmail(oneTimePass, email);
 
-    return { message: 'successfully sent' };
+    return authResponseMsgs.otpWasSent;
   }
 
-  async login(email: string, oneTimePass: number): Promise<any> {
+  // watch again
+  async login(email: string, oneTimePass: number): Promise<ILoginResponse> {
     const user = await this.userService.getUserByEmail(email);
 
     if (
@@ -31,7 +38,7 @@ export class AuthService {
       user.oneTimePass !== oneTimePass ||
       moment(user.oneTimeExpiration).isBefore(moment())
     ) {
-      throw new Error('Invalid credentials');
+      throw new NotFoundException({ ...errorMessages.WrongSendedEmailOrPass });
     }
 
     const accessToken = jwt.sign(
@@ -49,10 +56,10 @@ export class AuthService {
         expiresIn: ExpirationTimes.REFRESH_TOKEN,
       },
     );
-    // change
+
     return {
-      message: 'successfully signed in',
-      // id: user._id,
+      message: authResponseMsgs.successfulLogin.message,
+      userId: user['id'],
       accessToken: accessToken,
       refreshToken: refreshToken,
     };

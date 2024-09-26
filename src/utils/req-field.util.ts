@@ -2,7 +2,7 @@ import {
   requiredApplicantFields,
   requiredCompanyFields,
   requiredOwnerFields,
-} from '@/constants/required-data-fields';
+} from '@/company/constants/required-data-fields';
 
 export function calculateRequiredAndEnteredFieldsCount(
   data: any,

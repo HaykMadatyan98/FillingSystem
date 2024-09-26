@@ -14,9 +14,6 @@ async function bootstrap() {
     .setTitle('API')
     .setDescription('The API description')
     .setVersion('1.0')
-    .addTag('users')
-    .addTag('reporting-companies')
-    .addTag('company-applicants')
     .build();
   app.useGlobalFilters(new GlobalExceptionFilter());
   const document = SwaggerModule.createDocument(app, config);

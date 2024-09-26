@@ -14,7 +14,7 @@ class RepCompanyInfo {
 
 @Schema({ _id: false })
 class LegalAndAltNames {
-  @Prop()
+  @Prop({ required: true })
   legalName: string;
 
   @Prop()
@@ -23,11 +23,11 @@ class LegalAndAltNames {
 
 @Schema({ _id: false })
 class TaxInformation {
-  @Prop()
+  @Prop({ required: true })
   taxIdType: string;
 
-  @Prop()
-  taxIdNumber: string;
+  @Prop({ required: true })
+  taxIdNumber: number;
 
   @Prop()
   countryOrJurisdiction: string;
