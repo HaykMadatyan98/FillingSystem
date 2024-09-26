@@ -28,11 +28,14 @@ export class User {
   @Prop()
   companies: [];
 
-  // @Prop({ required: true })
-  // finCENID: string;
+  @Prop({ default: '' })
+  refreshToken: string;
 
-  // @Prop({ required: true })
-  // docNum: string;
+  @Prop()
+  firstName: string;
+
+  @Prop()
+  lastName: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

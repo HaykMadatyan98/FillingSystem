@@ -1,3 +1,4 @@
+import { requiredApplicantFieldsForBusiness } from './../company/constants/required-data-fields';
 import { Injectable, NotImplementedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -26,13 +27,30 @@ export class ParticipantFormService {
 
     delete companyParticipantData.isApplicant;
 
+    if (
+      isApplicant &&
+      companyParticipantData['address']['type'] === 'business'
+    ) {
+      const addressValues = Object.entries(companyParticipantData['address']);
+      addressValues.map(([key, value]) => {
+        if (key !== 'type') {
+          companyParticipantData['address']['business_' + key] = value;
+          delete companyParticipantData['address'][key];
+        }
+      });
+    }
+
     const participant = new this.participantFormModel(companyParticipantData);
 
     await participant.save();
 
     const requiredFieldsCount = await calculateRequiredFieldsCount(
       participant,
-      isApplicant ? requiredApplicantFields : requiredOwnerFields,
+      isApplicant
+        ? participant['address']['type'] === 'business'
+          ? requiredApplicantFieldsForBusiness
+          : requiredApplicantFields
+        : requiredOwnerFields,
     );
 
     return [isApplicant, participant.id, requiredFieldsCount];
@@ -48,19 +66,40 @@ export class ParticipantFormService {
 
     const requiredFieldsCountBefore = await calculateRequiredFieldsCount(
       participant,
-      isApplicant ? requiredApplicantFields : requiredOwnerFields,
+      isApplicant
+        ? participant['address']['type'] === 'business'
+          ? requiredApplicantFieldsForBusiness
+          : requiredApplicantFields
+        : requiredOwnerFields,
     );
-
     const updateDataKeys = Object.keys(participantData);
     for (const i of updateDataKeys) {
-      if (i !== 'isApplicant') {
+      if (
+        isApplicant &&
+        i === 'address' &&
+        participantData[i]['type'] === 'business'
+      ) {
+        const addressValues = Object.entries(participantData[i]);
+        const businessAdressData = addressValues.map(([key, value]) => {
+          if (key !== 'type') {
+            participant[i]['business_' + key] = value;
+            delete participant[i][key];
+          }
+        });
+
+        participant[i] = { ...participant[i], ...businessAdressData };
+      } else if (i !== 'isApplicant') {
         participant[i] = { ...participant[i], ...participantData[i] };
       }
     }
 
     const requiredFieldsCountAfter = await calculateRequiredFieldsCount(
       participant,
-      isApplicant ? requiredApplicantFields : requiredOwnerFields,
+      isApplicant
+        ? participant['address']['type'] === 'business'
+          ? requiredApplicantFieldsForBusiness
+          : requiredApplicantFields
+        : requiredOwnerFields,
     );
 
     await participant.save();

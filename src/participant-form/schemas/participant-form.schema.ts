@@ -63,6 +63,21 @@ class CurrentAddress {
 
   @Prop()
   postalCode: string;
+
+  @Prop({ required: false })
+  business_address: string;
+
+  @Prop({ required: false })
+  business_city: string;
+
+  @Prop({ required: false })
+  business_countryOrJurisdiction: string;
+
+  @Prop({ required: false })
+  business_state: string;
+
+  @Prop({ required: false })
+  business_postalCode: string;
 }
 
 @Schema({ _id: false })

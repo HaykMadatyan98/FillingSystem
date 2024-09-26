@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import * as SendGrid from '@sendgrid/mail';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { userVerificationTime } from '@/auth/constants';
 
 @Injectable()
 export class MailService {
@@ -14,16 +15,25 @@ export class MailService {
     this.emailFrom = process.env.SENDGRID_EMAIL_FROM;
   }
 
-  async sendOTPtoEmail(oneTimePass: number, email: string): Promise<void> {
+  async sendOTPtoEmail(
+    oneTimePass: number,
+    email: string,
+    userName: string,
+  ): Promise<void> {
     try {
       const templatePath = path.join(
         path.resolve(),
         '/src/mail/templates/oneTimePass.hbs',
       );
 
+      const verificationTime = `${userVerificationTime[0]} ${userVerificationTime[1]}`;
       const template = fs.readFileSync(templatePath, 'utf-8');
       const compiledFile = Handlebars.compile(template);
-      const htmlContent = compiledFile({ oneTimePass });
+      const htmlContent = compiledFile({
+        oneTimePass,
+        verificationTime,
+        userName,
+      });
 
       const mail: SendGrid.MailDataRequired = {
         to: email,

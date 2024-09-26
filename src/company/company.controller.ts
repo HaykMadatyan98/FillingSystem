@@ -8,13 +8,16 @@ import {
   ParseFilePipe,
   Post,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { CompanyService } from './company.service';
-// import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { AcessTokenGuard } from '@/auth/guards/access-token.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
-// import { RolesGuard } from '@/auth/guards/role.guard';
+import { Roles } from '@/auth/decorators/roles.decorator';
+import { Role } from '@/auth/constants';
+import { RolesGuard } from '@/auth/guards/role.guard';
 
 @ApiTags('company')
 @Controller('company')
@@ -22,7 +25,8 @@ export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
 
   @Get()
-  // @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   async getAllCompanies() {}
 
   @Get(':companyId')
@@ -31,13 +35,15 @@ export class CompanyController {
   }
 
   @Post()
-  // @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   async createNewCompany(@Body() body: any) {
     return this.companyService.createNewCompany(body);
   }
 
   @Post('csv')
-  //   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Admin)
+  @UseGuards(AcessTokenGuard, RolesGuard)
   @UseInterceptors(FileInterceptor('company'))
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -64,7 +70,8 @@ export class CompanyController {
   }
 
   @Delete(':companyId')
-  // @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   async deleteCompany(@Param('companyId') companyId) {
     return this.companyService.deleteCompanyById(companyId);
   }

@@ -3,10 +3,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from './schema/user.schema';
 import { CreateUserDto } from './dtos/user.dto';
-import * as moment from 'moment';
+import moment from 'moment';
 import { CompanyService } from '@/company/company.service';
 import { errorMessages } from '@/exceptions/constants/error-messages';
 import { userResponseMsgs } from './constants';
+import { userVerificationTime } from '@/auth/constants';
 
 @Injectable()
 export class UserService {
@@ -25,7 +26,7 @@ export class UserService {
   async changeUserOtp(
     email: string,
     oneTimePass: number | null,
-  ): Promise<void> {
+  ): Promise<string> {
     const user = await this.userModel.findOne({ email });
 
     if (!user) {
@@ -33,8 +34,12 @@ export class UserService {
     }
 
     user.oneTimePass = oneTimePass;
-    user.oneTimeExpiration = moment().add(1, 'hour').toString();
+    user.oneTimeExpiration = moment()
+      .add(...userVerificationTime)
+      .toISOString();
     await user.save();
+
+    return user.firstName;
   }
 
   async getAllUsers(): Promise<User[]> {
@@ -77,5 +82,12 @@ export class UserService {
       .select('-companies.forms');
 
     return await this.companyService.getCompaniesByIds(user.companies);
+  }
+
+  async changeRefreshToken(userId: string, refreshToken: string) {
+    const user = await this.userModel.findById(userId);
+
+    user.refreshToken = refreshToken;
+    await user.save();
   }
 }

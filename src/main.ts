@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as dotenv from 'dotenv';
 import { GlobalExceptionFilter } from './exceptions/global-exception.filter';
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 
 dotenv.config();
 
@@ -15,6 +15,8 @@ async function bootstrap() {
     .setDescription('The API description')
     .setVersion('1.0')
     .build();
+
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.useGlobalFilters(new GlobalExceptionFilter());
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);

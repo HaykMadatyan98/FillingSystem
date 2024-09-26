@@ -8,7 +8,6 @@ import { CompanyFormService } from '@/company-form/company-form.service';
 import { ParticipantFormService } from '@/participant-form/participant-form.service';
 import { sanitizeData } from '@/utils/sanitizer.util';
 import { companyResponseMsgs } from './constants';
-// import { calculateTotalFieldsForCompany } from '@/utils/req-field.util';
 
 @Injectable()
 export class CompanyService {

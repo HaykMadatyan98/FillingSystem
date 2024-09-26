@@ -9,13 +9,7 @@ export async function calculateRequiredFieldsCount(
 
     if (!!data[start]) {
       if (!!data[start][end]) {
-        if (
-          data[start][end] !== '' ||
-          data[start][end] !== null ||
-          data[start][end] !== undefined
-        ) {
-          enteredFieldsCount++;
-        }
+        enteredFieldsCount++;
       }
     }
   });
