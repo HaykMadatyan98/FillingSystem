@@ -20,7 +20,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { authResponseMsgs } from './constants';
-import { errorMessages } from '@/exceptions/constants/error-messages';
 import { IResponseMessage } from '@/user/constants';
 import {
   LoginResponseDto,
@@ -42,8 +41,9 @@ export class AuthController {
     type: ValidateEmailResponseDto,
   })
   @ApiNotFoundResponse({
-    description: errorMessages.wrongSendedEmailOrPass.message,
+    description: authResponseMsgs.wrongSendedEmailOrPass.message,
   })
+  @ApiOperation({ summary: 'Send Validation Email to User' })
   async sendValidateEmail(
     @Body() body: SendEmailDto,
   ): Promise<IResponseMessage> {
@@ -56,11 +56,12 @@ export class AuthController {
     description: authResponseMsgs.successfulLogin.message,
     type: LoginResponseDto,
   })
+  @ApiOperation({ summary: 'Sign in by one time pass' })
   async login(@Body() body: LoginDto): Promise<ILoginResponse> {
     return this.authService.login(body.email, body.oneTimePass);
   }
 
-  @Post('refresh')
+  @Get('refresh')
   @ApiOperation({ summary: 'Refresh access and refresh tokens' })
   @ApiBearerAuth()
   @UseGuards(RefreshTokenGuard)
@@ -74,17 +75,15 @@ export class AuthController {
     description: 'Forbidden, invalid or expired refresh token',
   })
   async refreshTokens(@Req() req: RequestWithUser) {
-    const userId = req.user['sub'];
+    const userId = req.user['email'];
     const refreshToken = req.user['refreshToken'];
 
     return this.authService.refreshTokens(userId, refreshToken);
   }
 
   @Get('logout/:id')
-  @ApiOkResponse({
-    description: authResponseMsgs.successfulLogin.message,
-    type: LoginResponseDto,
-  })
+  @ApiOkResponse()
+  @ApiOperation({ summary: 'Sign out by entered user id' })
   async logout(@Param('userId') userId: string): Promise<void> {
     return this.authService.logout(userId);
   }

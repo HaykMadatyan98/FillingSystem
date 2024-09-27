@@ -3,9 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from './schema/user.schema';
 import { CreateUserDto } from './dtos/user.dto';
-import moment from 'moment';
+import * as moment from 'moment';
 import { CompanyService } from '@/company/company.service';
-import { errorMessages } from '@/exceptions/constants/error-messages';
 import { userResponseMsgs } from './constants';
 import { userVerificationTime } from '@/auth/constants';
 
@@ -30,7 +29,7 @@ export class UserService {
     const user = await this.userModel.findOne({ email });
 
     if (!user) {
-      throw new NotFoundException(errorMessages.userNotFound);
+      throw new NotFoundException(userResponseMsgs.userNotFound);
     }
 
     user.oneTimePass = oneTimePass;
@@ -72,7 +71,6 @@ export class UserService {
     );
   }
 
-  // add exceptions
   async getUserCompanyData(userId: string) {
     const user = await this.userModel
       .findById(userId, {

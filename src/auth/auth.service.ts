@@ -6,8 +6,7 @@ import {
 import * as jwt from 'jsonwebtoken';
 import { MailService } from '@/mail/mail.service';
 import { UserService } from '@/user/user.service';
-import moment from 'moment';
-import { errorMessages } from '@/exceptions/constants/error-messages';
+import * as moment from 'moment';
 import {
   authResponseMsgs,
   IResponseMessage,
@@ -41,7 +40,9 @@ export class AuthService {
       user.oneTimePass !== oneTimePass ||
       moment(user.oneTimeExpiration).isBefore(moment())
     ) {
-      throw new NotFoundException({ ...errorMessages.WrongSendedEmailOrPass });
+      throw new NotFoundException({
+        ...authResponseMsgs.WrongSendedEmailOrPass,
+      });
     }
 
     const { accessToken, refreshToken } = await this.generateNewToken(
@@ -103,7 +104,7 @@ export class AuthService {
     await this.userService.changeRefreshToken(userId, refreshToken);
 
     return {
-      message: 'Token updated successfully',
+      message: authResponseMsgs.tokenRefreshed.message,
       accessToken,
       refreshToken,
     };

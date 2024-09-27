@@ -7,24 +7,19 @@ import {
   IsEnum,
 } from 'class-validator';
 
-// DTO for Existing Company Applicant
-class ExistingCompanyApplicantDto {
+export class ExistingCompanyApplicantDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsBoolean()
   isExistingCompany?: boolean;
 }
-
-// DTO for FinCENID
-class FinCENIDDto {
+export class FinCENIDDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   finCENID?: string;
 }
-
-// DTO for Personal Information
-class PersonalInformationDto {
+export class PersonalInformationDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
@@ -50,22 +45,19 @@ class PersonalInformationDto {
   @IsDate()
   dateOfBirth?: Date;
 }
-
-class BeneficialOwnerDto {
+export class BeneficialOwnerDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsBoolean()
   isParentOrGuard?: boolean;
 }
 
-// Enum for Address Type
 enum AddressTypeEnum {
   BUSINESS = 'business',
   RESIDENTIAL = 'residential',
 }
 
-// DTO for Current Address
-class CurrentAddressDto {
+export class CurrentAddressDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsEnum(AddressTypeEnum)
@@ -97,8 +89,7 @@ class CurrentAddressDto {
   postalCode?: string;
 }
 
-// DTO for Identification and Jurisdiction
-class IdentificationAndJurisdictionDto {
+export class IdentificationAndJurisdictionDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
@@ -128,22 +119,46 @@ class IdentificationAndJurisdictionDto {
   @IsOptional()
   @IsString()
   otherLocalOrTribalDesc?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  docImg?: string;
 }
 
-// DTO for Exempt Entity
-class ExemptEntityDto {
+export class ExemptEntityDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsBoolean()
   isExemptEntity?: boolean;
 }
 
-// DTO for ApplicantForm
-export class CreateParticipantFormDto {
+export class IdentificationAndJurisdictionForCreateDto {
+  @ApiProperty({ required: true })
+  @IsString()
+  docType: string;
+
+  @ApiProperty({ required: true })
+  @IsString()
+  docNumber: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  countryOrJurisdiction?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  state?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  localOrTribal?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  otherLocalOrTribalDesc?: string;
+}
+
+export class BaseParticipantFormDto {
   @ApiProperty({ required: false })
   @IsOptional()
   applicant?: ExistingCompanyApplicantDto;
@@ -168,7 +183,19 @@ export class CreateParticipantFormDto {
   @IsOptional()
   address?: CurrentAddressDto;
 
+  // @ApiProperty({ required: true })
+  // @IsBoolean()
+  // isApplicant?: boolean;
+}
+
+export class ChangeParticipantFormDto extends BaseParticipantFormDto {
   @ApiProperty({ required: false })
   @IsOptional()
   identificationDetails?: IdentificationAndJurisdictionDto;
+}
+
+export class CreateParticipantFormDto extends BaseParticipantFormDto {
+  @ApiProperty({ required: false })
+  @IsOptional()
+  identificationDetails: IdentificationAndJurisdictionForCreateDto;
 }

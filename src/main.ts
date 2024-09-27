@@ -11,17 +11,21 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const PORT = process.env.PORT || 3000;
   app.enableCors();
-  const config = new DocumentBuilder()
-    .setTitle('API')
-    .setDescription('The API description')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
 
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('Filling System API')
+      .setDescription('Filling System Api Description')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, document);
+  }
+
+  app.useGlobalPipes(new ValidationPipe({ whitelist: false }));
   app.useGlobalFilters(new GlobalExceptionFilter());
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
 
   await app.listen(PORT, () => {
     Logger.log(`Port: ${PORT}`);

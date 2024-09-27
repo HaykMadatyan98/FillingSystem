@@ -1,25 +1,21 @@
 import { Controller, Body, Patch, Get, Param } from '@nestjs/common';
 import { CompanyFormService } from './company-form.service';
-// import { CompanyFormDto } from './dtos/company-form.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('form')
 @Controller('form')
 export class CompanyFormController {
   constructor(private readonly companyFormService: CompanyFormService) {}
 
-  // update
-  @Patch('/company/:companyFormId')
-  async changeCompanyForm(
-    @Param('companyFormId') companyFormId: string,
-    @Body() body: any,
-  ) {
-    return this.companyFormService.changeCompanyFormById(companyFormId, body);
+  @Patch('/company/:formId')
+  @ApiOperation({ summary: 'Change reporting company form' })
+  async changeCompanyForm(@Param('formId') formId: string, @Body() body: any) {
+    return this.companyFormService.changeCompanyFormById(formId, body);
   }
 
-  // get
-  @Get('/company/:id')
-  async getCompanyFormById(@Param('companyFormId') companyFormId: string) {
-    return this.companyFormService.getCompanyFormById(companyFormId);
+  @Get('/company/:formId')
+  @ApiOperation({ summary: 'Get reporting company form by formId' })
+  async getCompanyFormById(@Param('formId') formId: string) {
+    return this.companyFormService.getCompanyFormById(formId);
   }
 }

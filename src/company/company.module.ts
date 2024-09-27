@@ -8,6 +8,7 @@ import { ParticipantFormModule } from '@/participant-form/participant-form.modul
 import { AuthService } from '@/auth/auth.service';
 import { MailModule } from '@/mail/mail.module';
 import { UserModule } from '@/user/user.module';
+import { AuthModule } from '@/auth/auth.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { UserModule } from '@/user/user.module';
     ParticipantFormModule,
     MailModule,
     forwardRef(() => UserModule),
+    forwardRef(() => AuthModule),
   ],
   providers: [AuthService, CompanyService],
   controllers: [CompanyController],

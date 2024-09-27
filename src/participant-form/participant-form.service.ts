@@ -1,5 +1,10 @@
 import { requiredApplicantFieldsForBusiness } from './../company/constants/required-data-fields';
-import { Injectable, NotImplementedException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotImplementedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
@@ -11,12 +16,15 @@ import {
   requiredApplicantFields,
   requiredOwnerFields,
 } from '@/company/constants';
+import { CompanyService } from '@/company/company.service';
 
 @Injectable()
 export class ParticipantFormService {
   constructor(
     @InjectModel(ParticipantForm.name)
     private participantFormModel: Model<ParticipantFormDocument>,
+    @Inject(forwardRef(() => CompanyService))
+    private readonly companyService: CompanyService,
   ) {}
 
   async createParticipantFormFromCsv(
@@ -107,6 +115,34 @@ export class ParticipantFormService {
       answerCountDifference:
         requiredFieldsCountBefore - requiredFieldsCountAfter,
     };
+  }
+
+  async changeParticipantFormById(
+    companyId: string,
+    formId: string,
+    payload: any,
+    file?: Express.Multer.File,
+  ) {
+    const isApplicant = payload.isApplicant;
+    delete payload.isApplicant;
+
+    if (file) {
+      console.log(file, 'file');
+      // add to azur, get image id and set in identificationDetails.docImg: 
+    }
+
+    const updatedParticipant = await this.changeParticipantForm(
+      payload,
+      formId,
+      isApplicant,
+    );
+
+    await this.companyService.recalculateReqFields(
+      companyId,
+      updatedParticipant.answerCountDifference,
+    );
+
+    return { message: 'data has been changed' };
   }
 
   async findParticipantFormByDocNumAndIds(docNum: string, ids: any) {

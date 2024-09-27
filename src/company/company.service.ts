@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  NotFoundException,
   NotImplementedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -22,6 +23,10 @@ export class CompanyService {
   ) {}
 
   async addCsvDataIntoDb(file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('Entered File is Missing');
+    }
+
     const results = [];
     const bufferStream = new Stream.PassThrough();
     bufferStream.end(file.buffer);
@@ -42,6 +47,7 @@ export class CompanyService {
   }
 
   async changeCompanyData(row: ICompanyApplicantData) {
+    console.log(row);
     if (!row['Company Tax Id Number']) {
       throw new BadRequestException('Required data is missing');
     }
@@ -57,6 +63,8 @@ export class CompanyService {
       }));
 
     const sanitizedData = await sanitizeData(row);
+    console.log(sanitizedData);
+
     if (!company) {
       const companyForm =
         await this.companyFormService.createCompanyFormFromCsv(
@@ -161,12 +169,22 @@ export class CompanyService {
   }
 
   async createNewCompany(payload: any) {
-    console.log(payload);
     throw new NotImplementedException('not implemented yet');
   }
 
   async deleteCompanyById(companyId: string) {
-    console.log(companyId);
     throw new NotImplementedException('not implemented yet');
+  }
+
+  async recalculateReqFields(companyId: string, count: number): Promise<void> {
+    let company = await this.companyModel.findById(companyId);
+
+    if (!company) {
+      throw new NotFoundException('Company Not Found');
+    }
+
+    company.answersCount += count;
+
+    await company.save();
   }
 }

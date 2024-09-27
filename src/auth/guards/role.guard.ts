@@ -33,10 +33,12 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('No token provided');
     }
 
-    const token = authHeader.replace('Bearer ', '');
+    const accessToken = authHeader.replace('Bearer ', '');
 
     try {
-      const user = this.jwtService.verify(token);
+      const user = this.jwtService.verify(accessToken, {
+        secret: process.env.JWT_REFRESH_SECRET, 
+      });
 
       return requiredRoles.includes(user.role);
     } catch (err) {
