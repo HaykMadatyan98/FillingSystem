@@ -8,11 +8,10 @@ import {
   ParseFilePipe,
   Post,
   UploadedFile,
-  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { CompanyService } from './company.service';
-import { AcessTokenGuard } from '@/auth/guards/access-token.guard';
+// import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 // import { Roles } from '@/auth/decorators/roles.decorator';
@@ -45,7 +44,7 @@ export class CompanyController {
 
   @Post('csv')
   // @Roles(Role.Admin)
-  // @UseGuards(AcessTokenGuard, RolesGuard)
+  // @UseGuards(AccessTokenGuard, RolesGuard)
   @UseInterceptors(FileInterceptor('company'))
   @ApiConsumes('multipart/form-data')
   @ApiBody({

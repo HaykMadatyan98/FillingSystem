@@ -15,13 +15,13 @@ export async function sanitizeData(
 
   function convertValue(key: string, value: string) {
     if (key === 'Company Tax Id Number') {
-      return Number(value.trim()); 
+      return Number(value.trim());
     } else if (value.toLowerCase() === 'true') {
-      return true; 
+      return true;
     } else if (value.toLowerCase() === 'false') {
-      return false; 
+      return false;
     }
-    return value.trim(); 
+    return value.trim();
   }
 
   function mapFieldToObject(

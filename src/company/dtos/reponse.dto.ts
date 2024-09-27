@@ -2,13 +2,13 @@ import { ApiProperty } from '@nestjs/swagger';
 import { companyResponseMsgs } from '../constants';
 
 export class CsvUploadResponseDto {
-  @ApiProperty({ example: companyResponseMsgs.csvUploadSuccesfull })
+  @ApiProperty({ example: companyResponseMsgs.csvUploadSuccessful })
   message: string;
 }
 
 export class CompanyCreatedResponseDto {}
 
-export class CompanyUpdatedReponseDto {}
+export class CompanyUpdatedResponseDto {}
 
 export class CompanyDeletedResponseDto {}
 

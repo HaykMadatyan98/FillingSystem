@@ -1,6 +1,5 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Request } from 'express';
 import { RequestWithUser } from '../interfaces/request.interface';
 
 @Injectable()
@@ -25,6 +24,7 @@ export class RefreshTokenGuard implements CanActivate {
       request.user = { ...user, refreshToken };
       return true;
     } catch (err) {
+      console.log(err);
       return false; // Token invalid or expired
     }
   }

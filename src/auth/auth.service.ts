@@ -87,6 +87,7 @@ export class AuthService {
     try {
       decoded = jwt.verify(refToken, this.refreshSecretKey) as IDecodedToken;
     } catch (err) {
+      console.log(err);
       throw new ForbiddenException('Invalid or expired refresh token');
     }
 

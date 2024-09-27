@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  HttpException,
   Injectable,
   NotImplementedException,
 } from '@nestjs/common';
@@ -39,7 +38,7 @@ export class CompanyService {
 
     await Promise.all(results.map((row) => this.changeCompanyData(row)));
 
-    return companyResponseMsgs.csvUploadSuccesfull;
+    return companyResponseMsgs.csvUploadSuccessful;
   }
 
   async changeCompanyData(row: ICompanyApplicantData) {
@@ -75,6 +74,7 @@ export class CompanyService {
       );
 
       participantsData.forEach((participant) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         participant[0]
           ? applicantsIds.push(participant[1])
           : ownersIds.push(participant[1]);
@@ -127,6 +127,7 @@ export class CompanyService {
               await this.participantFormService.createParticipantFormFromCsv(
                 participant,
               );
+            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             newParticipant[0]
               ? company.forms.applicants.push(newParticipant[1])
               : company.forms.owners.push(newParticipant[1]);
@@ -160,10 +161,12 @@ export class CompanyService {
   }
 
   async createNewCompany(payload: any) {
+    console.log(payload);
     throw new NotImplementedException('not implemented yet');
   }
 
   async deleteCompanyById(companyId: string) {
+    console.log(companyId);
     throw new NotImplementedException('not implemented yet');
   }
 }

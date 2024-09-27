@@ -79,14 +79,14 @@ export class ParticipantFormService {
         participantData[i]['type'] === 'business'
       ) {
         const addressValues = Object.entries(participantData[i]);
-        const businessAdressData = addressValues.map(([key, value]) => {
+        const businessAddressData = addressValues.map(([key, value]) => {
           if (key !== 'type') {
             participant[i]['business_' + key] = value;
             delete participant[i][key];
           }
         });
 
-        participant[i] = { ...participant[i], ...businessAdressData };
+        participant[i] = { ...participant[i], ...businessAddressData };
       } else if (i !== 'isApplicant') {
         participant[i] = { ...participant[i], ...participantData[i] };
       }

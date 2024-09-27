@@ -14,8 +14,8 @@ interface ICompanyApplicantData {
   'US or Territory'?: string;
   'Company State'?: string;
   'Company Zip code'?: string;
-  IsApplicant?:  string;
-  'Is Existing Company'?:  string;
+  IsApplicant?: string;
+  'Is Existing Company'?: string;
   'FinCEN ID'?: string;
   'Last or Legal Name'?: string;
   'First Name'?: string;

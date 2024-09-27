@@ -4,7 +4,7 @@ export interface IResponseMessage {
 }
 
 export const companyResponseMsgs: Record<string, IResponseMessage> = {
-  csvUploadSuccesfull: {
-    message: 'Data is succesfully saved',
+  csvUploadSuccessful: {
+    message: 'Data is successfully saved',
   },
 };
