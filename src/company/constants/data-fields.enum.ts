@@ -1,6 +1,6 @@
 export enum CompanyData {
   ['Request To Receive Foreign ID'] = 'repCompanyInfo.requestToReceiveFID',
-  ['Foreign Pooled'] = 'repCompanyInfo.requestToReceiveFID',
+  ['Foreign Pooled'] = 'repCompanyInfo.foreignPooled',
   ['Company Legal Name'] = 'names.legalName',
   ['Company Alternative Name'] = 'names.altName',
   ['Company Tax Id Type'] = 'taxInfo.taxIdType',

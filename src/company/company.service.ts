@@ -1,4 +1,9 @@
-import { Injectable, NotImplementedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  NotImplementedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Company, CompanyDocument } from './schemas/company.schema';
 import mongoose, { Model } from 'mongoose';
@@ -37,9 +42,13 @@ export class CompanyService {
     return companyResponseMsgs.csvUploadSuccesfull;
   }
 
-  async changeCompanyData(row) {
+  async changeCompanyData(row: ICompanyApplicantData) {
+    if (!row['Company Tax Id Number']) {
+      throw new BadRequestException('Required data is missing');
+    }
+
     const companyFormId = await this.companyFormService.getCompanyFormIdByTaxId(
-      row['Tax ID Number'],
+      +row['Company Tax Id Number'],
     );
 
     let company =
@@ -49,7 +58,6 @@ export class CompanyService {
       }));
 
     const sanitizedData = await sanitizeData(row);
-
     if (!company) {
       const companyForm =
         await this.companyFormService.createCompanyFormFromCsv(
@@ -65,9 +73,8 @@ export class CompanyService {
           this.participantFormService.createParticipantFormFromCsv(participant),
         ),
       );
-      participantsData.forEach((participant) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
 
+      participantsData.forEach((participant) => {
         participant[0]
           ? applicantsIds.push(participant[1])
           : ownersIds.push(participant[1]);
@@ -98,8 +105,8 @@ export class CompanyService {
 
       company.answersCount += updatedCompanyForm.answerCountDiff;
 
-      await Promise.all(
-        sanitizedData.participants.map(async (participant) => {
+      const participantPromises = sanitizedData.participants.map(
+        async (participant) => {
           const existParticipant =
             await this.participantFormService.findParticipantFormByDocNumAndIds(
               participant.identificationDetails.docNumber,
@@ -111,7 +118,7 @@ export class CompanyService {
               await this.participantFormService.changeParticipantForm(
                 participant,
                 existParticipant['id'],
-                participant['isApplicant'] === 'true' ? true : false,
+                participant['isApplicant'],
               );
 
             company.answersCount += changedParticipant.answerCountDifference;
@@ -120,22 +127,23 @@ export class CompanyService {
               await this.participantFormService.createParticipantFormFromCsv(
                 participant,
               );
-            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             newParticipant[0]
               ? company.forms.applicants.push(newParticipant[1])
               : company.forms.owners.push(newParticipant[1]);
 
             company.answersCount += newParticipant[2];
           }
-
-          company.reqFieldsCount =
-            company.forms.applicants.length * 15 +
-            company.forms.owners.length * 11 +
-            9;
-
-          await company.save();
-        }),
+        },
       );
+
+      await Promise.all(participantPromises);
+
+      company.reqFieldsCount =
+        company.forms.applicants.length * 15 +
+        company.forms.owners.length * 11 +
+        9;
+
+      await company.save();
     }
   }
 
@@ -143,18 +151,19 @@ export class CompanyService {
     const companies = await this.companyModel.find({
       _id: { $in: companyIds.map((id) => new mongoose.Types.ObjectId(id)) },
     });
-    // .select('-forms');
 
     return companies;
   }
 
+  async getAllCompanies() {
+    throw new NotImplementedException('not implemented yet');
+  }
+
   async createNewCompany(payload: any) {
-    console.log(payload);
     throw new NotImplementedException('not implemented yet');
   }
 
   async deleteCompanyById(companyId: string) {
-    console.log(companyId);
     throw new NotImplementedException('not implemented yet');
   }
 }

@@ -22,8 +22,7 @@ export class ParticipantFormService {
   async createParticipantFormFromCsv(
     companyParticipantData: any,
   ): Promise<any> {
-    const isApplicant =
-      companyParticipantData.isApplicant === 'true' ? true : false;
+    const isApplicant = companyParticipantData.isApplicant;
 
     delete companyParticipantData.isApplicant;
 

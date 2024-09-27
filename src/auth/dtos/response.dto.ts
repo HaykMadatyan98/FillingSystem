@@ -19,3 +19,16 @@ export class ValidateEmailResponseDto {
   @ApiProperty({ example: authResponseMsgs.otpWasSent.message })
   message: string;
 }
+
+export class RefreshTokenResponseDto {
+  @ApiProperty({ description: 'New access token' })
+  accessToken: string;
+
+  @ApiProperty({ description: 'New refresh token' })
+  refreshToken: string;
+
+  @ApiProperty({
+    description: 'Message indicating the result of the refresh process',
+  })
+  message: string;
+}

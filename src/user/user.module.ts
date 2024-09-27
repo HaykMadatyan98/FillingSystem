@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './schema/user.schema';
 import { UserService } from './user.service';
@@ -9,7 +9,7 @@ import { CompanyModule } from '@/company/company.module';
 
 @Module({
   imports: [
-    CompanyModule,
+    forwardRef(() => CompanyModule),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     JwtModule.registerAsync({
       imports: [ConfigModule],

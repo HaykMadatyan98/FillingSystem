@@ -21,15 +21,16 @@ export class CompanyFormService {
     return companyForm.save();
   }
 
-  async getCompanyFormIdByTaxId(taxIdNumber: number) {
-    const companyForm = await this.companyFormModel.findOne(
-      {
-        taxIdNumber: taxIdNumber,
-      },
-      { id: 1 },
-    );
+  async getCompanyFormIdByTaxId(taxIdNumber: number): Promise<null | string> {
+    const companyForm: CompanyFormDocument | null =
+      await this.companyFormModel.findOne(
+        {
+          ['taxInfo.taxIdNumber']: taxIdNumber,
+        },
+        { id: 1 },
+      );
 
-    return companyForm ? companyForm.id : companyForm;
+    return companyForm ? (companyForm.id as string) : null;
   }
 
   async createCompanyFormFromCsv(companyFormData: ICompanyForm) {

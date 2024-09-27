@@ -6,7 +6,7 @@ import {
 import * as jwt from 'jsonwebtoken';
 import { MailService } from '@/mail/mail.service';
 import { UserService } from '@/user/user.service';
-import * as moment from 'moment';
+import moment from 'moment';
 import { errorMessages } from '@/exceptions/constants/error-messages';
 import {
   authResponseMsgs,
@@ -75,7 +75,7 @@ export class AuthService {
     return { refreshToken, accessToken };
   }
 
-  async refreshTokens(userId: string) {
+  async refreshTokens(userId: string, refToken: string) {
     const user = await this.userService.getUserById(userId);
 
     if (!user || !user.refreshToken) {
@@ -85,10 +85,7 @@ export class AuthService {
     let decoded: IDecodedToken;
 
     try {
-      decoded = jwt.verify(
-        user.refreshToken,
-        this.refreshSecretKey,
-      ) as IDecodedToken;
+      decoded = jwt.verify(refToken, this.refreshSecretKey) as IDecodedToken;
     } catch (err) {
       throw new ForbiddenException('Invalid or expired refresh token');
     }

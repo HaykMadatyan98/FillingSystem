@@ -1,0 +1,36 @@
+interface ICompanyApplicantData {
+  'Document Number': string;
+  'Document Type': string;
+  'Company Tax Id Number': string;
+  'Request To Receive Foreign ID'?: string;
+  'Foreign Pooled'?: string;
+  'Company Legal Name'?: string;
+  'Company Alternative Name'?: string;
+  'Company Tax Id Type'?: string;
+  'Company Country/Jurisdiction'?: string;
+  'Company Country/Jurisdiction of Formation'?: string;
+  'Company Address'?: string;
+  'Company City'?: string;
+  'US or Territory'?: string;
+  'Company State'?: string;
+  'Company Zip code'?: string;
+  IsApplicant?:  string;
+  'Is Existing Company'?:  string;
+  'FinCEN ID'?: string;
+  'Last or Legal Name'?: string;
+  'First Name'?: string;
+  'Middle Name'?: string;
+  Suffix?: string;
+  'Date of Birth'?: string;
+  'Address Type'?: string;
+  Address?: string;
+  City?: string;
+  'Country/Jurisdiction'?: string;
+  State?: string;
+  'Postal Code'?: string;
+  'Document Country/Jurisdiction'?: string;
+  'Document State'?: string;
+  'Local or Tribal'?: string;
+  'Other Local or Tribal Description'?: string;
+  'Document Image'?: string;
+}

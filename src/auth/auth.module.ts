@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from '../user/schema/user.schema';
 import { AuthService } from './auth.service';
@@ -8,15 +8,30 @@ import { UserModule } from '@/user/user.module';
 import { AccessTokenStrategy } from './strategies/access-token.strategy';
 import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
 import { JwtModule } from '@nestjs/jwt';
+import { ExpirationTimes } from './constants';
+import { UserService } from '@/user/user.service';
+import { RolesGuard } from './guards/role.guard';
+import { CompanyModule } from '@/company/company.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-    JwtModule.register({}),
+    JwtModule.register({
+      secret: process.env.JWT_ACCESS_SECRET,
+      signOptions: { expiresIn: ExpirationTimes.ACCESS_TOKEN },
+    }),
     MailModule,
-    UserModule,
+    forwardRef(() => UserModule),
+    forwardRef(() => CompanyModule),
   ],
-  providers: [AuthService, AccessTokenStrategy, RefreshTokenStrategy],
+  providers: [
+    AuthService,
+    AccessTokenStrategy,
+    RefreshTokenStrategy,
+    UserService,
+    RolesGuard,
+  ],
   controllers: [AuthController],
+  exports: [JwtModule, AuthService],
 })
 export class AuthModule {}

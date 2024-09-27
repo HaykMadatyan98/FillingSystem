@@ -1,7 +1,7 @@
 import { ParticipantData, CompanyData } from '@/company/constants';
 
 export async function sanitizeData(
-  data: Record<string, string>,
+  data: ICompanyApplicantData,
 ): Promise<Record<string, any>> {
   const sanitized: Record<string, any> = {
     company: {},
@@ -13,6 +13,17 @@ export async function sanitizeData(
   ) as (keyof typeof ParticipantData)[];
   const companyKeys = Object.keys(CompanyData) as (keyof typeof CompanyData)[];
 
+  function convertValue(key: string, value: string) {
+    if (key === 'Company Tax Id Number') {
+      return Number(value.trim()); 
+    } else if (value.toLowerCase() === 'true') {
+      return true; 
+    } else if (value.toLowerCase() === 'false') {
+      return false; 
+    }
+    return value.trim(); 
+  }
+
   function mapFieldToObject(
     mappedField: string,
     value: string,
@@ -23,7 +34,7 @@ export async function sanitizeData(
 
     fieldParts.forEach((part, index) => {
       if (index === fieldParts.length - 1) {
-        current[part] = value.trim();
+        current[part] = convertValue(part, value); // Use the convertValue function
       } else {
         current[part] = current[part] || {};
         current = current[part];
@@ -31,6 +42,7 @@ export async function sanitizeData(
     });
   }
 
+  // Map company fields
   companyKeys.forEach((key) => {
     const mappedField = CompanyData[key];
     const value = data[key];
@@ -43,7 +55,7 @@ export async function sanitizeData(
   if (hasMultipleParticipants) {
     const firstNames = data['First Name'].split(',');
     firstNames.forEach((_, index) => {
-      const participant = {};
+      const participant: Record<string, any> = {};
       participantKeys.forEach((key) => {
         const value = data[key];
         if (value) {
@@ -58,7 +70,7 @@ export async function sanitizeData(
       sanitized.participants.push(participant);
     });
   } else {
-    const participant = {};
+    const participant: Record<string, any> = {};
     participantKeys.forEach((key) => {
       const mappedField = ParticipantData[key];
       const value = data[key];
