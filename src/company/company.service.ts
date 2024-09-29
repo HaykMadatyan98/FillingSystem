@@ -3,28 +3,28 @@ import {
   Injectable,
   NotFoundException,
   NotImplementedException,
-} from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Company, CompanyDocument } from './schemas/company.schema';
-import mongoose, { Model } from 'mongoose';
-import * as csvParser from 'csv-parser';
-import * as Stream from 'stream';
-import { CompanyFormService } from '@/company-form/company-form.service';
-import { ParticipantFormService } from '@/participant-form/participant-form.service';
-import { sanitizeData } from '@/utils/sanitizer.util';
-import { companyResponseMsgs } from './constants';
+} from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Company, CompanyDocument } from "./schemas/company.schema";
+import mongoose, { Model } from "mongoose";
+import * as csvParser from "csv-parser";
+import * as Stream from "stream";
+import { CompanyFormService } from "@/company-form/company-form.service";
+import { ParticipantFormService } from "@/participant-form/participant-form.service";
+import { sanitizeData } from "@/utils/sanitizer.util";
+import { companyResponseMsgs } from "./constants";
 
 @Injectable()
 export class CompanyService {
   constructor(
     @InjectModel(Company.name) private companyModel: Model<CompanyDocument>,
     private readonly companyFormService: CompanyFormService,
-    private readonly participantFormService: ParticipantFormService,
+    private readonly participantFormService: ParticipantFormService
   ) {}
 
   async addCsvDataIntoDb(file: Express.Multer.File) {
     if (!file) {
-      throw new BadRequestException('Entered File is Missing');
+      throw new BadRequestException("Entered File is Missing");
     }
 
     const results = [];
@@ -33,12 +33,19 @@ export class CompanyService {
 
     await new Promise((resolve, reject) => {
       bufferStream
-        .pipe(csvParser({ separator: ',', quote: '"' }))
-        .on('data', (data) => {
-          results.push(data);
+        .pipe(csvParser({ separator: ",", quote: '"' }))
+        .on("data", (data: []) => {
+          const trimmedData = Object.fromEntries(
+            Object.entries(data).map(([key, value]: [string, string]) => [
+              key.trim(),
+              value.trim(),
+            ])
+          );
+
+          results.push(trimmedData);
         })
-        .on('end', () => resolve(results))
-        .on('error', reject);
+        .on("end", () => resolve(results))
+        .on("error", reject);
     });
 
     await Promise.all(results.map((row) => this.changeCompanyData(row)));
@@ -46,24 +53,22 @@ export class CompanyService {
     return companyResponseMsgs.csvUploadSuccessful;
   }
 
-  async changeCompanyData(row: ICompanyApplicantData) {
-    console.log(row);
-    if (!row['Company Tax Id Number']) {
-      throw new BadRequestException('Required data is missing');
+  async changeCompanyData(row: any) {
+    if (!row["Company Tax Id Number"]) {
+      throw new BadRequestException("Required data is missing");
     }
 
     const companyFormId = await this.companyFormService.getCompanyFormIdByTaxId(
-      +row['Company Tax Id Number'],
+      +row["Company Tax Id Number"]
     );
 
     let company =
       companyFormId &&
       (await this.companyModel.findOne({
-        'forms.company': companyFormId,
+        "forms.company": companyFormId,
       }));
 
     const sanitizedData = await sanitizeData(row);
-    console.log(sanitizedData);
 
     if (!company) {
       const companyForm =
@@ -165,22 +170,22 @@ export class CompanyService {
   }
 
   async getAllCompanies() {
-    throw new NotImplementedException('not implemented yet');
+    throw new NotImplementedException("not implemented yet");
   }
 
   async createNewCompany(payload: any) {
-    throw new NotImplementedException('not implemented yet');
+    throw new NotImplementedException("not implemented yet");
   }
 
   async deleteCompanyById(companyId: string) {
-    throw new NotImplementedException('not implemented yet');
+    throw new NotImplementedException("not implemented yet");
   }
 
   async recalculateReqFields(companyId: string, count: number): Promise<void> {
     let company = await this.companyModel.findById(companyId);
 
     if (!company) {
-      throw new NotFoundException('Company Not Found');
+      throw new NotFoundException("Company Not Found");
     }
 
     company.answersCount += count;
