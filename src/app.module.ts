@@ -6,8 +6,8 @@ import { CompanyFormModule } from './company-form/company-form.module';
 import { ParticipantFormModule } from './participant-form/participant-form.module';
 import { AuthModule } from './auth/auth.module';
 import { CompanyModule } from './company/company.module';
-// import { MailService } from './mail/mail.service';
 import { MailModule } from './mail/mail.module';
+import { SchedulerModule } from './scheduler/scheduler.module';
 
 @Module({
   imports: [
@@ -21,6 +21,7 @@ import { MailModule } from './mail/mail.module';
     AuthModule,
     CompanyModule,
     MailModule,
+    SchedulerModule,
   ],
   providers: [],
   controllers: [],

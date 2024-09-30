@@ -42,7 +42,6 @@ export class ParticipantFormController {
   ) {}
 
   @Post('participant/create/:companyId')
-  @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
       type: 'object',
@@ -59,22 +58,10 @@ export class ParticipantFormController {
     required: true,
     description: 'ID of the company',
   })
-  @UseInterceptors(FileInterceptor('docImg'))
   @ApiOperation({
     summary: 'Create new applicant/owner',
   })
-  async createNewParticipantForm(
-    @Body() payload: CreateParticipantFormDto,
-    @UploadedFile(
-      new ParseFilePipe({
-        fileIsRequired: false,
-        validators: [
-          new FileTypeValidator({ fileType: '.(jpeg|png|jpg|csv)' }),
-        ],
-      }),
-    )
-    docImg?: Express.Multer.File,
-  ) {
+  async createNewParticipantForm(@Body() payload: CreateParticipantFormDto) {
     return this.participantFormService.createParticipantForm();
   }
 
@@ -82,7 +69,6 @@ export class ParticipantFormController {
   @ApiOperation({
     summary: 'Change applicant/owner by formId',
   })
-  @ApiConsumes('multipart/form-data')
   @ApiParam({
     name: 'companyId',
     required: true,
@@ -129,28 +115,17 @@ export class ParticipantFormController {
       },
     },
   })
-  @UseInterceptors(FileInterceptor('docImg'))
   @ApiCreatedResponse({ type: ChangeParticipantFormDto })
   async changeParticipantForm(
     @Param('formId') formId: string,
     @Param('companyId') companyId: string,
     @Body() payload: ChangeParticipantFormDto,
-    @UploadedFile(
-      new ParseFilePipe({
-        fileIsRequired: false,
-        validators: [
-          new FileTypeValidator({ fileType: '.(jpeg|png|jpg|csv)' }),
-        ],
-      }),
-    )
-    docImg?: Express.Multer.File,
   ) {
     console.log(payload);
     return this.participantFormService.changeParticipantFormById(
       companyId,
       formId,
       payload,
-      docImg,
     );
   }
 
@@ -165,4 +140,45 @@ export class ParticipantFormController {
     summary: 'Remove applicant/owner by formId',
   })
   async deleteParticipantFormById(@Param('formId') formId: string) {}
+
+  @Post('uploadAndUpdate/:participantId')
+  @UseInterceptors(FileInterceptor('docImg'))
+  @ApiConsumes('multipart/form-data')
+  async uploadAnImageToTheCloudAndUpdate(
+    @Param('participantId') participantId: string,
+    @UploadedFile(
+      new ParseFilePipe({
+        fileIsRequired: true,
+        validators: [new FileTypeValidator({ fileType: '.(jpeg|png|jpg)' })],
+      }),
+    )
+    docImg: Express.Multer.File,
+  ) {
+    const docImageData =
+      await this.participantFormService.uploadAnImageToTheCloud(docImg);
+
+    // update (steps find company which contains current id after checking update the current field)
+    // send message after update
+  }
+
+  @Post('uploadAndCreate/:companyId')
+  @UseInterceptors(FileInterceptor('docImg'))
+  @ApiConsumes('multipart/form-data')
+  async uploadAnImageToTheCloudAndCreate(
+    @Param('companyId') companyId: string,
+    @UploadedFile(
+      new ParseFilePipe({
+        fileIsRequired: true,
+        validators: [new FileTypeValidator({ fileType: '.(jpeg|png|jpg)' })],
+      }),
+    )
+    docImg: Express.Multer.File,
+  ) {
+    const docImageData =
+      await this.participantFormService.uploadAnImageToTheCloud(docImg);
+
+    // before creating get the data about where it need to be created(applicant/owner)
+    // create new participant Form and add it into company
+    // send the mongodb.ObjectId of the new created participant
+  }
 }

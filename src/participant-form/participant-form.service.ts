@@ -176,4 +176,6 @@ export class ParticipantFormService {
 
     return { message: 'Form successfully deleted' };
   }
+
+  async uploadAnImageToTheCloud(file: Express.Multer.File) {}
 }

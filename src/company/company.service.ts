@@ -245,4 +245,8 @@ export class CompanyService {
   async getCompanyById(companyId: string) {
     throw new NotImplementedException('not implemented yet');
   }
+
+  async getCompaniesByExpTime() {
+    throw new NotImplementedException('scheduler not implemented');
+  }
 }
