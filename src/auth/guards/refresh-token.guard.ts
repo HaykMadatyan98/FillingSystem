@@ -11,21 +11,20 @@ export class RefreshTokenGuard implements CanActivate {
     const authHeader = request.headers['authorization'];
 
     if (!authHeader) {
-      return false; 
+      return false;
     }
 
     const refreshToken = authHeader.replace('Bearer ', '').trim();
 
     try {
       const user = this.jwtService.verify(refreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET, 
+        secret: process.env.JWT_REFRESH_SECRET,
       });
-     
+
       request.user = { ...user, refreshToken };
       return true;
     } catch (err) {
-      console.log(err);
-      return false; 
+      return false;
     }
   }
 }

@@ -3,6 +3,7 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  NotFoundException,
   NotImplementedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -128,7 +129,7 @@ export class ParticipantFormService {
 
     if (file) {
       console.log(file, 'file');
-      // add to azur, get image id and set in identificationDetails.docImg: 
+      // add to azur, get image id and set in identificationDetails.docImg:
     }
 
     const updatedParticipant = await this.changeParticipantForm(
@@ -163,8 +164,16 @@ export class ParticipantFormService {
     throw new NotImplementedException('not implemented yet');
   }
 
-  async deleteParticipantFormById(participantFormId: string) {
-    console.log(participantFormId);
-    throw new NotImplementedException('not implemented yet');
+  async deleteParticipantFormById(
+    participantFormId: string,
+  ): Promise<{ message: string }> {
+    const participantForm =
+      await this.participantFormModel.findByIdAndDelete(participantFormId);
+
+    if (!participantForm) {
+      throw new NotFoundException('Form not found');
+    }
+
+    return { message: 'Form successfully deleted' };
   }
 }

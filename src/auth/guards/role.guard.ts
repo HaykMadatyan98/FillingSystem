@@ -37,12 +37,11 @@ export class RolesGuard implements CanActivate {
 
     try {
       const user = this.jwtService.verify(accessToken, {
-        secret: process.env.JWT_REFRESH_SECRET, 
+        secret: process.env.JWT_ACCESS_SECRET,
       });
 
       return requiredRoles.includes(user.role);
     } catch (err) {
-      console.log(err);
       throw new ForbiddenException('Access Denied');
     }
   }

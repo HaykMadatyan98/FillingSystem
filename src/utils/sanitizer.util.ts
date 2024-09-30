@@ -15,7 +15,7 @@ export async function sanitizeData(
 
   function convertValue(key: string, value: string) {
     if (key === "Company Tax Id Number") {
-      return Number(value.trim());
+      return Number(value);
     } else if (value.toLowerCase() === "true") {
       return true;
     } else if (value.toLowerCase() === "false") {

@@ -7,6 +7,7 @@ import {
   Param,
   ParseFilePipe,
   Post,
+  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -24,6 +25,7 @@ import {
 import { Roles } from '@/auth/decorators/roles.decorator';
 import { Role } from '@/auth/constants';
 import { RolesGuard } from '@/auth/guards/role.guard';
+import { CreateCompanyFormDto } from '@/company-form/dtos/company-form.dto';
 
 @ApiTags('company')
 @Controller('company')
@@ -40,30 +42,32 @@ export class CompanyController {
   }
 
   @Get(':companyId')
-  @UseGuards(AccessTokenGuard)
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get company by entered company Id' })
   async getCompanyById(@Param('companyId') companyId) {
-    return this.getCompanyById(companyId);
+    return this.companyService.getCompanyById(companyId);
   }
 
   @Post()
   @Roles(Role.Admin)
   @UseGuards(RolesGuard)
   @ApiBearerAuth()
+  @ApiBody({ type: CreateCompanyFormDto })
   @ApiOperation({ summary: 'Create new company (Admin)' })
-  async createNewCompany(@Body() body: any) {
+  async createNewCompany(@Body() body: CreateCompanyFormDto) {
     return this.companyService.createNewCompany(body);
   }
 
   @Post('csv')
-  // @Roles(Role.Admin)
-  // @UseGuards(AccessTokenGuard, RolesGuard)
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   @ApiOperation({
     summary: 'Create or change company data by entered .csv file (Admin)',
   })
   @UseInterceptors(FileInterceptor('company'))
-  // @ApiBearerAuth()
+  @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {

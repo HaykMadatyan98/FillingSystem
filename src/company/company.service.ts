@@ -1,30 +1,33 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
   NotImplementedException,
-} from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { Company, CompanyDocument } from "./schemas/company.schema";
-import mongoose, { Model } from "mongoose";
-import * as csvParser from "csv-parser";
-import * as Stream from "stream";
-import { CompanyFormService } from "@/company-form/company-form.service";
-import { ParticipantFormService } from "@/participant-form/participant-form.service";
-import { sanitizeData } from "@/utils/sanitizer.util";
-import { companyResponseMsgs } from "./constants";
+} from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Company, CompanyDocument } from './schemas/company.schema';
+import mongoose, { Model } from 'mongoose';
+import * as csvParser from 'csv-parser';
+import * as Stream from 'stream';
+import { CompanyFormService } from '@/company-form/company-form.service';
+import { ParticipantFormService } from '@/participant-form/participant-form.service';
+import { sanitizeData } from '@/utils/sanitizer.util';
+import { companyResponseMsgs } from './constants';
+import { RequestWithUser } from '@/auth/interfaces/request.interface';
+import { formatWithOptions } from 'util';
 
 @Injectable()
 export class CompanyService {
   constructor(
     @InjectModel(Company.name) private companyModel: Model<CompanyDocument>,
     private readonly companyFormService: CompanyFormService,
-    private readonly participantFormService: ParticipantFormService
+    private readonly participantFormService: ParticipantFormService,
   ) {}
 
   async addCsvDataIntoDb(file: Express.Multer.File) {
     if (!file) {
-      throw new BadRequestException("Entered File is Missing");
+      throw new BadRequestException('Entered File is Missing');
     }
 
     const results = [];
@@ -33,19 +36,19 @@ export class CompanyService {
 
     await new Promise((resolve, reject) => {
       bufferStream
-        .pipe(csvParser({ separator: ",", quote: '"' }))
-        .on("data", (data: []) => {
+        .pipe(csvParser({ separator: ',', quote: '"' }))
+        .on('data', (data: []) => {
           const trimmedData = Object.fromEntries(
             Object.entries(data).map(([key, value]: [string, string]) => [
               key.trim(),
               value.trim(),
-            ])
+            ]),
           );
 
           results.push(trimmedData);
         })
-        .on("end", () => resolve(results))
-        .on("error", reject);
+        .on('end', () => resolve(results))
+        .on('error', reject);
     });
 
     await Promise.all(results.map((row) => this.changeCompanyData(row)));
@@ -54,31 +57,26 @@ export class CompanyService {
   }
 
   async changeCompanyData(row: any) {
-    if (!row["Company Tax Id Number"]) {
-      throw new BadRequestException("Required data is missing");
+    if (!row['Company Tax Id Number']) {
+      throw new BadRequestException('Required data is missing');
     }
 
+    const sanitizedData = await sanitizeData(row);
+
     const companyFormId = await this.companyFormService.getCompanyFormIdByTaxId(
-      +row["Company Tax Id Number"]
+      sanitizedData.company.taxInfo.taxIdNumber,
     );
 
     let company =
       companyFormId &&
       (await this.companyModel.findOne({
-        "forms.company": companyFormId,
+        'forms.company': companyFormId,
       }));
 
-    const sanitizedData = await sanitizeData(row);
-
     if (!company) {
-      const companyForm =
-        await this.companyFormService.createCompanyFormFromCsv(
-          sanitizedData.company,
-        );
-
       const ownersIds = [];
       const applicantsIds = [];
-      let answerCount = companyForm.answerCount;
+      let answerCount = 0;
 
       const participantsData = await Promise.all(
         sanitizedData.participants.map((participant) =>
@@ -94,6 +92,13 @@ export class CompanyService {
 
         answerCount += participant[2];
       });
+
+      const companyForm =
+        await this.companyFormService.createCompanyFormFromCsv(
+          sanitizedData.company,
+        );
+
+      answerCount += companyForm.answerCount;
 
       company = new this.companyModel({
         ['forms.company']: companyForm.id,
@@ -170,26 +175,74 @@ export class CompanyService {
   }
 
   async getAllCompanies() {
-    throw new NotImplementedException("not implemented yet");
+    throw new NotImplementedException('not implemented yet');
   }
 
+  // need some changes after admin part creating
   async createNewCompany(payload: any) {
-    throw new NotImplementedException("not implemented yet");
+    const existCompanyForm =
+      await this.companyFormService.getCompanyFormByTaxNumber(
+        payload.taxIdNumber,
+      );
+
+    if (existCompanyForm) {
+      throw new ConflictException(
+        'Company with that tax number is already created',
+      );
+    }
+
+    let newCompanyForm = await this.companyFormService.create(payload);
+    let newCompany = new this.companyModel();
+    newCompany['forms.company'] = newCompanyForm['id'];
+    newCompany['reqFieldsCount'] = 9;
+
+    await newCompany.save();
+
+    return { message: 'company was created' };
   }
 
-  async deleteCompanyById(companyId: string) {
-    throw new NotImplementedException("not implemented yet");
+  async deleteCompanyById(companyId: string): Promise<{ message: string }> {
+    const company = await this.companyModel.findById(companyId);
+
+    if (!company) {
+      throw new NotFoundException(companyResponseMsgs.companyNotFound.message);
+    }
+
+    if (company.forms.applicants.length || company.forms.owners.length) {
+      const participantsForms = [
+        ...company.forms.owners,
+        ...company.forms.applicants,
+      ].map(async (participant: any) => {
+        await this.participantFormService.deleteParticipantFormById(
+          participant,
+        );
+      });
+
+      await Promise.all(participantsForms);
+    }
+
+    await this.companyFormService.deleteCompanyFormById(
+      company.forms.company as any,
+    );
+
+    await this.companyModel.deleteOne({ _id: companyId });
+
+    return { message: 'Company Data succesfully removed' };
   }
 
   async recalculateReqFields(companyId: string, count: number): Promise<void> {
     let company = await this.companyModel.findById(companyId);
 
     if (!company) {
-      throw new NotFoundException("Company Not Found");
+      throw new NotFoundException('Company Not Found');
     }
 
     company.answersCount += count;
 
     await company.save();
+  }
+
+  async getCompanyById(companyId: string) {
+    throw new NotImplementedException('not implemented yet');
   }
 }

@@ -1,3 +1,4 @@
+import { CountryEnum, StatesEnum } from '@/company-form/constants';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsBoolean,
@@ -75,13 +76,13 @@ export class CurrentAddressDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsString()
-  countryOrJurisdiction?: string;
+  @IsEnum(CountryEnum)
+  countryOrJurisdiction?: CountryEnum;
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsString()
-  state?: string;
+  @IsEnum(StatesEnum)
+  state?: StatesEnum;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -107,8 +108,8 @@ export class IdentificationAndJurisdictionDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsString()
-  state?: string;
+  @IsEnum(StatesEnum)
+  state?: StatesEnum;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -139,13 +140,13 @@ export class IdentificationAndJurisdictionForCreateDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsString()
-  countryOrJurisdiction?: string;
+  @IsEnum(CountryEnum)
+  countryOrJurisdiction?: CountryEnum;
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsString()
-  state?: string;
+  @IsEnum(StatesEnum)
+  state?: StatesEnum;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -182,10 +183,6 @@ export class BaseParticipantFormDto {
   @ApiProperty({ required: false })
   @IsOptional()
   address?: CurrentAddressDto;
-
-  // @ApiProperty({ required: true })
-  // @IsBoolean()
-  // isApplicant?: boolean;
 }
 
 export class ChangeParticipantFormDto extends BaseParticipantFormDto {

@@ -1,4 +1,8 @@
-import { Injectable, NotImplementedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  NotImplementedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
@@ -86,5 +90,22 @@ export class CompanyFormService {
     console.log(companyFormId, payload);
 
     throw new NotImplementedException('Not implemented yet');
+  }
+
+  async deleteCompanyFormById(companyFormId: string) {
+    const companyForm =
+      await this.companyFormModel.findByIdAndDelete(companyFormId);
+
+    if (!companyFormId) {
+      throw new NotFoundException('Form not found');
+    }
+
+    return { message: 'Form successfully deleted' };
+  }
+
+  async getCompanyFormByTaxNumber(taxNumber: number) {
+    return this.companyFormModel.findOne({
+      'taxInfo.taxIdNumber': taxNumber,
+    });
   }
 }

@@ -2,6 +2,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { MailService } from '@/mail/mail.service';
@@ -35,17 +36,18 @@ export class AuthService {
   async login(email: string, oneTimePass: number): Promise<ILoginResponse> {
     const user = await this.userService.getUserByEmail(email);
 
-    if (
-      !user ||
-      user.oneTimePass !== oneTimePass ||
-      moment(user.oneTimeExpiration).isBefore(moment())
-    ) {
-      throw new NotFoundException({
-        ...authResponseMsgs.WrongSendedEmailOrPass,
-      });
+    if (!user || user.oneTimePass !== oneTimePass) {
+      throw new NotFoundException(authResponseMsgs.wrongSendedEmailOrPass);
+    }
+
+    if (moment(user.oneTimeExpiration).isBefore(moment())) {
+      throw new UnauthorizedException(
+        'current code was expired please login again',
+      );
     }
 
     const { accessToken, refreshToken } = await this.generateNewToken(
+      user['id'],
       user.email,
       user.role,
     );
@@ -64,14 +66,22 @@ export class AuthService {
     await this.userService.changeRefreshToken(userId, '');
   }
 
-  async generateNewToken(email: string, role: string) {
-    const accessToken = jwt.sign({ email, role }, this.accessSecretKey, {
-      expiresIn: ExpirationTimes.ACCESS_TOKEN,
-    });
+  async generateNewToken(userId: string, email: string, role: string) {
+    const accessToken = jwt.sign(
+      { userId, email, role },
+      this.accessSecretKey,
+      {
+        expiresIn: ExpirationTimes.ACCESS_TOKEN,
+      },
+    );
 
-    const refreshToken = jwt.sign({ email, role }, this.refreshSecretKey, {
-      expiresIn: ExpirationTimes.REFRESH_TOKEN,
-    });
+    const refreshToken = jwt.sign(
+      { userId, email, role },
+      this.refreshSecretKey,
+      {
+        expiresIn: ExpirationTimes.REFRESH_TOKEN,
+      },
+    );
 
     return { refreshToken, accessToken };
   }
@@ -88,7 +98,6 @@ export class AuthService {
     try {
       decoded = jwt.verify(refToken, this.refreshSecretKey) as IDecodedToken;
     } catch (err) {
-      console.log(err);
       throw new ForbiddenException('Invalid or expired refresh token');
     }
 
@@ -97,6 +106,7 @@ export class AuthService {
     }
 
     const { accessToken, refreshToken } = await this.generateNewToken(
+      userId,
       decoded.email,
       decoded.role,
     );
