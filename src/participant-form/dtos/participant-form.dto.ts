@@ -1,5 +1,6 @@
-import { CountryEnum, StatesEnum } from '@/company-form/constants';
+import { CountryEnum, DocumentTypeEnum, StatesEnum } from '@/company/constants';
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
   IsBoolean,
   IsDate,
@@ -195,4 +196,16 @@ export class CreateParticipantFormDto extends BaseParticipantFormDto {
   @ApiProperty({ required: false })
   @IsOptional()
   identificationDetails: IdentificationAndJurisdictionForCreateDto;
+}
+
+export class CreateParticipantDocDto {
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true')
+  isApplicant: boolean;
+
+  @IsEnum(DocumentTypeEnum)
+  docType: DocumentTypeEnum;
+
+  @IsString()
+  docNum: string;
 }

@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { authResponseMsgs } from '../constants';
 
 export class LoginResponseDto {
-  @ApiProperty({ example: authResponseMsgs.successfulLogin.message })
+  @ApiProperty({ example: authResponseMsgs.successfulLogin })
   message: string;
 
   @ApiProperty({ example: '66f4f33f6538526f9f929d4f' })
@@ -15,8 +15,8 @@ export class LoginResponseDto {
   refreshToken: string;
 }
 
-export class ValidateEmailResponseDto {
-  @ApiProperty({ example: authResponseMsgs.otpWasSent.message })
+export class ResponseMessageDto {
+  @ApiProperty()
   message: string;
 }
 

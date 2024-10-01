@@ -8,7 +8,7 @@ import { Reflector } from '@nestjs/core';
 
 import { JwtService } from '@nestjs/jwt';
 import { ROLES_KEY } from '../decorators/roles.decorator';
-import { Role } from '../constants';
+import { authResponseMsgs, Role } from '../constants';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -30,7 +30,7 @@ export class RolesGuard implements CanActivate {
     const authHeader = request.headers['authorization'];
 
     if (!authHeader) {
-      throw new ForbiddenException('No token provided');
+      throw new ForbiddenException(authResponseMsgs.tokenIsMissing);
     }
 
     const accessToken = authHeader.replace('Bearer ', '');
@@ -42,7 +42,7 @@ export class RolesGuard implements CanActivate {
 
       return requiredRoles.includes(user.role);
     } catch (err) {
-      throw new ForbiddenException('Access Denied');
+      throw new ForbiddenException(authResponseMsgs.accessDenied);
     }
   }
 }

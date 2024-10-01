@@ -18,7 +18,10 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiConflictResponse,
   ApiConsumes,
+  ApiForbiddenResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
@@ -26,25 +29,31 @@ import { Roles } from '@/auth/decorators/roles.decorator';
 import { Role } from '@/auth/constants';
 import { RolesGuard } from '@/auth/guards/role.guard';
 import { CreateCompanyFormDto } from '@/company-form/dtos/company-form.dto';
+import { companyResponseMsgs } from './constants';
+import { ResponseMessageDto } from './dtos/reponse.dto';
 
 @ApiTags('company')
 @Controller('company')
 export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
 
+  //TODO
   @Get()
   @Roles(Role.Admin)
   @UseGuards(RolesGuard)
   @ApiBearerAuth()
+  @ApiForbiddenResponse({ description: companyResponseMsgs.dontHavePermission })
   @ApiOperation({ summary: 'Get all company data(Admin)' })
   async getAllCompanies() {
     return this.companyService.getAllCompanies();
   }
 
+  //TODO
   @Get(':companyId')
   @Roles(Role.Admin)
   @UseGuards(RolesGuard)
   @ApiBearerAuth()
+  @ApiForbiddenResponse({ description: companyResponseMsgs.dontHavePermission })
   @ApiOperation({ summary: 'Get company by entered company Id' })
   async getCompanyById(@Param('companyId') companyId) {
     return this.companyService.getCompanyById(companyId);
@@ -54,8 +63,14 @@ export class CompanyController {
   @Roles(Role.Admin)
   @UseGuards(RolesGuard)
   @ApiBearerAuth()
+  @ApiOkResponse({
+    type: ResponseMessageDto,
+    description: companyResponseMsgs.companyCreated,
+  })
   @ApiBody({ type: CreateCompanyFormDto })
+  @ApiForbiddenResponse({ description: companyResponseMsgs.dontHavePermission })
   @ApiOperation({ summary: 'Create new company (Admin)' })
+  @ApiConflictResponse({ description: companyResponseMsgs.companyWasCreated })
   async createNewCompany(@Body() body: CreateCompanyFormDto) {
     return this.companyService.createNewCompany(body);
   }
@@ -80,6 +95,8 @@ export class CompanyController {
       },
     },
   })
+  @ApiForbiddenResponse({ description: companyResponseMsgs.dontHavePermission })
+  @ApiOkResponse({ description: companyResponseMsgs.csvUploadSuccessful })
   async addDataFromCSV(
     @UploadedFile(
       new ParseFilePipe({
@@ -96,6 +113,10 @@ export class CompanyController {
   @Roles(Role.Admin)
   @UseGuards(RolesGuard)
   @ApiBearerAuth()
+  @ApiOkResponse({
+    description: companyResponseMsgs.companyDeleted,
+  })
+  @ApiForbiddenResponse({ description: companyResponseMsgs.dontHavePermission })
   @ApiOperation({ summary: 'Delete company by companyId (Admin)' })
   async deleteCompany(@Param('companyId') companyId: string) {
     return this.companyService.deleteCompanyById(companyId);

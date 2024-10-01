@@ -1,9 +1,5 @@
 export interface IResponseMessage {
   message: string;
-  status?: number;
-  options?: {
-    description?: string;
-  };
 }
 
 export interface ILoginResponse {
@@ -13,23 +9,30 @@ export interface ILoginResponse {
   refreshToken: string;
 }
 
-export const authResponseMsgs: Record<string, IResponseMessage> = {
-  successfulLogin: {
-    message: 'Sign-in successful.',
-  },
-  otpWasSent: {
-    message: 'One-time password sent.',
-  },
-  wrongSendedEmailOrPass: {
-    message: 'Email or Password was not correct',
-    options: {
-      description: "Sended Email or One time password doesn't match",
-    },
-  },
-  userNotFound: {
-    message: 'User Not Found',
-  },
-  tokenRefreshed: {
-    message: 'Token succesfully updated',
-  },
+type AuthResponseKeys =
+  | 'successfulLogin'
+  | 'otpWasSent'
+  | 'wrongSendedEmailOrPass'
+  | 'userNotFound'
+  | 'tokenRefreshed'
+  | 'codeWasExpired'
+  | 'accessDenied'
+  | 'expiredRefreshToken'
+  | 'tokenPayloadMissingFields'
+  | 'successfullLogout'
+  | 'tokenIsMissing';
+
+export const authResponseMsgs: Record<AuthResponseKeys, string> = {
+  successfulLogin: 'Sign-in successful',
+  otpWasSent: 'One-time password sent.',
+  tokenRefreshed: 'Token succesfully updated',
+  successfullLogout: 'Succesfully signed out',
+  // errors
+  wrongSendedEmailOrPass: 'Email or Password was not correct',
+  tokenIsMissing: 'No Token provided',
+  userNotFound: 'User Not Found',
+  codeWasExpired: 'Current Code was Expired',
+  accessDenied: 'Access Denied',
+  expiredRefreshToken: 'Invalid or expired refresh token',
+  tokenPayloadMissingFields: 'Token payload is missing required fields',
 };

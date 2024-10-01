@@ -1,3 +1,4 @@
+import { participantFormResponseMsgs } from './constants/participant-form.response-messages';
 import { requiredApplicantFieldsForBusiness } from './../company/constants/required-data-fields';
 import {
   forwardRef,
@@ -68,7 +69,7 @@ export class ParticipantFormService {
     participantData: any,
     participantFormId: any,
     isApplicant: boolean,
-  ) {
+  ): Promise<{ id: unknown; answerCountDifference: number }> {
     const participant =
       await this.participantFormModel.findById(participantFormId);
 
@@ -143,7 +144,7 @@ export class ParticipantFormService {
       updatedParticipant.answerCountDifference,
     );
 
-    return { message: 'data has been changed' };
+    return { message: participantFormResponseMsgs.participantChanged };
   }
 
   async findParticipantFormByDocNumAndIds(docNum: string, ids: any) {
@@ -160,7 +161,6 @@ export class ParticipantFormService {
   }
 
   async getParticipantFormById(participantFormId: string) {
-    console.log(participantFormId);
     throw new NotImplementedException('not implemented yet');
   }
 
@@ -171,11 +171,61 @@ export class ParticipantFormService {
       await this.participantFormModel.findByIdAndDelete(participantFormId);
 
     if (!participantForm) {
-      throw new NotFoundException('Form not found');
+      throw new NotFoundException(
+        participantFormResponseMsgs.participantFormNotFound,
+      );
     }
 
-    return { message: 'Form successfully deleted' };
+    return { message: participantFormResponseMsgs.participantDeleted };
   }
 
-  async uploadAnImageToTheCloud(file: Express.Multer.File) {}
+  async uploadAnImageToTheCloud(file: Express.Multer.File): Promise<string> {
+    // update later
+    return 'exampleUrt123qww21';
+  }
+
+  async updateDocImageInParticipantForm(
+    participantId: string,
+    docImg: Express.Multer.File,
+  ) {
+    const [isApllicant, company] =
+      await this.companyService.getByParticipantId(participantId);
+
+    const docImgUrl = await this.uploadAnImageToTheCloud(docImg);
+
+    const updatedParticipant = await this.changeParticipantForm(
+      { identificationDetails: { docImgUrl } },
+      participantId,
+      isApllicant,
+    );
+
+    company.answersCount += updatedParticipant.answerCountDifference;
+    await company.save();
+
+    return { message: participantFormResponseMsgs.participantChanged };
+  }
+
+  async uploadAnImageAndCreate(
+    companyId: string,
+    docImg: Express.Multer.File,
+    payload: { isApplicant: boolean; docNum: string; docType: string },
+  ) {
+    const { isApplicant, docNum, docType } = payload;
+    const company = await this.companyService.getCompanyById(companyId);
+    const docImgUrl = await this.uploadAnImageToTheCloud(docImg);
+    const createdParticipant = await this.participantFormModel.create({
+      identificationDetails: { docNum, docType, docImg: docImgUrl },
+    });
+
+    company.forms[`${isApplicant ? 'applicants' : 'owners'}`].push(
+      createdParticipant['id'],
+    );
+
+    await company.save();
+
+    return {
+      message: participantFormResponseMsgs.participantCreated,
+      participantId: createdParticipant['id'],
+    };
+  }
 }

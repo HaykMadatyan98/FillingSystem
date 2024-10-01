@@ -9,6 +9,7 @@ export class CompanyFormController {
 
   @Patch('/company/:formId')
   @ApiOperation({ summary: 'Change reporting company form' })
+  
   async changeCompanyForm(@Param('formId') formId: string, @Body() body: any) {
     return this.companyFormService.changeCompanyFormById(formId, body);
   }

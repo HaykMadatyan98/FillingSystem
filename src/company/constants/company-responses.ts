@@ -1,13 +1,22 @@
 export interface IResponseMessage {
   message: string;
-  status?: number;
 }
 
-export const companyResponseMsgs: Record<string, IResponseMessage> = {
-  csvUploadSuccessful: {
-    message: 'Data is successfully saved',
-  },
-  companyNotFound: {
-    message: 'Company Not found',
-  },
+type CompanyResponseMsgKeys =
+  | 'csvUploadSuccessful'
+  | 'companyNotFound'
+  | 'companyCreated'
+  | 'companyChanged'
+  | 'companyDeleted'
+  | 'dontHavePermission'
+  | 'companyWasCreated';
+
+export const companyResponseMsgs: Record<CompanyResponseMsgKeys, string> = {
+  csvUploadSuccessful: 'Data is successfully saved',
+  companyNotFound: 'Company Not found',
+  companyCreated: 'Company succesfully created',
+  companyChanged: 'Company data was changed',
+  companyDeleted: 'Company succefully deleted',
+  dontHavePermission: 'You do not have permission to perform this action.',
+  companyWasCreated: 'Company with that tax Id Number was already created',
 };

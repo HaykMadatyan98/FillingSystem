@@ -14,8 +14,8 @@ import { CompanyFormService } from '@/company-form/company-form.service';
 import { ParticipantFormService } from '@/participant-form/participant-form.service';
 import { sanitizeData } from '@/utils/sanitizer.util';
 import { companyResponseMsgs } from './constants';
-import { RequestWithUser } from '@/auth/interfaces/request.interface';
-import { formatWithOptions } from 'util';
+import { ICompanyCSVRowData } from './interfaces/company-csv.interface';
+// import { ICompanyQuery } from './interfaces/query.interface';
 
 @Injectable()
 export class CompanyService {
@@ -24,6 +24,34 @@ export class CompanyService {
     private readonly companyFormService: CompanyFormService,
     private readonly participantFormService: ParticipantFormService,
   ) {}
+
+  async getAllCompanies() {
+    // let selection: string;
+    // if (query?.expTime) {
+    //   query['expirtionTime'] = query.expirationTime;
+    // }
+
+    // if (query?.isFree) {
+    //   query['isFree'];
+    // }
+
+    // const companies = await this.companyModel
+    //   .find()
+    //   .limit(query?.size)
+    //   .skip(query?.page === 0 ? query?.page : query?.size * query?.page)
+    //   .populate({
+    //     path: 'user',
+    //     model: 'User',
+    //     select: 'firstname email',
+    //   })
+    //   .exec();
+
+    // const countOfNotEntered = await this.companyModel
+    //   .countDocuments({ user: '' })
+    //   .exec();
+
+    throw new NotImplementedException('not implemented yet');
+  }
 
   async addCsvDataIntoDb(file: Express.Multer.File) {
     if (!file) {
@@ -56,7 +84,7 @@ export class CompanyService {
     return companyResponseMsgs.csvUploadSuccessful;
   }
 
-  async changeCompanyData(row: any) {
+  async changeCompanyData(row: ICompanyCSVRowData) {
     if (!row['Company Tax Id Number']) {
       throw new BadRequestException('Required data is missing');
     }
@@ -174,10 +202,6 @@ export class CompanyService {
     return companies;
   }
 
-  async getAllCompanies() {
-    throw new NotImplementedException('not implemented yet');
-  }
-
   // need some changes after admin part creating
   async createNewCompany(payload: any) {
     const existCompanyForm =
@@ -186,9 +210,7 @@ export class CompanyService {
       );
 
     if (existCompanyForm) {
-      throw new ConflictException(
-        'Company with that tax number is already created',
-      );
+      throw new ConflictException(companyResponseMsgs.companyWasCreated);
     }
 
     let newCompanyForm = await this.companyFormService.create(payload);
@@ -198,14 +220,14 @@ export class CompanyService {
 
     await newCompany.save();
 
-    return { message: 'company was created' };
+    return { message: companyResponseMsgs.companyCreated };
   }
 
   async deleteCompanyById(companyId: string): Promise<{ message: string }> {
     const company = await this.companyModel.findById(companyId);
 
     if (!company) {
-      throw new NotFoundException(companyResponseMsgs.companyNotFound.message);
+      throw new NotFoundException(companyResponseMsgs.companyNotFound);
     }
 
     if (company.forms.applicants.length || company.forms.owners.length) {
@@ -227,14 +249,14 @@ export class CompanyService {
 
     await this.companyModel.deleteOne({ _id: companyId });
 
-    return { message: 'Company Data succesfully removed' };
+    return { message: companyResponseMsgs.companyDeleted };
   }
 
   async recalculateReqFields(companyId: string, count: number): Promise<void> {
     let company = await this.companyModel.findById(companyId);
 
     if (!company) {
-      throw new NotFoundException('Company Not Found');
+      throw new NotFoundException(companyResponseMsgs.companyNotFound);
     }
 
     company.answersCount += count;
@@ -242,11 +264,36 @@ export class CompanyService {
     await company.save();
   }
 
-  async getCompanyById(companyId: string) {
-    throw new NotImplementedException('not implemented yet');
+  async getCompanyById(companyId: string): Promise<CompanyDocument> {
+    const company = await this.companyModel.findById(companyId);
+
+    if (!company) {
+      throw new NotFoundException(companyResponseMsgs.companyNotFound);
+    }
+
+    return company;
   }
 
   async getCompaniesByExpTime() {
     throw new NotImplementedException('scheduler not implemented');
+  }
+
+  async getByParticipantId(
+    participantId: string,
+  ): Promise<[boolean, CompanyDocument]> {
+    const company = await this.companyModel.findOne({
+      $or: [
+        { 'forms.applicants': participantId },
+        { 'forms.owners': participantId },
+      ],
+    });
+
+    if (!company) {
+      throw new NotFoundException(companyResponseMsgs.companyNotFound);
+    }
+
+    const isApplicant = company.forms.applicants.includes(participantId as any);
+
+    return [isApplicant, company];
   }
 }

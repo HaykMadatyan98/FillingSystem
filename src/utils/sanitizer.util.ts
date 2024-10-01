@@ -1,24 +1,31 @@
-import { CompanyData, ParticipantData } from "@/company/constants";
+import { ICompanyForm } from '@/company-form/interfaces';
+import { CompanyData, ParticipantData } from '@/company/constants';
+import { ICompanyCSVRowData } from '@/company/interfaces';
+import { ISanitizedData } from '@/company/interfaces/sanitized-data.interface';
+import { IChangeParticipantForm } from '@/participant-form/interfaces';
 
 export async function sanitizeData(
-  data: Record<string, string>
-): Promise<Record<string, any>> {
-  const sanitized: Record<string, any> = {
-    company: {},
+  data: ICompanyCSVRowData,
+): Promise<ISanitizedData> {
+  const sanitized: {
+    company: ICompanyForm;
+    participants: IChangeParticipantForm[];
+  } = {
+    company: {} as ICompanyForm,
     participants: [],
   };
 
   const participantKeys = Object.keys(
-    ParticipantData
+    ParticipantData,
   ) as (keyof typeof ParticipantData)[];
   const companyKeys = Object.keys(CompanyData) as (keyof typeof CompanyData)[];
 
   function convertValue(key: string, value: string) {
-    if (key === "Company Tax Id Number") {
+    if (key === 'Company Tax Id Number') {
       return Number(value);
-    } else if (value.toLowerCase() === "true") {
+    } else if (value.toLowerCase() === 'true') {
       return true;
-    } else if (value.toLowerCase() === "false") {
+    } else if (value.toLowerCase() === 'false') {
       return false;
     }
     return value.trim();
@@ -27,9 +34,9 @@ export async function sanitizeData(
   function mapFieldToObject(
     mappedField: string,
     value: string,
-    targetObj: Record<string, any>
+    targetObj: Record<string, any>,
   ) {
-    const fieldParts = mappedField.split(".");
+    const fieldParts = mappedField.split('.');
     let current = targetObj;
 
     fieldParts.forEach((part, index) => {
@@ -53,22 +60,22 @@ export async function sanitizeData(
 
   // Map applicant and owner participants
   const participantTypes = [
-    { prefix: "Applicant", isApplicant: true },
-    { prefix: "Owner", isApplicant: false },
+    { prefix: 'Applicant', isApplicant: true },
+    { prefix: 'Owner', isApplicant: false },
   ];
 
   participantTypes.forEach(({ prefix, isApplicant }) => {
-    const hasMultipleParticipants = data[`${prefix} First Name`]?.includes(",");
+    const hasMultipleParticipants = data[`${prefix} First Name`]?.includes(',');
 
     if (hasMultipleParticipants) {
       // Handle multiple participants (comma-separated values)
-      const firstNames = data[`${prefix} First Name`].split(",");
+      const firstNames = data[`${prefix} First Name`].split(',');
       firstNames.forEach((_, index) => {
         const participant: Record<string, any> = { isApplicant };
         participantKeys.forEach((key) => {
           const value = data[`${prefix} ${key}`];
           if (value) {
-            const splitValues = value.split(",");
+            const splitValues = value.split(',');
             const trimmedValue = splitValues[index]?.trim();
             if (trimmedValue) {
               const mappedField = ParticipantData[key];
@@ -79,7 +86,6 @@ export async function sanitizeData(
         sanitized.participants.push(participant);
       });
     } else {
-      // Handle single participant
       const participant: Record<string, any> = { isApplicant };
       participantKeys.forEach((key) => {
         const value = data[`${prefix} ${key}`];

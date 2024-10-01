@@ -1,4 +1,4 @@
-interface IReqCompany {
+export interface IReqCompany {
   names: {
     legalName: string;
     altName: string;
@@ -20,7 +20,7 @@ interface IReqCompany {
   };
 }
 
-interface IReqOwnerData {
+export interface IReqOwnerData {
   address: {
     address: string;
     countryOrJurisdiction: string;

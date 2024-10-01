@@ -11,20 +11,22 @@ import {
 import { AuthService } from './auth.service';
 import { LoginDto, SendEmailDto } from './dtos/auth.dto';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
+  ApiForbiddenResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiResponse,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { authResponseMsgs } from './constants';
 import { IResponseMessage } from '@/user/constants';
 import {
   LoginResponseDto,
   RefreshTokenResponseDto,
-  ValidateEmailResponseDto,
+  ResponseMessageDto,
 } from './dtos/response.dto';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { RequestWithUser } from './interfaces/request.interface';
@@ -37,11 +39,10 @@ export class AuthController {
   @Post('email')
   @ApiBody({ type: SendEmailDto })
   @ApiOkResponse({
-    description: authResponseMsgs.otpWasSent.message,
-    type: ValidateEmailResponseDto,
+    description: authResponseMsgs.otpWasSent,
   })
   @ApiNotFoundResponse({
-    description: authResponseMsgs.wrongSendedEmailOrPass.message,
+    description: authResponseMsgs.userNotFound,
   })
   @ApiOperation({ summary: 'Send Validation Email to User' })
   async sendValidateEmail(
@@ -53,10 +54,12 @@ export class AuthController {
   @Post('login')
   @ApiBody({ type: LoginDto })
   @ApiOkResponse({
-    description: authResponseMsgs.successfulLogin.message,
+    description: authResponseMsgs.successfulLogin,
     type: LoginResponseDto,
   })
   @ApiOperation({ summary: 'Sign in by one time pass' })
+  @ApiNotFoundResponse({ description: authResponseMsgs.wrongSendedEmailOrPass })
+  @ApiUnauthorizedResponse({ description: authResponseMsgs.codeWasExpired })
   async login(@Body() body: LoginDto): Promise<ILoginResponse> {
     return this.authService.login(body.email, body.oneTimePass);
   }
@@ -65,26 +68,34 @@ export class AuthController {
   @ApiOperation({ summary: 'Refresh access and refresh tokens' })
   @ApiBearerAuth()
   @UseGuards(RefreshTokenGuard)
-  @ApiResponse({
-    status: 200,
-    description: 'Tokens refreshed successfully',
+  @ApiOkResponse({
+    description: authResponseMsgs.tokenRefreshed,
     type: RefreshTokenResponseDto,
   })
-  @ApiResponse({
-    status: 403,
-    description: 'Forbidden, invalid or expired refresh token',
+  @ApiForbiddenResponse({
+    description: authResponseMsgs.expiredRefreshToken,
+  })
+  @ApiUnauthorizedResponse({
+    description: authResponseMsgs.expiredRefreshToken,
+  })
+  @ApiBadRequestResponse({
+    description: authResponseMsgs.tokenPayloadMissingFields,
   })
   async refreshTokens(@Req() req: RequestWithUser) {
-    const userId = req.user['email'];
-    const refreshToken = req.user['refreshToken'];
-
-    return this.authService.refreshTokens(userId, refreshToken);
+    return this.authService.refreshTokens(
+      req.user['id'] as string,
+      req.user['refreshToken'],
+    );
   }
 
   @Get('logout/:id')
-  @ApiOkResponse()
+  @ApiOkResponse({
+    type: ResponseMessageDto,
+    description: authResponseMsgs.successfullLogout,
+  })
+  @ApiNotFoundResponse({ description: authResponseMsgs.userNotFound })
   @ApiOperation({ summary: 'Sign out by entered user id' })
-  async logout(@Param('userId') userId: string): Promise<void> {
+  async logout(@Param('userId') userId: string): Promise<IResponseMessage> {
     return this.authService.logout(userId);
   }
 }

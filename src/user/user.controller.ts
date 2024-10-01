@@ -2,11 +2,11 @@ import {
   Controller,
   Post,
   Get,
-  Put,
   Delete,
   Body,
   Param,
   UseGuards,
+  Patch,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -15,12 +15,14 @@ import {
   ApiBody,
   ApiParam,
   ApiBearerAuth,
+  ApiForbiddenResponse,
+  ApiOkResponse,
 } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { User } from './schema/user.schema';
 import { CreateUserDto } from './dtos/user.dto';
 import { Roles } from '@/auth/decorators/roles.decorator';
-import { Role } from '@/auth/constants';
+import { authResponseMsgs, Role } from '@/auth/constants';
 import { RolesGuard } from '@/auth/guards/role.guard';
 import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
 
@@ -34,10 +36,10 @@ export class UserController {
   @UseGuards(RolesGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a user' })
-  @ApiResponse({
-    status: 201,
+  @ApiOkResponse({
     description: 'The user has been successfully created.',
   })
+  @ApiForbiddenResponse({ description: authResponseMsgs.accessDenied })
   async create(
     @Body() createUserDto: CreateUserDto,
   ): Promise<{ message: string }> {
@@ -49,7 +51,8 @@ export class UserController {
   @UseGuards(RolesGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all users' })
-  @ApiResponse({ status: 200, description: 'Returns all users.' })
+  @ApiOkResponse({ description: 'Returns all users.' })
+  @ApiForbiddenResponse({ description: authResponseMsgs.accessDenied })
   async findAll(): Promise<User[]> {
     return this.userService.getAllUsers();
   }
@@ -58,20 +61,20 @@ export class UserController {
   @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Get a user by ID' })
-  @ApiResponse({ status: 200, description: 'Returns a user.' })
+  @ApiOkResponse({ description: 'Returns a user.' })
   async findOne(@Param('userId') userId: string): Promise<User> {
     return this.userService.getUserById(userId);
   }
 
-  @Put(':userId')
+  @Patch(':userId')
   @ApiOperation({ summary: 'Update a user' })
   @ApiBearerAuth()
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     description: 'The user has been successfully updated.',
   })
   @Roles(Role.Admin)
   @UseGuards(RolesGuard)
+  @ApiForbiddenResponse({ description: authResponseMsgs.accessDenied })
   async update(
     @Param('userId') userId: string,
     @Body() updateUserDto: any,
@@ -86,6 +89,7 @@ export class UserController {
     description: 'The user has been successfully deleted.',
   })
   @ApiBearerAuth()
+  @ApiForbiddenResponse({ description: authResponseMsgs.accessDenied })
   @Roles(Role.Admin)
   @UseGuards(RolesGuard)
   async remove(@Param('userId') userId: string): Promise<void> {
@@ -122,6 +126,7 @@ export class UserController {
   @ApiBearerAuth()
   @Roles(Role.Admin)
   @UseGuards(RolesGuard)
+  @ApiForbiddenResponse({ description: authResponseMsgs.accessDenied })
   async addCompaniesToUser(
     @Param('userId') userId: string,
     @Body() body: { companyIds: string[] },

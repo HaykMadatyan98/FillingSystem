@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -30,7 +31,7 @@ export class AuthService {
     const userName = await this.userService.changeUserOtp(email, oneTimePass);
     await this.mailerService.sendOTPtoEmail(oneTimePass, email, userName);
 
-    return authResponseMsgs.otpWasSent;
+    return { message: authResponseMsgs.otpWasSent };
   }
 
   async login(email: string, oneTimePass: number): Promise<ILoginResponse> {
@@ -41,9 +42,7 @@ export class AuthService {
     }
 
     if (moment(user.oneTimeExpiration).isBefore(moment())) {
-      throw new UnauthorizedException(
-        'current code was expired please login again',
-      );
+      throw new UnauthorizedException(authResponseMsgs.codeWasExpired);
     }
 
     const { accessToken, refreshToken } = await this.generateNewToken(
@@ -55,7 +54,7 @@ export class AuthService {
     await this.userService.changeRefreshToken(user['id'], refreshToken);
 
     return {
-      message: authResponseMsgs.successfulLogin.message,
+      message: authResponseMsgs.successfulLogin,
       userId: user['id'],
       accessToken: accessToken,
       refreshToken: refreshToken,
@@ -64,6 +63,8 @@ export class AuthService {
 
   async logout(userId: string) {
     await this.userService.changeRefreshToken(userId, '');
+
+    return { message: authResponseMsgs.successfullLogout };
   }
 
   async generateNewToken(userId: string, email: string, role: string) {
@@ -87,10 +88,10 @@ export class AuthService {
   }
 
   async refreshTokens(userId: string, refToken: string) {
-    const user = await this.userService.getUserById(userId);
+    const user = await this.userService.getUserById(userId as string);
 
     if (!user || !user.refreshToken) {
-      throw new ForbiddenException('Access Denied');
+      throw new ForbiddenException(authResponseMsgs.accessDenied);
     }
 
     let decoded: IDecodedToken;
@@ -98,11 +99,11 @@ export class AuthService {
     try {
       decoded = jwt.verify(refToken, this.refreshSecretKey) as IDecodedToken;
     } catch (err) {
-      throw new ForbiddenException('Invalid or expired refresh token');
+      throw new UnauthorizedException(authResponseMsgs.expiredRefreshToken);
     }
 
     if (!decoded.email || !decoded.role) {
-      throw new ForbiddenException('Token payload is missing required fields');
+      throw new BadRequestException(authResponseMsgs.tokenPayloadMissingFields);
     }
 
     const { accessToken, refreshToken } = await this.generateNewToken(
@@ -114,7 +115,7 @@ export class AuthService {
     await this.userService.changeRefreshToken(userId, refreshToken);
 
     return {
-      message: authResponseMsgs.tokenRefreshed.message,
+      message: authResponseMsgs.tokenRefreshed,
       accessToken,
       refreshToken,
     };

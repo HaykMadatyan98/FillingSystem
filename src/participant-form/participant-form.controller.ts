@@ -1,3 +1,4 @@
+import { CompanyService } from './../company/company.service';
 import {
   Body,
   Controller,
@@ -25,6 +26,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import {
   BeneficialOwnerDto,
   ChangeParticipantFormDto,
+  CreateParticipantDocDto,
   CreateParticipantFormDto,
   CurrentAddressDto,
   ExemptEntityDto,
@@ -141,9 +143,26 @@ export class ParticipantFormController {
   })
   async deleteParticipantFormById(@Param('formId') formId: string) {}
 
+  // add user check
   @Post('uploadAndUpdate/:participantId')
   @UseInterceptors(FileInterceptor('docImg'))
   @ApiConsumes('multipart/form-data')
+  @ApiParam({
+    name: 'participantId',
+    required: true,
+    description: 'ID of owner or applicant which doc image will send',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        docImg: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
   async uploadAnImageToTheCloudAndUpdate(
     @Param('participantId') participantId: string,
     @UploadedFile(
@@ -154,16 +173,38 @@ export class ParticipantFormController {
     )
     docImg: Express.Multer.File,
   ) {
-    const docImageData =
-      await this.participantFormService.uploadAnImageToTheCloud(docImg);
-
-    // update (steps find company which contains current id after checking update the current field)
-    // send message after update
+    return await this.participantFormService.updateDocImageInParticipantForm(
+      participantId,
+      docImg,
+    );
   }
 
+  // add user check
   @Post('uploadAndCreate/:companyId')
   @UseInterceptors(FileInterceptor('docImg'))
   @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        docImg: {
+          type: 'string',
+          format: 'binary',
+        },
+        docType: {
+          type: 'string',
+          example: 'Foreign passport',
+        },
+        docNum: {
+          type: 'string',
+          example: 'A123456789',
+        },
+        isApplicant: {
+          type: 'boolean',
+        },
+      },
+    },
+  })
   async uploadAnImageToTheCloudAndCreate(
     @Param('companyId') companyId: string,
     @UploadedFile(
@@ -173,12 +214,12 @@ export class ParticipantFormController {
       }),
     )
     docImg: Express.Multer.File,
+    @Body() payload: CreateParticipantDocDto,
   ) {
-    const docImageData =
-      await this.participantFormService.uploadAnImageToTheCloud(docImg);
-
-    // before creating get the data about where it need to be created(applicant/owner)
-    // create new participant Form and add it into company
-    // send the mongodb.ObjectId of the new created participant
+    return await this.participantFormService.uploadAnImageAndCreate(
+      companyId,
+      docImg,
+      payload,
+    );
   }
 }

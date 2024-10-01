@@ -6,7 +6,7 @@ import { CreateUserDto } from './dtos/user.dto';
 import * as moment from 'moment';
 import { CompanyService } from '@/company/company.service';
 import { userResponseMsgs } from './constants';
-import { userVerificationTime } from '@/auth/constants';
+import { authResponseMsgs, userVerificationTime } from '@/auth/constants';
 
 @Injectable()
 export class UserService {
@@ -19,7 +19,7 @@ export class UserService {
     const createdUser = new this.userModel(createUserDto);
     await createdUser.save();
 
-    return userResponseMsgs.accountCreated;
+    return { message: userResponseMsgs.accountCreated };
   }
 
   async changeUserOtp(
@@ -84,6 +84,10 @@ export class UserService {
 
   async changeRefreshToken(userId: string, refreshToken: string) {
     const user = await this.userModel.findById(userId);
+
+    if (!user) {
+      throw new NotFoundException(authResponseMsgs.userNotFound);
+    }
 
     user.refreshToken = refreshToken;
     await user.save();

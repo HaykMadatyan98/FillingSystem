@@ -10,12 +10,13 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
+
 import {
-  CountryEnum,
   IdentificationTypesEnum,
+  CountryEnum,
   StatesEnum,
   USTerritoryEnum,
-} from '../constants';
+} from '@/company/constants';
 
 class RepCompanyInfoDto {
   @ApiProperty({ default: false, required: false })
