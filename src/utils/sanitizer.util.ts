@@ -3,10 +3,17 @@ import { CompanyData, ParticipantData } from '@/company/constants';
 import { ICompanyCSVRowData } from '@/company/interfaces';
 import { ISanitizedData } from '@/company/interfaces/sanitized-data.interface';
 import { IChangeParticipantForm } from '@/participant-form/interfaces';
+import { validateData } from './validator.util';
+import { ChangeCompanyFormDto } from '@/company-form/dtos/company-form.dto';
+import {
+  ChangeParticipantFormDto,
+  CSVParticipantFormDto,
+} from '@/participant-form/dtos/participant-form.dto';
 
 export async function sanitizeData(
   data: ICompanyCSVRowData,
 ): Promise<ISanitizedData> {
+  console.log('before sanitizing', data);
   const sanitized: {
     company: ICompanyForm;
     participants: IChangeParticipantForm[];
@@ -22,7 +29,12 @@ export async function sanitizeData(
 
   function convertValue(key: string, value: string) {
     if (key === 'Company Tax Id Number') {
-      return Number(value);
+      return Number(value); // Convert tax ID to number
+    } else if (
+      key === 'Applicant Date of Birth' ||
+      key === 'Owner Date of Birth'
+    ) {
+      return value ? new Date(value) : undefined; // Convert to Date object, or undefined if missing
     } else if (value.toLowerCase() === 'true') {
       return true;
     } else if (value.toLowerCase() === 'false') {
@@ -97,6 +109,9 @@ export async function sanitizeData(
       sanitized.participants.push(participant);
     }
   });
+
+  await validateData(sanitized.company, ChangeCompanyFormDto);
+  await validateData(sanitized.participants, CSVParticipantFormDto);
 
   return sanitized;
 }

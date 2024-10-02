@@ -9,6 +9,7 @@ import {
   MaxLength,
   Min,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
 
 import {
@@ -17,6 +18,7 @@ import {
   StatesEnum,
   USTerritoryEnum,
 } from '@/company/constants';
+import { Type } from 'class-transformer';
 
 class RepCompanyInfoDto {
   @ApiProperty({ default: false, required: false })
@@ -101,22 +103,32 @@ class CompanyAddressDto {
 export class ChangeCompanyFormDto {
   @ApiProperty({ type: RepCompanyInfoDto, required: false })
   @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => RepCompanyInfoDto)
   repCompanyInfo?: RepCompanyInfoDto;
 
   @ApiProperty({ type: LegalAndAltNamesDto, required: false })
   @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => LegalAndAltNamesDto)
   names?: LegalAndAltNamesDto;
 
   @ApiProperty({ type: JurisdictionOfFormationDto, required: false })
   @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => JurisdictionOfFormationDto)
   formationJurisdiction?: JurisdictionOfFormationDto;
 
   @ApiProperty({ type: TaxInformation, required: false })
   @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => TaxInformation)
   taxInfo?: TaxInformation;
 
   @ApiProperty({ type: CompanyAddressDto, required: false })
   @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => CompanyAddressDto)
   address?: CompanyAddressDto;
 }
 
@@ -153,19 +165,29 @@ class CreateTaxInformation {
 export class CreateCompanyFormDto {
   @ApiProperty({ type: RepCompanyInfoDto, required: false })
   @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => RepCompanyInfoDto)
   repCompanyInfo?: RepCompanyInfoDto;
 
   @ApiProperty({ type: LegalAndAltNamesDto })
+  @ValidateNested({ each: true })
+  @Type(() => CreateLegalAndAltNamesDto)
   names: CreateLegalAndAltNamesDto;
 
   @ApiProperty({ type: JurisdictionOfFormationDto, required: false })
   @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => JurisdictionOfFormationDto)
   formationJurisdiction?: JurisdictionOfFormationDto;
 
   @ApiProperty({ type: TaxInformation })
+  @ValidateNested({ each: true })
+  @Type(() => CreateTaxInformation)
   taxInfo: CreateTaxInformation;
 
   @ApiProperty({ type: CompanyAddressDto, required: false })
   @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => CompanyAddressDto)
   address?: CompanyAddressDto;
 }

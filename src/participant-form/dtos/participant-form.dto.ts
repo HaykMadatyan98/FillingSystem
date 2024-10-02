@@ -1,12 +1,13 @@
 import { CountryEnum, DocumentTypeEnum, StatesEnum } from '@/company/constants';
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
   IsDate,
   IsOptional,
   IsString,
   IsEnum,
+  ValidateNested,
 } from 'class-validator';
 
 export class ExistingCompanyApplicantDto {
@@ -147,6 +148,39 @@ export class IdentificationAndJurisdictionForCreateDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsEnum(StatesEnum)
+  @Transform(({ value }) => StatesEnum[value])
+  state?: StatesEnum;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  localOrTribal?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  otherLocalOrTribalDesc?: string;
+}
+
+export class CSVIdentificationAndJurisdictionDto {
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  docType?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  docNumber?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  countryOrJurisdiction?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsEnum(StatesEnum)
   state?: StatesEnum;
 
   @ApiProperty({ required: false })
@@ -163,38 +197,62 @@ export class IdentificationAndJurisdictionForCreateDto {
 export class BaseParticipantFormDto {
   @ApiProperty({ required: false })
   @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => ExistingCompanyApplicantDto)
   applicant?: ExistingCompanyApplicantDto;
 
   @ApiProperty({ required: false })
   @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => BeneficialOwnerDto)
   beneficialOwner?: BeneficialOwnerDto;
 
   @ApiProperty({ required: false })
   @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => FinCENIDDto)
   finCENID?: FinCENIDDto;
 
   @ApiProperty({ required: false })
   @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => ExemptEntityDto)
   exemptEntity?: ExemptEntityDto;
 
   @ApiProperty({ required: false })
   @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => PersonalInformationDto)
   personalInfo?: PersonalInformationDto;
 
   @ApiProperty({ required: false })
   @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => CurrentAddressDto)
   address?: CurrentAddressDto;
 }
 
 export class ChangeParticipantFormDto extends BaseParticipantFormDto {
   @ApiProperty({ required: false })
   @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => IdentificationAndJurisdictionDto)
   identificationDetails?: IdentificationAndJurisdictionDto;
+}
+
+export class CSVParticipantFormDto extends BaseParticipantFormDto {
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => CSVIdentificationAndJurisdictionDto)
+  identificationDetails?: CSVIdentificationAndJurisdictionDto;
 }
 
 export class CreateParticipantFormDto extends BaseParticipantFormDto {
   @ApiProperty({ required: false })
   @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => IdentificationAndJurisdictionDto)
   identificationDetails: IdentificationAndJurisdictionForCreateDto;
 }
 
