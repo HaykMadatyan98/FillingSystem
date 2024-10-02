@@ -29,7 +29,7 @@ import { Roles } from '@/auth/decorators/roles.decorator';
 import { Role } from '@/auth/constants';
 import { RolesGuard } from '@/auth/guards/role.guard';
 import { CreateCompanyFormDto } from '@/company-form/dtos/company-form.dto';
-import { companyResponseMsgs } from './constants';
+import { companyCSVRowDataKeys, companyResponseMsgs } from './constants';
 import { ResponseMessageDto } from './dtos/reponse.dto';
 
 @ApiTags('company')
@@ -120,5 +120,11 @@ export class CompanyController {
   @ApiOperation({ summary: 'Delete company by companyId (Admin)' })
   async deleteCompany(@Param('companyId') companyId: string) {
     return this.companyService.deleteCompanyById(companyId);
+  }
+
+  @Get('company/formFields')
+  @ApiOperation({ summary: 'Send company fields for csv' })
+  async getCompanyFields() {
+    return { csvRowDataKeys: companyCSVRowDataKeys };
   }
 }

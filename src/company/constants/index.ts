@@ -3,7 +3,7 @@ export {
   requiredOwnerFields,
   requiredCompanyFields,
 } from './required-data-fields';
-export { CompanyData, ParticipantData } from './data-fields.enum';
+export { CompanyData, ParticipantData, companyCSVRowDataKeys } from './data-fields.enum';
 export { companyResponseMsgs } from './company-responses';
 export {
   DocumentTypeEnum,
