@@ -122,7 +122,7 @@ export class CompanyController {
     return this.companyService.deleteCompanyById(companyId);
   }
 
-  @Get('formFields')
+  @Get('/fields/csv')
   @ApiOperation({ summary: 'Send company fields for csv' })
   async getCompanyFields() {
     return { csvRowDataKeys: companyCSVRowDataKeys };
