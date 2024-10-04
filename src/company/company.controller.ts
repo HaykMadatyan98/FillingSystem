@@ -55,7 +55,7 @@ export class CompanyController {
   @ApiBearerAuth()
   @ApiForbiddenResponse({ description: companyResponseMsgs.dontHavePermission })
   @ApiOperation({ summary: 'Get company by entered company Id' })
-  async getCompanyById(@Param('companyId') companyId) {
+  async getCompanyById(@Param('companyId') companyId: string) {
     return this.companyService.getCompanyById(companyId);
   }
 

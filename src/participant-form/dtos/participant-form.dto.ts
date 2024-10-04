@@ -1,4 +1,8 @@
-import { CountryEnum, DocumentTypeEnum, StatesEnum } from '@/company/constants';
+import {
+  AllCountryEnum,
+  DocumentTypeEnum,
+  StatesEnum,
+} from '@/company/constants';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
@@ -22,6 +26,7 @@ export class FinCENIDDto {
   @IsString()
   finCENID?: string;
 }
+
 export class PersonalInformationDto {
   @ApiProperty({ required: false })
   @IsOptional()
@@ -48,6 +53,7 @@ export class PersonalInformationDto {
   @IsDate()
   dateOfBirth?: Date;
 }
+
 export class BeneficialOwnerDto {
   @ApiProperty({ required: false })
   @IsOptional()
@@ -60,12 +66,7 @@ enum AddressTypeEnum {
   RESIDENTIAL = 'residential',
 }
 
-export class CurrentAddressDto {
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsEnum(AddressTypeEnum)
-  type?: AddressTypeEnum;
-
+class OwnerAddressDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
@@ -78,8 +79,8 @@ export class CurrentAddressDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsEnum(CountryEnum)
-  countryOrJurisdiction?: CountryEnum;
+  @IsEnum(AllCountryEnum)
+  countryOrJurisdiction?: AllCountryEnum;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -92,58 +93,16 @@ export class CurrentAddressDto {
   postalCode?: string;
 }
 
-export class IdentificationAndJurisdictionDto {
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  docType?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  docNumber?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  countryOrJurisdiction?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsEnum(StatesEnum)
-  state?: StatesEnum;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  localOrTribal?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  otherLocalOrTribalDesc?: string;
-}
-
-export class ExemptEntityDto {
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsBoolean()
-  isExemptEntity?: boolean;
-}
-
-export class IdentificationAndJurisdictionForCreateDto {
+class ApplicantAddressDto extends OwnerAddressDto {
   @ApiProperty({ required: true })
-  @IsString()
-  docType: string;
-
-  @ApiProperty({ required: true })
-  @IsString()
-  docNumber: string;
-
+  @IsEnum(AddressTypeEnum)
+  type: AddressTypeEnum;
+}
+class IdentificationAndJurisdictionBaseDto {
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsEnum(CountryEnum)
-  countryOrJurisdiction?: CountryEnum;
+  @IsEnum(AllCountryEnum)
+  countryOrJurisdiction?: AllCountryEnum;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -160,41 +119,51 @@ export class IdentificationAndJurisdictionForCreateDto {
   @IsOptional()
   @IsString()
   otherLocalOrTribalDesc?: string;
+
+  @ApiProperty({ required: true })
+  @IsString()
+  docType: string;
+
+  @ApiProperty({ required: true })
+  @IsString()
+  docNumber: string;
 }
 
-export class CSVIdentificationAndJurisdictionDto {
+class ExemptEntityDto {
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsBoolean()
+  isExemptEntity?: boolean;
+}
+
+export class CSVIdentificationAndJurisdictionDto extends IdentificationAndJurisdictionBaseDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  docType?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  docNumber?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  countryOrJurisdiction?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsEnum(StatesEnum)
-  state?: StatesEnum;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  localOrTribal?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  otherLocalOrTribalDesc?: string;
+  docImg?: string;
 }
 
 export class BaseParticipantFormDto {
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => FinCENIDDto)
+  finCENID?: FinCENIDDto;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => PersonalInformationDto)
+  personalInfo?: PersonalInformationDto;
+
+  @ApiProperty({ required: true })
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => IdentificationAndJurisdictionBaseDto)
+  identificationDetails: IdentificationAndJurisdictionBaseDto;
+}
+
+export class ApplicantFormDto extends BaseParticipantFormDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @ValidateNested({ each: true })
@@ -204,14 +173,16 @@ export class BaseParticipantFormDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => BeneficialOwnerDto)
-  beneficialOwner?: BeneficialOwnerDto;
+  @Type(() => ApplicantAddressDto)
+  address?: ApplicantAddressDto;
+}
 
+export class OwnerFormDto extends BaseParticipantFormDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => FinCENIDDto)
-  finCENID?: FinCENIDDto;
+  @Type(() => BeneficialOwnerDto)
+  beneficialOwner?: BeneficialOwnerDto;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -222,38 +193,14 @@ export class BaseParticipantFormDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => PersonalInformationDto)
-  personalInfo?: PersonalInformationDto;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => CurrentAddressDto)
-  address?: CurrentAddressDto;
-}
-
-export class ChangeParticipantFormDto extends BaseParticipantFormDto {
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => IdentificationAndJurisdictionDto)
-  identificationDetails?: IdentificationAndJurisdictionDto;
+  @Type(() => OwnerAddressDto)
+  address?: OwnerAddressDto;
 }
 
 export class CSVParticipantFormDto extends BaseParticipantFormDto {
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => CSVIdentificationAndJurisdictionDto)
-  identificationDetails?: CSVIdentificationAndJurisdictionDto;
-}
-
-export class CreateParticipantFormDto extends BaseParticipantFormDto {
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => IdentificationAndJurisdictionDto)
-  identificationDetails: IdentificationAndJurisdictionForCreateDto;
+  @ApiProperty({ required: true })
+  @IsBoolean()
+  isApplicant: boolean;
 }
 
 export class CreateParticipantDocDto {

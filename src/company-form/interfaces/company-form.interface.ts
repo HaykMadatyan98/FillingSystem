@@ -9,8 +9,8 @@ export interface ILegalAndAltNames {
 }
 
 export interface ITaxInformation {
-  taxIdType?: string;
-  taxIdNumber?: number;
+  taxIdType: string;
+  taxIdNumber: number;
   countryOrJurisdiction?: string;
 }
 
@@ -27,6 +27,14 @@ export interface ICompanyAddress {
 }
 
 export interface ICompanyForm {
+  repCompanyInfo?: IRepCompanyInfo;
+  names?: ILegalAndAltNames;
+  formationJurisdiction?: IJurisdictionOfFormation;
+  taxInfo: ITaxInformation;
+  address?: ICompanyAddress;
+}
+
+export interface IChangeCompanyForm {
   repCompanyInfo?: IRepCompanyInfo;
   names?: ILegalAndAltNames;
   formationJurisdiction?: IJurisdictionOfFormation;

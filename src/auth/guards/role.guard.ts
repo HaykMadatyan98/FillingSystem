@@ -3,6 +3,7 @@ import {
   CanActivate,
   ExecutionContext,
   ForbiddenException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
@@ -30,7 +31,7 @@ export class RolesGuard implements CanActivate {
     const authHeader = request.headers['authorization'];
 
     if (!authHeader) {
-      throw new ForbiddenException(authResponseMsgs.tokenIsMissing);
+      throw new UnauthorizedException(authResponseMsgs.tokenIsMissing);
     }
 
     const accessToken = authHeader.replace('Bearer ', '');

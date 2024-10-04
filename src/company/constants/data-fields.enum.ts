@@ -41,6 +41,8 @@ export enum ParticipantData {
 }
 
 export const companyCSVRowDataKeys = [
+  'User Name',
+  'User Email',
   'Company Request To Receive Foreign ID',
   'Company Foreign Pooled',
   'Company Legal Name',
@@ -93,5 +95,10 @@ export const companyCSVRowDataKeys = [
   'Owner Document State',
   'Owner Local or Tribal',
   'Owner Other Local or Tribal Description',
-  'Owner Document Image'
+  'Owner Document Image',
 ] as const;
+
+export enum UserData {
+  'User Name' = 'name',
+  'User Email' = 'email',
+}

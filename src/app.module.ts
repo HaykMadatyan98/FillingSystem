@@ -8,7 +8,8 @@ import { AuthModule } from './auth/auth.module';
 import { CompanyModule } from './company/company.module';
 import { MailModule } from './mail/mail.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
-
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -17,13 +18,24 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     MongooseModule.forRoot(process.env.MONGODB_URL),
     UserModule,
     CompanyFormModule,
+    CompanyModule,
     ParticipantFormModule,
     AuthModule,
-    CompanyModule,
     MailModule,
     SchedulerModule,
+    ThrottlerModule.forRoot([
+      {
+        ttl: 20 * 60_000,
+        limit: 1000,
+      },
+    ]),
   ],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
   controllers: [],
 })
 export class AppModule {}

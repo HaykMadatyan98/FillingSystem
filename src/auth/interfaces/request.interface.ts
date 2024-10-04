@@ -9,6 +9,12 @@ export interface RequestWithUser extends Request {
   user?: {
     email: string;
     role: RoleEnum;
-    id: string | ObjectId;
+    userId: string | ObjectId;
   };
+}
+
+export interface IRequestUser {
+  email: string;
+  role: RoleEnum;
+  userId: string | ObjectId;
 }

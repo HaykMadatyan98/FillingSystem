@@ -14,7 +14,8 @@ import {
 
 import {
   IdentificationTypesEnum,
-  CountryEnum,
+  AllCountryEnum,
+  ForeignCountryEnum,
   StatesEnum,
   USTerritoryEnum,
 } from '@/company/constants';
@@ -46,29 +47,11 @@ class LegalAndAltNamesDto {
   altName?: string;
 }
 
-class TaxInformation {
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsEnum(IdentificationTypesEnum)
-  taxIdType?: IdentificationTypesEnum;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsNumber()
-  @Min(1_000_000_000)
-  @Max(9_999_999_999)
-  taxIdNumber?: number;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsEnum(CountryEnum)
-  countryOrJurisdiction?: CountryEnum;
-}
 class JurisdictionOfFormationDto {
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsEnum(CountryEnum)
-  countryOrJurisdictionOfFormation?: CountryEnum;
+  @IsEnum(AllCountryEnum)
+  countryOrJurisdictionOfFormation?: AllCountryEnum;
 }
 
 class CompanyAddressDto {
@@ -100,6 +83,33 @@ class CompanyAddressDto {
   zipCode?: string;
 }
 
+class CreateLegalAndAltNamesDto {
+  @ApiProperty({ required: true })
+  @IsString()
+  legalName: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  altName?: string;
+}
+
+class TaxInformation {
+  @ApiProperty({ required: true })
+  @IsEnum(IdentificationTypesEnum)
+  taxIdType: IdentificationTypesEnum;
+
+  @ApiProperty({ required: true })
+  @IsNumber()
+  @Min(100_000_000)
+  @Max(999_999_999)
+  taxIdNumber: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsEnum(AllCountryEnum)
+  countryOrJurisdiction?: AllCountryEnum;
+}
 export class ChangeCompanyFormDto {
   @ApiProperty({ type: RepCompanyInfoDto, required: false })
   @IsOptional()
@@ -132,36 +142,6 @@ export class ChangeCompanyFormDto {
   address?: CompanyAddressDto;
 }
 
-class CreateLegalAndAltNamesDto {
-  @ApiProperty({ required: true })
-  @IsString()
-  legalName: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  altName?: string;
-}
-
-class CreateTaxInformation {
-  @ApiProperty({ required: true })
-  @IsOptional()
-  @IsEnum(IdentificationTypesEnum)
-  taxIdType?: IdentificationTypesEnum;
-
-  @ApiProperty({ required: true })
-  @IsOptional()
-  @IsNumber()
-  @Min(1_000_000_000)
-  @Max(9_999_999_999)
-  taxIdNumber: number;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsEnum(CountryEnum)
-  countryOrJurisdiction?: CountryEnum;
-}
-
 export class CreateCompanyFormDto {
   @ApiProperty({ type: RepCompanyInfoDto, required: false })
   @IsOptional()
@@ -182,8 +162,38 @@ export class CreateCompanyFormDto {
 
   @ApiProperty({ type: TaxInformation })
   @ValidateNested({ each: true })
-  @Type(() => CreateTaxInformation)
-  taxInfo: CreateTaxInformation;
+  @Type(() => TaxInformation)
+  taxInfo: TaxInformation;
+
+  @ApiProperty({ type: CompanyAddressDto, required: false })
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => CompanyAddressDto)
+  address?: CompanyAddressDto;
+}
+
+export class CSVCompanyFormDto {
+  @ApiProperty({ type: RepCompanyInfoDto, required: false })
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => RepCompanyInfoDto)
+  repCompanyInfo?: RepCompanyInfoDto;
+
+  @ApiProperty({ type: LegalAndAltNamesDto })
+  @ValidateNested({ each: true })
+  @Type(() => LegalAndAltNamesDto)
+  names?: LegalAndAltNamesDto;
+
+  @ApiProperty({ type: JurisdictionOfFormationDto, required: false })
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => JurisdictionOfFormationDto)
+  formationJurisdiction?: JurisdictionOfFormationDto;
+
+  @ApiProperty({ type: TaxInformation })
+  @ValidateNested({ each: true })
+  @Type(() => TaxInformation)
+  taxInfo: TaxInformation;
 
   @ApiProperty({ type: CompanyAddressDto, required: false })
   @IsOptional()
