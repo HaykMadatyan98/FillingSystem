@@ -43,6 +43,8 @@ export class CompanyFormService {
       requiredCompanyFields,
     );
 
+    companyData.answerCount = answerCount;
+
     await companyData.save();
     return {
       id: companyData._id,
@@ -93,11 +95,10 @@ export class CompanyFormService {
       requiredCompanyFields,
     );
 
+    const countDiff = answerCountBefore - answerCountAfter;
+    companyData.answerCount += countDiff;
     await companyData.save();
-    await this.companyService.changeCompanyReqFieldsCount(
-      companyId,
-      answerCountBefore - answerCountAfter,
-    );
+    await this.companyService.changeCompanyReqFieldsCount(companyId, countDiff);
     return {
       message: companyFormResponseMsgs.companyFormUpdated,
     };

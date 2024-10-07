@@ -31,14 +31,14 @@ import {
 import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
 import { RequestWithUser } from '@/auth/interfaces/request.interface';
 
-@ApiTags('form')
-@Controller('form')
+@ApiTags('form/applicant')
+@Controller('form/applicant')
 export class ApplicantFormController {
   constructor(
     private readonly participantFormService: ParticipantFormService,
   ) {}
 
-  @Post('applicant/create/:companyId')
+  @Post('/create/:companyId')
   @ApiBody({
     schema: {
       type: 'object',
@@ -79,7 +79,7 @@ export class ApplicantFormController {
     );
   }
 
-  @Patch('applicant/:companyId/:formId')
+  @Patch('/:companyId/:formId')
   @ApiOperation({
     summary: 'Change applicant by formId',
   })
@@ -113,16 +113,16 @@ export class ApplicantFormController {
     @Body() payload: ApplicantFormDto,
     @Req() req: RequestWithUser,
   ) {
-    return this.participantFormService.changeParticipantFormById(
-      companyId,
-      formId,
+    return this.participantFormService.changeParticipantForm(
       payload,
+      formId,
       true,
+      companyId,
       req.user,
     );
   }
 
-  @Get('applicant/:formId')
+  @Get('/:formId')
   @ApiOperation({
     summary: 'Get applicant by formId',
   })
@@ -139,7 +139,7 @@ export class ApplicantFormController {
     );
   }
 
-  @Delete('applicant/:formId')
+  @Delete('/:formId')
   @ApiOperation({
     summary: 'Remove applicant by formId',
   })
@@ -238,5 +238,18 @@ export class ApplicantFormController {
       true,
       req.user,
     );
+  }
+
+  @Get('/all/:userId')
+  @ApiParam({
+    required: true,
+    name: 'userId'
+  })
+  @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth()
+  async getAllCompaniesApplicants(
+    @Param('userId') userId: string,
+  ) {
+    return this.participantFormService.getAllCompaniesParticipants(true, userId)
   }
 }

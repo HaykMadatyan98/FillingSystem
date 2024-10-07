@@ -32,14 +32,14 @@ import {
 import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
 import { RequestWithUser } from '@/auth/interfaces/request.interface';
 
-@ApiTags('form')
-@Controller('form')
+@ApiTags('form/owner')
+@Controller('form/owner')
 export class OwnerFormController {
   constructor(
     private readonly participantFormService: ParticipantFormService,
   ) {}
 
-  @Post('owner/create/:companyId')
+  @Post('create/:companyId')
   @ApiBody({
     schema: {
       type: 'object',
@@ -74,9 +74,9 @@ export class OwnerFormController {
     );
   }
 
-  @Patch('applicant/:companyId/:formId')
+  @Patch(':companyId/:formId')
   @ApiOperation({
-    summary: 'Change applicant/owner by formId',
+    summary: 'Change owner by formId',
   })
   @ApiParam({
     name: 'companyId',
@@ -108,16 +108,16 @@ export class OwnerFormController {
     @Body() payload: ApplicantFormDto,
     @Req() req: RequestWithUser,
   ) {
-    return this.participantFormService.changeParticipantFormById(
-      companyId,
-      formId,
+    return this.participantFormService.changeParticipantForm(
       payload,
+      formId,
       false,
+      companyId,
       req.user,
     );
   }
 
-  @Get('owner/:formId')
+  @Get(':formId')
   @ApiOperation({
     summary: 'Get owner by formId',
   })
@@ -134,7 +134,7 @@ export class OwnerFormController {
     );
   }
 
-  @Delete('owner/:formId')
+  @Delete(':formId')
   @ApiOperation({
     summary: 'Remove owner by formId',
   })

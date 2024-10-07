@@ -19,12 +19,12 @@ import { RequestWithUser } from '@/auth/interfaces/request.interface';
 import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
 import { ChangeCompanyFormDto } from './dtos/company-form.dto';
 
-@ApiTags('form')
-@Controller('form')
+@ApiTags('form/company')
+@Controller('form/company')
 export class CompanyFormController {
   constructor(private readonly companyFormService: CompanyFormService) {}
 
-  @Patch('/company/:companyId/:formId')
+  @Patch('/:companyId/:formId')
   @ApiOperation({ summary: 'Change reporting company form' })
   @UseGuards(AccessTokenGuard)
   @ApiBearerAuth()
@@ -46,7 +46,7 @@ export class CompanyFormController {
     );
   }
 
-  @Get('/company/:formId')
+  @Get('/:formId')
   @ApiOperation({ summary: 'Get reporting company form by formId' })
   @UseGuards(AccessTokenGuard)
   @ApiBearerAuth()

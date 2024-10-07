@@ -52,22 +52,30 @@ export class UserService {
     return this.userModel.findOne({ email });
   }
 
-  async createUserFromCsvData(email: string, name: string, companyId: string) {
+  async createUserFromCsvData(
+    email: string,
+    name: string,
+    companyId: string,
+  ): Promise<UserDocument> {
     const newUser = new this.userModel({
       email,
       firstName: name,
       companies: [companyId],
     });
     await newUser.save();
+
+    return newUser['id'];
   }
 
   async addCompanyToUser(userId: string, companyId: string) {
     const user: any = await this.userModel.findById(userId);
 
-    if (user && !user.companies.includes(companyId)) {
+    if (!user.companies.includes(companyId)) {
       user.companies.push(companyId);
       await user.save();
     }
+
+    return user['id'];
   }
 
   async addCompaniesToUser(userId: string, companyIds: string[]) {

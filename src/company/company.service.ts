@@ -138,6 +138,7 @@ export class CompanyService {
 
       participantsData.forEach((participant) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+
         participant[0]
           ? applicantsIds.push(participant[1])
           : ownersIds.push(participant[1]);
@@ -179,14 +180,12 @@ export class CompanyService {
             );
 
           if (existParticipant) {
-            const changedParticipant =
-              await this.participantFormService.changeParticipantForm(
-                participant,
-                existParticipant['id'],
-                participant['isApplicant'],
-              );
-
-            company.answersCount += changedParticipant.answerCountDifference;
+            await this.participantFormService.changeParticipantForm(
+              participant,
+              existParticipant['id'],
+              participant['isApplicant'],
+              company['id'],
+            );
           } else {
             const newParticipant =
               await this.participantFormService.createParticipantFormFromCsv(
@@ -206,21 +205,27 @@ export class CompanyService {
     }
 
     company.reqFieldsCount = this.calculateReqFieldsCount(company);
-    await company.save();
     const user = await this.userService.getUserByEmail(sanitized.user.email);
 
     if (!user) {
-      await this.userService.createUserFromCsvData(
+      const newUser = await this.userService.createUserFromCsvData(
         sanitized.user.email,
         sanitized.user.name,
         company['_id'] as string,
       );
+      company.user = newUser;
     } else {
       await this.userService.addCompanyToUser(
         user['id'],
         company['_id'] as string,
       );
+
+      if (!company.user) {
+        company.user = user['id'];
+      }
     }
+
+    await company.save();
   }
 
   async getCompaniesByIds(companyIds: string[]) {
@@ -282,7 +287,10 @@ export class CompanyService {
       await Promise.all(ownerForms);
     }
 
-    await this.userService.removeCompanyFromUser(company.user as unknown as string, companyId);
+    await this.userService.removeCompanyFromUser(
+      company.user as unknown as string,
+      companyId,
+    );
     await this.companyFormService.deleteCompanyFormById(
       company.forms.company as any,
     );
@@ -384,5 +392,22 @@ export class CompanyService {
     company.reqFieldsCount += count;
 
     await company.save();
+  }
+
+  async getUserCompaniesParticipants(userId: string, isApplicant: boolean) {
+    const companies = await this.companyModel.find({
+      user: userId,
+    });
+
+    console.log(companies);
+    if (!companies.length) {
+      throw new NotFoundException(companyResponseMsgs.companyNotFound);
+    }
+
+    const allParticipants = companies.map((company) =>
+      isApplicant ? company.forms.applicants : company.forms.owners,
+    );
+
+    return allParticipants;
   }
 }

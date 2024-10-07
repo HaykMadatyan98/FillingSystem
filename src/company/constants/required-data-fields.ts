@@ -31,21 +31,3 @@ export const requiredApplicantFields = [
   'personalInfo.dateOfBirth',
   'address.type',
 ];
-
-export const requiredApplicantFieldsForBusiness = [
-  'address.business_address',
-  'address.business_countryOrJurisdiction',
-  'address.business_state',
-  'address.business_postalCode',
-  'identificationDetails.docType',
-  'identificationDetails.docNumber',
-  'identificationDetails.countryOrJurisdiction',
-  'identificationDetails.state',
-  'identificationDetails.localOrTribal',
-  'identificationDetails.otherLocalOrTribalDesc',
-  'identificationDetails.docImg',
-  'personalInfo.lastOrLegalName',
-  'personalInfo.firstName',
-  'personalInfo.dateOfBirth',
-  'address.type',
-];

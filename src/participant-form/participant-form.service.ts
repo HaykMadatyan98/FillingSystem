@@ -4,9 +4,7 @@ import {
   TRResponseMsg,
 } from './interfaces/participant-service.interface';
 import { participantFormResponseMsgs } from './constants/participant-form.response-messages';
-import { requiredApplicantFieldsForBusiness } from './../company/constants/required-data-fields';
 import {
-  BadRequestException,
   forwardRef,
   Inject,
   Injectable,
@@ -47,33 +45,17 @@ export class ParticipantFormService {
 
     delete companyParticipantData.isApplicant;
 
-    if (
-      isApplicant &&
-      companyParticipantData['address']['type'] === 'business'
-    ) {
-      const addressValues = Object.entries(companyParticipantData['address']);
-      addressValues.map(([key, value]) => {
-        if (key !== 'type') {
-          companyParticipantData['address']['business_' + key] = value;
-          delete companyParticipantData['address'][key];
-        }
-      });
-    }
-
     const participant = isApplicant
       ? new this.applicantFormModel(companyParticipantData)
       : new this.ownerFormModel(companyParticipantData);
 
-    await participant.save();
-
     const requiredFieldsCount = await calculateRequiredFieldsCount(
       participant,
-      isApplicant
-        ? participant['address']['type'] === 'business'
-          ? requiredApplicantFieldsForBusiness
-          : requiredApplicantFields
-        : requiredOwnerFields,
+      isApplicant ? requiredApplicantFields : requiredOwnerFields,
     );
+
+    participant.answerCount = requiredFieldsCount;
+    await participant.save();
 
     return [isApplicant, participant.id as string, requiredFieldsCount];
   }
@@ -82,90 +64,47 @@ export class ParticipantFormService {
     participantData: any,
     participantFormId: any,
     isApplicant: boolean,
-  ): TRChangeParticipantForm {
+    companyId: string,
+    user?: IRequestUser,
+  ): Promise<any> {
+    if (user) {
+      await this.companyService.checkUserCompanyPermission(
+        user,
+        participantFormId,
+        'participantForm',
+      );
+    }
+
     const participant: any = isApplicant
       ? await this.applicantFormModel.findById(participantFormId)
       : await this.ownerFormModel.findById(participantFormId);
 
-    if (isApplicant && participantData.address) {
-      if (!participant.address.type) {
-        throw new BadRequestException(
-          'for editing this part need to enter address type',
-        );
-      }
-    }
-
     const requiredFieldsCountBefore = await calculateRequiredFieldsCount(
       participant,
-      isApplicant
-        ? participant['address']['type'] === 'business'
-          ? requiredApplicantFieldsForBusiness
-          : requiredApplicantFields
-        : requiredOwnerFields,
+      isApplicant ? requiredApplicantFields : requiredOwnerFields,
     );
+
     const updateDataKeys = Object.keys(participantData);
     for (const i of updateDataKeys) {
-      if (
-        isApplicant &&
-        i === 'address' &&
-        participantData[i]['type'] === 'business'
-      ) {
-        const addressValues = Object.entries(participantData[i]);
-        const businessAddressData = addressValues.map(([key, value]) => {
-          if (key !== 'type') {
-            participant[i]['business_' + key] = value;
-            delete participant[i][key];
-          }
-        });
-
-        participant[i] = { ...participant[i], ...businessAddressData };
-      } else if (i !== 'isApplicant') {
-        participant[i] = { ...participant[i], ...participantData[i] };
-      }
+      participant[i] = { ...participant[i], ...participantData[i] };
     }
 
     const requiredFieldsCountAfter = await calculateRequiredFieldsCount(
       participant,
-      isApplicant
-        ? participant['address']['type'] === 'business'
-          ? requiredApplicantFieldsForBusiness
-          : requiredApplicantFields
-        : requiredOwnerFields,
+      isApplicant ? requiredApplicantFields : requiredOwnerFields,
     );
 
-    await participant.save();
-    return {
-      id: participant._id,
-      answerCountDifference:
-        requiredFieldsCountBefore - requiredFieldsCountAfter,
-    };
-  }
-
-  async changeParticipantFormById(
-    companyId: string,
-    formId: string,
-    payload: any,
-    isApplicant: boolean,
-    user: IRequestUser,
-  ) {
-    await this.companyService.checkUserCompanyPermission(
-      user,
-      companyId,
-      'company',
-    );
-
-    const updatedParticipant = await this.changeParticipantForm(
-      payload,
-      formId,
-      isApplicant,
-    );
+    const countDifference =
+      requiredFieldsCountBefore - requiredFieldsCountAfter;
+    participant.answerCount += countDifference;
 
     await this.companyService.changeCompanyReqFieldsCount(
       companyId,
-      updatedParticipant.answerCountDifference,
+      countDifference,
     );
 
-    return { message: participantFormResponseMsgs.participantChanged };
+    await participant.save();
+    return { participant, message: 'participant changed' };
   }
 
   async findParticipantFormByDocDataAndIds(
@@ -201,13 +140,7 @@ export class ParticipantFormService {
       'company',
     );
 
-    if (payload.address) {
-      if (!payload.address.type) {
-        throw new BadRequestException(
-          'for editing this part need to enter address type',
-        );
-      }
-    }
+    // add calculation of answers
 
     const company = await this.companyService.getCompanyById(companyId);
     const createdParticipant = isApplicant
@@ -294,14 +227,12 @@ export class ParticipantFormService {
 
     const docImgUrl = await this.uploadAnImageToTheCloud(docImg);
 
-    const updatedParticipant = await this.changeParticipantForm(
+    await this.changeParticipantForm(
       { identificationDetails: { docImgUrl } },
       participantId,
       isApllicant,
+      company['id'],
     );
-
-    company.answersCount += updatedParticipant.answerCountDifference;
-    await company.save();
 
     return { message: participantFormResponseMsgs.participantChanged };
   }
@@ -340,5 +271,17 @@ export class ParticipantFormService {
       message: participantFormResponseMsgs.participantCreated,
       participantId: createdParticipant['id'],
     };
+  }
+
+  async getAllCompaniesParticipants(isApplicant: boolean, userId: string) {
+    const userCompaniesIds =
+      await this.companyService.getUserCompaniesParticipants(
+        userId,
+        isApplicant,
+      );
+
+    console.log(userCompaniesIds);
+
+    return {};
   }
 }

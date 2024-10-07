@@ -49,7 +49,7 @@ export class MailService {
     }
   }
 
-  async sendEmailToParticipants(emails) {
+  async sendEmailToParticipants(emails: any) {
     const emailPromises = emails.map(async ({ email }) => {
       try {
         const templatePath = path.join(
@@ -75,5 +75,32 @@ export class MailService {
       }
       await Promise.all(emailPromises);
     });
+  }
+
+  async sendInvitationEmail(email: string, userName: string): Promise<void> {
+    try {
+      const templatePath = path.join(
+        path.resolve(),
+        '/src/mail/templates/oneTimePass.hbs',
+      );
+
+      const template = fs.readFileSync(templatePath, 'utf-8');
+      const compiledFile = Handlebars.compile(template);
+      const htmlContent = compiledFile({
+        userName,
+      });
+
+      const mail: SendGrid.MailDataRequired = {
+        to: email,
+        from: this.emailFrom,
+        subject: 'Invitation For BOIR',
+        html: htmlContent,
+      };
+
+      await SendGrid.send(mail);
+    } catch (error) {
+      console.log(error);
+      // write error exception and add in future the part where information will be saved in db
+    }
   }
 }

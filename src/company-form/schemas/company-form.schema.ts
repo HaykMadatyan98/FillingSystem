@@ -27,7 +27,7 @@ class TaxInformation {
   taxIdType: string;
 
   @Prop({ required: true })
-  taxIdNumber: number;
+  taxIdNumber: string;
 
   @Prop()
   countryOrJurisdiction: string;
@@ -73,6 +73,9 @@ export class CompanyForm {
 
   @Prop()
   address: CompanyAddress;
+
+  @Prop({ default: 0 })
+  answerCount: number;
 }
 
 export const CompanyFormSchema = SchemaFactory.createForClass(CompanyForm);

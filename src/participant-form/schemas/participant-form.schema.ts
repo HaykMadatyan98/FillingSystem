@@ -114,6 +114,9 @@ export class ApplicantForm {
 
   @Prop()
   identificationDetails: IdentificationAndJurisdiction;
+
+  @Prop()
+  answerCount: number;
 }
 
 @Schema({ timestamps: true })
@@ -135,6 +138,9 @@ export class OwnerForm {
 
   @Prop()
   identificationDetails: IdentificationAndJurisdiction;
+
+  @Prop()
+  answerCount: number;
 }
 
 export const OwnerFormSchema = SchemaFactory.createForClass(OwnerForm);
