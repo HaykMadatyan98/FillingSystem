@@ -15,7 +15,7 @@ export class AccessTokenGuard extends AuthGuard('jwt') {
     const request = context.switchToHttp().getRequest();
 
     request.user = {
-      id: user.id,
+      userId: user.id,
       email: user.email,
       role: user.role,
     };

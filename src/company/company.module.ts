@@ -13,7 +13,7 @@ import { AuthModule } from '@/auth/auth.module';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Company.name, schema: CompanySchema }]),
-    CompanyFormModule,
+    forwardRef(() => CompanyFormModule),
     ParticipantFormModule,
     MailModule,
     forwardRef(() => UserModule),

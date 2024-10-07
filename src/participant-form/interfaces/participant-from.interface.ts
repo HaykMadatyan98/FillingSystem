@@ -1,4 +1,8 @@
-import { CountryEnum, DocumentTypeEnum, StatesEnum } from '@/company/constants';
+import {
+  AllCountryEnum,
+  DocumentTypeEnum,
+  StatesEnum,
+} from '@/company/constants';
 
 export interface IChangeParticipantForm {
   applicant?: {
@@ -24,13 +28,52 @@ export interface IChangeParticipantForm {
     type?: 'business' | 'residential';
     address?: string;
     city?: string;
-    countryOrJurisdiction?: CountryEnum;
+    countryOrJurisdiction?: AllCountryEnum;
     state?: StatesEnum;
     postalCode?: string;
   };
   identificationDetails?: {
     docType?: string;
     docNumber?: string;
+    countryOrJurisdiction?: string;
+    state?: StatesEnum;
+    localOrTribal?: string;
+    otherLocalOrTribalDesc?: string;
+  };
+}
+
+export interface ICreateParticipantForm {
+  isApplicant: boolean;
+  applicant?: {
+    isExistingCompany?: boolean;
+  };
+  beneficialOwner?: {
+    isParentOrGuard?: boolean;
+  };
+  finCENID?: {
+    finCENID?: string;
+  };
+  exemptEntity?: {
+    isExemptEntity?: boolean;
+  };
+  personalInfo?: {
+    lastOrLegalName?: string;
+    firstName?: string;
+    middleName?: string;
+    suffix?: string;
+    dateOfBirth?: Date;
+  };
+  address?: {
+    type?: 'business' | 'residential';
+    address?: string;
+    city?: string;
+    countryOrJurisdiction?: AllCountryEnum;
+    state?: StatesEnum;
+    postalCode?: string;
+  };
+  identificationDetails: {
+    docType: string;
+    docNumber: string;
     countryOrJurisdiction?: string;
     state?: StatesEnum;
     localOrTribal?: string;

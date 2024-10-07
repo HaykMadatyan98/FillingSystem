@@ -1,4 +1,3 @@
-import { CompanyService } from './../company/company.service';
 import {
   Body,
   Controller,
@@ -9,41 +8,37 @@ import {
   ParseFilePipe,
   Patch,
   Post,
+  Req,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { ParticipantFormService } from './participant-form.service';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiConsumes,
   ApiCreatedResponse,
   ApiOperation,
   ApiParam,
   ApiTags,
-  getSchemaPath,
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
-  BeneficialOwnerDto,
-  ChangeParticipantFormDto,
+  ApplicantFormDto,
   CreateParticipantDocDto,
-  CreateParticipantFormDto,
-  CurrentAddressDto,
-  ExemptEntityDto,
-  ExistingCompanyApplicantDto,
-  FinCENIDDto,
-  IdentificationAndJurisdictionDto,
-  PersonalInformationDto,
 } from './dtos/participant-form.dto';
+import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
+import { RequestWithUser } from '@/auth/interfaces/request.interface';
 
 @ApiTags('form')
 @Controller('form')
-export class ParticipantFormController {
+export class ApplicantFormController {
   constructor(
     private readonly participantFormService: ParticipantFormService,
   ) {}
 
-  @Post('participant/create/:companyId')
+  @Post('applicant/create/:companyId')
   @ApiBody({
     schema: {
       type: 'object',
@@ -60,16 +55,33 @@ export class ParticipantFormController {
     required: true,
     description: 'ID of the company',
   })
-  @ApiOperation({
-    summary: 'Create new applicant/owner',
+  @ApiParam({
+    name: 'participant',
+    required: true,
+    description: 'is applicant or not',
+    example: 'applicant',
   })
-  async createNewParticipantForm(@Body() payload: CreateParticipantFormDto) {
-    return this.participantFormService.createParticipantForm();
+  @ApiOperation({
+    summary: 'Create new applicant',
+  })
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
+  async createNewParticipantForm(
+    @Body() payload: ApplicantFormDto,
+    @Req() req: RequestWithUser,
+    @Param('companyId') companyId: string,
+  ) {
+    return this.participantFormService.createParticipantForm(
+      payload,
+      companyId,
+      true,
+      req.user,
+    );
   }
 
-  @Patch('participant/:companyId/:formId')
+  @Patch('applicant/:companyId/:formId')
   @ApiOperation({
-    summary: 'Change applicant/owner by formId',
+    summary: 'Change applicant by formId',
   })
   @ApiParam({
     name: 'companyId',
@@ -79,37 +91,12 @@ export class ParticipantFormController {
   @ApiParam({
     name: 'formId',
     required: true,
-    description: 'ID of the owner/applicant form',
+    description: 'ID of the applicant form',
   })
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
-        ...{
-          applicant: {
-            type: 'object',
-            $ref: getSchemaPath(ExistingCompanyApplicantDto),
-          },
-          beneficialOwner: {
-            type: 'object',
-            $ref: getSchemaPath(BeneficialOwnerDto),
-          },
-          finCENID: { type: 'object', $ref: getSchemaPath(FinCENIDDto) },
-          exemptEntity: {
-            type: 'object',
-            $ref: getSchemaPath(ExemptEntityDto),
-          },
-          personalInfo: {
-            type: 'object',
-            $ref: getSchemaPath(PersonalInformationDto),
-          },
-          address: { type: 'object', $ref: getSchemaPath(CurrentAddressDto) },
-          identificationDetails: {
-            type: 'object',
-            $ref: getSchemaPath(IdentificationAndJurisdictionDto),
-          },
-          isApplicant: { type: 'boolean' },
-        },
         docImg: {
           type: 'string',
           format: 'binary',
@@ -117,40 +104,65 @@ export class ParticipantFormController {
       },
     },
   })
-  @ApiCreatedResponse({ type: ChangeParticipantFormDto })
+  @ApiCreatedResponse({ type: ApplicantFormDto })
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
   async changeParticipantForm(
     @Param('formId') formId: string,
     @Param('companyId') companyId: string,
-    @Body() payload: ChangeParticipantFormDto,
+    @Body() payload: ApplicantFormDto,
+    @Req() req: RequestWithUser,
   ) {
-    console.log(payload);
     return this.participantFormService.changeParticipantFormById(
       companyId,
       formId,
       payload,
+      true,
+      req.user,
     );
   }
 
-  @Get('participant/:formId')
+  @Get('applicant/:formId')
   @ApiOperation({
-    summary: 'Get applicant/owner by formId',
+    summary: 'Get applicant by formId',
   })
-  async getParticipantFormById(@Param('formId') formId: string) {}
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
+  async getParticipantFormById(
+    @Param('formId') formId: string,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.participantFormService.getParticipantFormById(
+      formId,
+      true,
+      req.user,
+    );
+  }
 
-  @Delete('participant/:formId')
+  @Delete('applicant/:formId')
   @ApiOperation({
-    summary: 'Remove applicant/owner by formId',
+    summary: 'Remove applicant by formId',
   })
-  async deleteParticipantFormById(@Param('formId') formId: string) {}
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
+  async deleteParticipantFormById(
+    @Param('formId') formId: string,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.participantFormService.deleteParticipantFormById(
+      formId,
+      true,
+      req.user,
+    );
+  }
 
-  // add user check
   @Post('uploadAndUpdate/:participantId')
   @UseInterceptors(FileInterceptor('docImg'))
   @ApiConsumes('multipart/form-data')
   @ApiParam({
     name: 'participantId',
     required: true,
-    description: 'ID of owner or applicant which doc image will send',
+    description: 'ID of applicant which doc image will send',
   })
   @ApiBody({
     schema: {
@@ -163,6 +175,8 @@ export class ParticipantFormController {
       },
     },
   })
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
   async uploadAnImageToTheCloudAndUpdate(
     @Param('participantId') participantId: string,
     @UploadedFile(
@@ -172,15 +186,16 @@ export class ParticipantFormController {
       }),
     )
     docImg: Express.Multer.File,
+    @Req() req: RequestWithUser,
   ) {
     return await this.participantFormService.updateDocImageInParticipantForm(
       participantId,
       docImg,
+      req.user,
     );
   }
 
-  // add user check
-  @Post('uploadAndCreate/:companyId')
+  @Post('uploadApplImg/:companyId')
   @UseInterceptors(FileInterceptor('docImg'))
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -199,12 +214,11 @@ export class ParticipantFormController {
           type: 'string',
           example: 'A123456789',
         },
-        isApplicant: {
-          type: 'boolean',
-        },
       },
     },
   })
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
   async uploadAnImageToTheCloudAndCreate(
     @Param('companyId') companyId: string,
     @UploadedFile(
@@ -215,11 +229,14 @@ export class ParticipantFormController {
     )
     docImg: Express.Multer.File,
     @Body() payload: CreateParticipantDocDto,
+    @Req() req: RequestWithUser,
   ) {
     return await this.participantFormService.uploadAnImageAndCreate(
       companyId,
       docImg,
       payload,
+      true,
+      req.user,
     );
   }
 }

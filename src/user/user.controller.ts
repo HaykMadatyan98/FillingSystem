@@ -2,11 +2,9 @@ import {
   Controller,
   Post,
   Get,
-  Delete,
   Body,
   Param,
   UseGuards,
-  Patch,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -20,7 +18,6 @@ import {
 } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { User } from './schema/user.schema';
-import { CreateUserDto } from './dtos/user.dto';
 import { Roles } from '@/auth/decorators/roles.decorator';
 import { authResponseMsgs, Role } from '@/auth/constants';
 import { RolesGuard } from '@/auth/guards/role.guard';
@@ -30,21 +27,6 @@ import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-
-  @Post()
-  @Roles(Role.Admin)
-  @UseGuards(RolesGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create a user' })
-  @ApiOkResponse({
-    description: 'The user has been successfully created.',
-  })
-  @ApiForbiddenResponse({ description: authResponseMsgs.accessDenied })
-  async create(
-    @Body() createUserDto: CreateUserDto,
-  ): Promise<{ message: string }> {
-    return this.userService.create(createUserDto);
-  }
 
   @Get()
   @Roles(Role.Admin)
@@ -64,36 +46,6 @@ export class UserController {
   @ApiOkResponse({ description: 'Returns a user.' })
   async findOne(@Param('userId') userId: string): Promise<User> {
     return this.userService.getUserById(userId);
-  }
-
-  @Patch(':userId')
-  @ApiOperation({ summary: 'Update a user' })
-  @ApiBearerAuth()
-  @ApiOkResponse({
-    description: 'The user has been successfully updated.',
-  })
-  @Roles(Role.Admin)
-  @UseGuards(RolesGuard)
-  @ApiForbiddenResponse({ description: authResponseMsgs.accessDenied })
-  async update(
-    @Param('userId') userId: string,
-    @Body() updateUserDto: any,
-  ): Promise<User> {
-    return this.userService.update(userId, updateUserDto);
-  }
-
-  @Delete(':userId')
-  @ApiOperation({ summary: 'Delete a user' })
-  @ApiResponse({
-    status: 200,
-    description: 'The user has been successfully deleted.',
-  })
-  @ApiBearerAuth()
-  @ApiForbiddenResponse({ description: authResponseMsgs.accessDenied })
-  @Roles(Role.Admin)
-  @UseGuards(RolesGuard)
-  async remove(@Param('userId') userId: string): Promise<void> {
-    return this.userService.remove(userId);
   }
 
   @Post('company/:userId')

@@ -1,7 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-export type ParticipantFormDocument = ParticipantForm & Document;
+export type OwnerFormDocument = OwnerForm & Document;
+export type ApplicantFormDocument = ApplicantForm & Document;
 
 // enum AddressTypeEnum {
 //   BUSINESS = 'business',
@@ -45,10 +46,7 @@ class PersonalInformation {
 }
 
 @Schema({ _id: false })
-class CurrentAddress {
-  @Prop({ required: false })
-  type: string;
-
+class OwnerAddress {
   @Prop()
   address: string;
 
@@ -63,21 +61,11 @@ class CurrentAddress {
 
   @Prop()
   postalCode: string;
+}
 
-  @Prop({ required: false })
-  business_address: string;
-
-  @Prop({ required: false })
-  business_city: string;
-
-  @Prop({ required: false })
-  business_countryOrJurisdiction: string;
-
-  @Prop({ required: false })
-  business_state: string;
-
-  @Prop({ required: false })
-  business_postalCode: string;
+class ApplicantAddress extends OwnerAddress {
+  @Prop({ required: true })
+  type: string;
 }
 
 @Schema({ _id: false })
@@ -111,10 +99,25 @@ class ExemptEntity {
 }
 
 @Schema({ timestamps: true })
-export class ParticipantForm {
+export class ApplicantForm {
   @Prop({ required: false })
   applicant: ExistingCompanyApplicant;
 
+  @Prop()
+  finCENID: FinCENID;
+
+  @Prop()
+  personalInfo: PersonalInformation;
+
+  @Prop()
+  address: ApplicantAddress;
+
+  @Prop()
+  identificationDetails: IdentificationAndJurisdiction;
+}
+
+@Schema({ timestamps: true })
+export class OwnerForm {
   @Prop({ required: false })
   exemptEntity: ExemptEntity;
 
@@ -128,11 +131,12 @@ export class ParticipantForm {
   personalInfo: PersonalInformation;
 
   @Prop()
-  address: CurrentAddress;
+  address: OwnerAddress;
 
   @Prop()
   identificationDetails: IdentificationAndJurisdiction;
 }
 
-export const ParticipantFormSchema =
-  SchemaFactory.createForClass(ParticipantForm);
+export const OwnerFormSchema = SchemaFactory.createForClass(OwnerForm);
+
+export const ApplicantFormSchema = SchemaFactory.createForClass(ApplicantForm);

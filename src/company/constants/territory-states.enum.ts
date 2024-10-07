@@ -11,6 +11,7 @@ export enum USTerritoryEnum {
 }
 
 export enum StatesEnum {
+  NOT_APPLICABLE = 'N/A',
   ALABAMA = 'Alabama',
   ALASKA = 'Alaska',
   ARMED_FORCES_EUROPE = 'Armed Forces Europe/Middle-East/Canada',

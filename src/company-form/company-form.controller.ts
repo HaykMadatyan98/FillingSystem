@@ -1,22 +1,59 @@
-import { Controller, Body, Patch, Get, Param } from '@nestjs/common';
+import {
+  Controller,
+  Body,
+  Patch,
+  Get,
+  Param,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { CompanyFormService } from './company-form.service';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
+import { RequestWithUser } from '@/auth/interfaces/request.interface';
+import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
+import { ChangeCompanyFormDto } from './dtos/company-form.dto';
 
 @ApiTags('form')
 @Controller('form')
 export class CompanyFormController {
   constructor(private readonly companyFormService: CompanyFormService) {}
 
-  @Patch('/company/:formId')
+  @Patch('/company/:companyId/:formId')
   @ApiOperation({ summary: 'Change reporting company form' })
-  
-  async changeCompanyForm(@Param('formId') formId: string, @Body() body: any) {
-    return this.companyFormService.changeCompanyFormById(formId, body);
+  @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth()
+  @ApiBody({
+    type: ChangeCompanyFormDto,
+  })
+  @ApiOkResponse({})
+  async changeCompanyForm(
+    @Param('formId') formId: string,
+    @Param('companyId') companyId: string,
+    @Body() body: ChangeCompanyFormDto,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.companyFormService.updateCompanyForm(
+      body,
+      formId,
+      companyId,
+      req.user,
+    );
   }
 
   @Get('/company/:formId')
   @ApiOperation({ summary: 'Get reporting company form by formId' })
-  async getCompanyFormById(@Param('formId') formId: string) {
-    return this.companyFormService.getCompanyFormById(formId);
+  @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth()
+  async getCompanyFormById(
+    @Param('formId') formId: string,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.companyFormService.getCompanyFormById(formId, req.user);
   }
 }

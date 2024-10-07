@@ -1,40 +1,34 @@
-import { ICompanyForm } from '@/company-form/interfaces';
-import { CompanyData, ParticipantData } from '@/company/constants';
-import { ICompanyCSVRowData } from '@/company/interfaces';
-import { ISanitizedData } from '@/company/interfaces/sanitized-data.interface';
-import { IChangeParticipantForm } from '@/participant-form/interfaces';
-import { validateData } from './validator.util';
-import { ChangeCompanyFormDto } from '@/company-form/dtos/company-form.dto';
+import { CompanyData, ParticipantData, UserData } from '@/company/constants';
 import {
-  ChangeParticipantFormDto,
-  CSVParticipantFormDto,
-} from '@/participant-form/dtos/participant-form.dto';
+  ICompanyCSVRowData,
+  ICompanyData,
+  ISanitizedData,
+  IParticipantData,
+} from '@/company/interfaces';
+import { validateData } from './validator.util';
+import { ConflictException } from '@nestjs/common';
+import { ICsvUser } from '@/company/interfaces/sanitized-data.interface';
 
 export async function sanitizeData(
   data: ICompanyCSVRowData,
 ): Promise<ISanitizedData> {
-  console.log('before sanitizing', data);
-  const sanitized: {
-    company: ICompanyForm;
-    participants: IChangeParticipantForm[];
-  } = {
-    company: {} as ICompanyForm,
-    participants: [],
+  const sanitized: ISanitizedData = {
+    user: {} as ICsvUser,
+    company: {} as ICompanyData,
+    participants: [] as IParticipantData[],
   };
 
   const participantKeys = Object.keys(
     ParticipantData,
   ) as (keyof typeof ParticipantData)[];
   const companyKeys = Object.keys(CompanyData) as (keyof typeof CompanyData)[];
+  const userKeys = Object.keys(UserData) as (keyof typeof UserData)[];
 
   function convertValue(key: string, value: string) {
-    if (key === 'Company Tax Id Number') {
-      return Number(value); // Convert tax ID to number
-    } else if (
-      key === 'Applicant Date of Birth' ||
-      key === 'Owner Date of Birth'
-    ) {
-      return value ? new Date(value) : undefined; // Convert to Date object, or undefined if missing
+    if (key === 'taxIdNumber') {
+      return Number(value);
+    } else if (key === 'dateOfBirth') {
+      return value ? new Date(value) : undefined;
     } else if (value.toLowerCase() === 'true') {
       return true;
     } else if (value.toLowerCase() === 'false') {
@@ -46,7 +40,7 @@ export async function sanitizeData(
   function mapFieldToObject(
     mappedField: string,
     value: string,
-    targetObj: Record<string, any>,
+    targetObj: IParticipantData | ICompanyData | ICsvUser,
   ) {
     const fieldParts = mappedField.split('.');
     let current = targetObj;
@@ -61,7 +55,14 @@ export async function sanitizeData(
     });
   }
 
-  // Map company fields
+  userKeys.forEach((key) => {
+    const mappedField = UserData[key];
+    const value = data[key];
+    if (value) {
+      mapFieldToObject(mappedField, value, sanitized.user);
+    }
+  });
+
   companyKeys.forEach((key) => {
     const mappedField = CompanyData[key];
     const value = data[key];
@@ -70,7 +71,6 @@ export async function sanitizeData(
     }
   });
 
-  // Map applicant and owner participants
   const participantTypes = [
     { prefix: 'Applicant', isApplicant: true },
     { prefix: 'Owner', isApplicant: false },
@@ -80,10 +80,9 @@ export async function sanitizeData(
     const hasMultipleParticipants = data[`${prefix} First Name`]?.includes(',');
 
     if (hasMultipleParticipants) {
-      // Handle multiple participants (comma-separated values)
       const firstNames = data[`${prefix} First Name`].split(',');
       firstNames.forEach((_, index) => {
-        const participant: Record<string, any> = { isApplicant };
+        const participant: any = { isApplicant };
         participantKeys.forEach((key) => {
           const value = data[`${prefix} ${key}`];
           if (value) {
@@ -91,27 +90,56 @@ export async function sanitizeData(
             const trimmedValue = splitValues[index]?.trim();
             if (trimmedValue) {
               const mappedField = ParticipantData[key];
-              mapFieldToObject(mappedField, trimmedValue, participant);
+
+              mapFieldToObject(
+                mappedField,
+                trimmedValue,
+                participant as IParticipantData,
+              );
             }
           }
         });
-        sanitized.participants.push(participant);
+
+        if (isApplicant && participant.address) {
+          if (!participant.address.type) {
+            throw new ConflictException('Address type is missing');
+          }
+        }
+
+        sanitized.participants.push({ ...participant });
       });
     } else {
-      const participant: Record<string, any> = { isApplicant };
+      const participant: any = { isApplicant };
       participantKeys.forEach((key) => {
         const value = data[`${prefix} ${key}`];
         if (value) {
           const mappedField = ParticipantData[key];
-          mapFieldToObject(mappedField, value, participant);
+          mapFieldToObject(mappedField, value, participant as IParticipantData);
         }
       });
-      sanitized.participants.push(participant);
+
+      if (isApplicant && participant.address) {
+        if (!participant.address.type) {
+          throw new ConflictException('Address type is missing');
+        }
+      }
+
+      sanitized.participants.push({ ...participant });
     }
   });
 
-  await validateData(sanitized.company, ChangeCompanyFormDto);
-  await validateData(sanitized.participants, CSVParticipantFormDto);
+  if (
+    sanitized.company.taxInfo.taxIdType &&
+    sanitized.company.taxInfo.taxIdType !== 'Foreign' &&
+    sanitized.company.taxInfo.countryOrJurisdiction
+  ) {
+    throw new ConflictException(
+      'Country/Jurisdiction can be added only if tax type is Foreign',
+    );
+  }
 
+  await validateData(sanitized);
+
+  console.log(sanitized);
   return sanitized;
 }

@@ -31,3 +31,13 @@ export class CreateAdminDto {
   @IsString()
   lastName: string;
 }
+
+export class CSVUserDto {
+  @ApiProperty({ required: true })
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({ required: true })
+  @IsString()
+  name: string;
+}

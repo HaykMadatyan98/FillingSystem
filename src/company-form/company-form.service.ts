@@ -1,7 +1,9 @@
 import {
+  ConflictException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
-  NotImplementedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -9,32 +11,29 @@ import {
   CompanyForm,
   CompanyFormDocument,
 } from './schemas/company-form.schema';
-import { ICompanyForm } from './interfaces/company-form.interface';
+import {
+  IChangeCompanyForm,
+  ICompanyForm,
+} from './interfaces/company-form.interface';
 import { calculateRequiredFieldsCount } from '@/utils/req-field.util';
 import { requiredCompanyFields } from '@/company/constants';
+import { companyFormResponseMsgs } from './constants';
+import { CompanyService } from '@/company/company.service';
+import { IRequestUser } from '@/auth/interfaces/request.interface';
+import { TRResponseMsg } from '@/participant-form/interfaces';
 
 @Injectable()
 export class CompanyFormService {
   constructor(
     @InjectModel(CompanyForm.name)
     private companyFormModel: Model<CompanyFormDocument>,
+    @Inject(forwardRef(() => CompanyService))
+    private readonly companyService: CompanyService,
   ) {}
 
   async create(companyFormData: ICompanyForm): Promise<CompanyForm> {
     const companyForm = new this.companyFormModel(companyFormData);
     return companyForm.save();
-  }
-
-  async getCompanyFormIdByTaxId(taxIdNumber: number): Promise<null | string> {
-    const companyForm: CompanyFormDocument | null =
-      await this.companyFormModel.findOne(
-        {
-          ['taxInfo.taxIdNumber']: taxIdNumber,
-        },
-        { id: 1 },
-      );
-
-    return companyForm ? (companyForm.id as string) : null;
   }
 
   async createCompanyFormFromCsv(companyFormData: ICompanyForm) {
@@ -52,11 +51,32 @@ export class CompanyFormService {
     };
   }
 
-  async updateCompanyFormFromCsv(
-    companyFormData: ICompanyForm,
+  async updateCompanyForm(
+    companyFormData: ICompanyForm | IChangeCompanyForm,
     companyFormDataId: string,
-  ) {
+    companyId: string,
+    user?: IRequestUser,
+  ): TRResponseMsg {
+    if (user) {
+      await this.companyService.checkUserCompanyPermission(
+        user,
+        companyId,
+        'company',
+      );
+    }
+
     const companyData = await this.companyFormModel.findById(companyFormDataId);
+
+    if (companyFormData.taxInfo) {
+      if (
+        companyFormData.taxInfo.taxIdType !== 'Foreign' &&
+        companyFormData.taxInfo.countryOrJurisdiction
+      ) {
+        throw new ConflictException(
+          companyFormResponseMsgs.companyFormForeignTaxIdError,
+        );
+      }
+    }
 
     const answerCountBefore = await calculateRequiredFieldsCount(
       companyData,
@@ -74,38 +94,52 @@ export class CompanyFormService {
     );
 
     await companyData.save();
+    await this.companyService.changeCompanyReqFieldsCount(
+      companyId,
+      answerCountBefore - answerCountAfter,
+    );
     return {
-      id: companyData._id,
-      companyName: companyData.names.legalName,
-      answerCountDiff: answerCountBefore - answerCountAfter,
+      message: companyFormResponseMsgs.companyFormUpdated,
     };
   }
 
-  async getCompanyFormById(companyFormId: string) {
-    console.log(companyFormId);
-    throw new NotImplementedException('Not implemented yet');
-  }
+  async getCompanyFormById(
+    companyFormId: string,
+    user: IRequestUser,
+  ): Promise<CompanyFormDocument> {
+    const companyForm = await this.companyFormModel.findById(companyFormId);
 
-  async changeCompanyFormById(companyFormId: string, payload: any) {
-    console.log(companyFormId, payload);
+    if (!companyForm) {
+      throw new NotFoundException(companyFormResponseMsgs.companyFormNotFound);
+    }
 
-    throw new NotImplementedException('Not implemented yet');
+    await this.companyService.checkUserCompanyPermission(
+      user,
+      companyForm['id'],
+      'companyForm',
+    );
+
+    return companyForm;
   }
 
   async deleteCompanyFormById(companyFormId: string) {
     const companyForm =
       await this.companyFormModel.findByIdAndDelete(companyFormId);
 
-    if (!companyFormId) {
-      throw new NotFoundException('Form not found');
+    if (!companyForm) {
+      throw new NotFoundException(companyFormResponseMsgs.companyFormNotFound);
     }
 
-    return { message: 'Form successfully deleted' };
+    return { message: companyFormResponseMsgs.companyFormDeleted };
   }
 
-  async getCompanyFormByTaxNumber(taxNumber: number) {
+  async getCompanyFormByTaxData(
+    taxNumber: number,
+    taxType: string,
+  ): Promise<CompanyFormDocument> | null {
     return this.companyFormModel.findOne({
       'taxInfo.taxIdNumber': taxNumber,
+      'taxInfo.taxIdType': taxType,
     });
   }
 }
