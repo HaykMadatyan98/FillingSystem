@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common';
 import { ParticipantFormService } from './participant-form.service';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiConsumes,
   ApiCreatedResponse,
@@ -61,8 +62,10 @@ export class ApplicantFormController {
     example: 'applicant',
   })
   @ApiOperation({
-    summary: 'Create new applicant/owner',
+    summary: 'Create new applicant',
   })
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
   async createNewParticipantForm(
     @Body() payload: ApplicantFormDto,
     @Req() req: RequestWithUser,
@@ -78,7 +81,7 @@ export class ApplicantFormController {
 
   @Patch('applicant/:companyId/:formId')
   @ApiOperation({
-    summary: 'Change applicant/owner by formId',
+    summary: 'Change applicant by formId',
   })
   @ApiParam({
     name: 'companyId',
@@ -88,12 +91,7 @@ export class ApplicantFormController {
   @ApiParam({
     name: 'formId',
     required: true,
-    description: 'ID of the owner/applicant form',
-  })
-  @ApiParam({
-    name: 'participant',
-    required: true,
-    description: 'applicant or owner',
+    description: 'ID of the applicant form',
   })
   @ApiBody({
     schema: {
@@ -107,6 +105,7 @@ export class ApplicantFormController {
     },
   })
   @ApiCreatedResponse({ type: ApplicantFormDto })
+  @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
   async changeParticipantForm(
     @Param('formId') formId: string,
@@ -125,8 +124,9 @@ export class ApplicantFormController {
 
   @Get('applicant/:formId')
   @ApiOperation({
-    summary: 'Get applicant/owner by formId',
+    summary: 'Get applicant by formId',
   })
+  @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
   async getParticipantFormById(
     @Param('formId') formId: string,
@@ -141,8 +141,9 @@ export class ApplicantFormController {
 
   @Delete('applicant/:formId')
   @ApiOperation({
-    summary: 'Remove applicant/owner by formId',
+    summary: 'Remove applicant by formId',
   })
+  @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
   async deleteParticipantFormById(
     @Param('formId') formId: string,
@@ -161,7 +162,7 @@ export class ApplicantFormController {
   @ApiParam({
     name: 'participantId',
     required: true,
-    description: 'ID of owner or applicant which doc image will send',
+    description: 'ID of applicant which doc image will send',
   })
   @ApiBody({
     schema: {
@@ -174,6 +175,7 @@ export class ApplicantFormController {
       },
     },
   })
+  @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
   async uploadAnImageToTheCloudAndUpdate(
     @Param('participantId') participantId: string,
@@ -193,8 +195,7 @@ export class ApplicantFormController {
     );
   }
 
-  // add user check
-  @Post('uploadAndCreate/:companyId')
+  @Post('uploadApplImg/:companyId')
   @UseInterceptors(FileInterceptor('docImg'))
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -213,12 +214,10 @@ export class ApplicantFormController {
           type: 'string',
           example: 'A123456789',
         },
-        isApplicant: {
-          type: 'boolean',
-        },
       },
     },
   })
+  @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
   async uploadAnImageToTheCloudAndCreate(
     @Param('companyId') companyId: string,

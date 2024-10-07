@@ -123,6 +123,9 @@ export class CompanyController {
   }
 
   @Get('/fields/csv')
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Send company fields for csv' })
   async getCompanyFields() {
     return { csvRowDataKeys: companyCSVRowDataKeys };

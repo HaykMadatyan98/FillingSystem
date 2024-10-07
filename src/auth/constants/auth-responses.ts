@@ -20,7 +20,8 @@ type AuthResponseKeys =
   | 'expiredRefreshToken'
   | 'tokenPayloadMissingFields'
   | 'successfullLogout'
-  | 'tokenIsMissing';
+  | 'tokenIsMissing'
+  | 'accessTokenExpired';
 
 export const authResponseMsgs: Record<AuthResponseKeys, string> = {
   successfulLogin: 'Sign-in successful',
@@ -33,6 +34,7 @@ export const authResponseMsgs: Record<AuthResponseKeys, string> = {
   userNotFound: 'User Not Found',
   codeWasExpired: 'Current Code was Expired',
   accessDenied: 'Access Denied',
+  accessTokenExpired: 'Invalid or expired access token',
   expiredRefreshToken: 'Invalid or expired refresh token',
   tokenPayloadMissingFields: 'Token payload is missing required fields',
 };

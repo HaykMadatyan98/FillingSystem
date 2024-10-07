@@ -43,7 +43,7 @@ export class RolesGuard implements CanActivate {
 
       return requiredRoles.includes(user.role);
     } catch (err) {
-      throw new ForbiddenException(authResponseMsgs.accessDenied);
+      throw new UnauthorizedException(authResponseMsgs.accessTokenExpired);
     }
   }
 }

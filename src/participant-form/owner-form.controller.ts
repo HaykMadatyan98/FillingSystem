@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common';
 import { ParticipantFormService } from './participant-form.service';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiConsumes,
   ApiCreatedResponse,
@@ -58,6 +59,8 @@ export class OwnerFormController {
   @ApiOperation({
     summary: 'Create new applicant/owner',
   })
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
   async createNewParticipantForm(
     @Body() payload: OwnerFormDto,
     @Req() req: RequestWithUser,
@@ -83,12 +86,7 @@ export class OwnerFormController {
   @ApiParam({
     name: 'formId',
     required: true,
-    description: 'ID of the owner/applicant form',
-  })
-  @ApiParam({
-    name: 'participant',
-    required: true,
-    description: 'applicant or owner',
+    description: 'ID of the owner form',
   })
   @ApiBody({
     schema: {
@@ -102,6 +100,7 @@ export class OwnerFormController {
     },
   })
   @ApiCreatedResponse({ type: ApplicantFormDto })
+  @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
   async changeParticipantForm(
     @Param('formId') formId: string,
@@ -120,8 +119,9 @@ export class OwnerFormController {
 
   @Get('owner/:formId')
   @ApiOperation({
-    summary: 'Get applicant/owner by formId',
+    summary: 'Get owner by formId',
   })
+  @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
   async getParticipantFormById(
     @Param('formId') formId: string,
@@ -138,6 +138,7 @@ export class OwnerFormController {
   @ApiOperation({
     summary: 'Remove owner by formId',
   })
+  @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
   async deleteParticipantFormById(
     @Param('formId') formId: string,
@@ -150,46 +151,7 @@ export class OwnerFormController {
     );
   }
 
-  @Post('uploadAndUpdate/:participantId')
-  @UseInterceptors(FileInterceptor('docImg'))
-  @ApiConsumes('multipart/form-data')
-  @ApiParam({
-    name: 'participantId',
-    required: true,
-    description: 'ID of owner or applicant which doc image will send',
-  })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        docImg: {
-          type: 'string',
-          format: 'binary',
-        },
-      },
-    },
-  })
-  @UseGuards(AccessTokenGuard)
-  async uploadAnImageToTheCloudAndUpdate(
-    @Param('participantId') participantId: string,
-    @UploadedFile(
-      new ParseFilePipe({
-        fileIsRequired: true,
-        validators: [new FileTypeValidator({ fileType: '.(jpeg|png|jpg)' })],
-      }),
-    )
-    docImg: Express.Multer.File,
-    @Req() req: RequestWithUser,
-  ) {
-    return await this.participantFormService.updateDocImageInParticipantForm(
-      participantId,
-      docImg,
-      req.user,
-    );
-  }
-
-  // add user check
-  @Post('uploadAndCreate/:companyId')
+  @Post('uploadOwnImg/:companyId')
   @UseInterceptors(FileInterceptor('docImg'))
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -208,12 +170,10 @@ export class OwnerFormController {
           type: 'string',
           example: 'A123456789',
         },
-        isApplicant: {
-          type: 'boolean',
-        },
       },
     },
   })
+  @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
   async uploadAnImageToTheCloudAndCreate(
     @Param('companyId') companyId: string,

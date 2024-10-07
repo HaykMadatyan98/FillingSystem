@@ -26,7 +26,6 @@ import {
   requiredOwnerFields,
 } from '@/company/constants';
 import { CompanyService } from '@/company/company.service';
-import { ICreateParticipantForm } from './interfaces/participant-from.interface';
 import { IRequestUser } from '@/auth/interfaces/request.interface';
 import { companyFormResponseMsgs } from '@/company-form/constants';
 

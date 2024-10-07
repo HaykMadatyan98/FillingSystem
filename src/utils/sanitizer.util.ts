@@ -6,8 +6,6 @@ import {
   IParticipantData,
 } from '@/company/interfaces';
 import { validateData } from './validator.util';
-import { CSVCompanyFormDto } from '@/company-form/dtos/company-form.dto';
-import { CSVParticipantFormDto } from '@/participant-form/dtos/participant-form.dto';
 import { ConflictException } from '@nestjs/common';
 import { ICsvUser } from '@/company/interfaces/sanitized-data.interface';
 
@@ -140,8 +138,7 @@ export async function sanitizeData(
     );
   }
 
-  // await validateData(sanitized.company, CSVCompanyFormDto);
-  // await validateData(sanitized.participants, CSVParticipantFormDto);
+  await validateData(sanitized);
 
   console.log(sanitized);
   return sanitized;

@@ -197,10 +197,26 @@ export class OwnerFormDto extends BaseParticipantFormDto {
   address?: OwnerAddressDto;
 }
 
-export class CSVParticipantFormDto extends BaseParticipantFormDto {
+export class CSVApplicantFormDto extends ApplicantFormDto {
   @ApiProperty({ required: true })
   @IsBoolean()
   isApplicant: boolean;
+
+  @ApiProperty({ required: true })
+  @ValidateNested({ each: true })
+  @Type(() => CSVIdentificationAndJurisdictionDto)
+  identificationDetails: CSVIdentificationAndJurisdictionDto;
+}
+
+export class CSVOwnerFormDto extends OwnerFormDto {
+  @ApiProperty({ required: true })
+  @IsBoolean()
+  isApplicant: boolean;
+
+  @ApiProperty({ required: true })
+  @ValidateNested({ each: true })
+  @Type(() => CSVIdentificationAndJurisdictionDto)
+  identificationDetails: CSVIdentificationAndJurisdictionDto;
 }
 
 export class CreateParticipantDocDto {

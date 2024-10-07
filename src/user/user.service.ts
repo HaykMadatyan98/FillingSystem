@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from './schema/user.schema';
@@ -12,15 +17,9 @@ import { authResponseMsgs, userVerificationTime } from '@/auth/constants';
 export class UserService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @Inject(forwardRef(() => CompanyService))
     private readonly companyService: CompanyService,
   ) {}
-
-  async create(createUserDto: CreateUserDto): Promise<{ message: string }> {
-    const createdUser = new this.userModel(createUserDto);
-    await createdUser.save();
-
-    return { message: userResponseMsgs.accountCreated };
-  }
 
   async changeUserOtp(
     email: string,
@@ -53,14 +52,22 @@ export class UserService {
     return this.userModel.findOne({ email });
   }
 
-  async update(id: string, updateUserDto: any): Promise<User> {
-    return this.userModel
-      .findByIdAndUpdate(id, updateUserDto, { new: true })
-      .exec();
+  async createUserFromCsvData(email: string, name: string, companyId: string) {
+    const newUser = new this.userModel({
+      email,
+      firstName: name,
+      companies: [companyId],
+    });
+    await newUser.save();
   }
 
-  async remove(id: string): Promise<void> {
-    await this.userModel.findByIdAndDelete(id).exec();
+  async addCompanyToUser(userId: string, companyId: string) {
+    const user: any = await this.userModel.findById(userId);
+
+    if (user && !user.companies.includes(companyId)) {
+      user.companies.push(companyId);
+      await user.save();
+    }
   }
 
   async addCompaniesToUser(userId: string, companyIds: string[]) {
@@ -91,5 +98,26 @@ export class UserService {
 
     user.refreshToken = refreshToken;
     await user.save();
+  }
+
+  async removeCompanyFromUser(
+    userId: string,
+    companyId: string,
+  ): Promise<void> {
+    const user = await this.userModel.findOneAndUpdate(
+      { _id: userId },
+      { $pull: { companies: companyId } },
+      { new: true },
+    );
+
+    if (!user) {
+      throw new NotFoundException(
+        `No user is associated with company ID ${companyId}`,
+      );
+    }
+
+    if (user.companies.length === 0) {
+      await this.userModel.deleteOne({ _id: userId });
+    }
   }
 }

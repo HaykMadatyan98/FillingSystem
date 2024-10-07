@@ -8,7 +8,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CompanyFormService } from './company-form.service';
-import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { RequestWithUser } from '@/auth/interfaces/request.interface';
 import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
 import { ChangeCompanyFormDto } from './dtos/company-form.dto';
@@ -21,6 +27,7 @@ export class CompanyFormController {
   @Patch('/company/:companyId/:formId')
   @ApiOperation({ summary: 'Change reporting company form' })
   @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth()
   @ApiBody({
     type: ChangeCompanyFormDto,
   })
@@ -42,6 +49,7 @@ export class CompanyFormController {
   @Get('/company/:formId')
   @ApiOperation({ summary: 'Get reporting company form by formId' })
   @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth()
   async getCompanyFormById(
     @Param('formId') formId: string,
     @Req() req: RequestWithUser,

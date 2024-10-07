@@ -2,6 +2,8 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -21,6 +23,7 @@ import {
   IRequestUser,
   RequestWithUser,
 } from '@/auth/interfaces/request.interface';
+import { UserService } from '@/user/user.service';
 // import { ICompanyQuery } from './interfaces/query.interface';
 
 @Injectable()
@@ -29,6 +32,8 @@ export class CompanyService {
     @InjectModel(Company.name) private companyModel: Model<CompanyDocument>,
     private readonly companyFormService: CompanyFormService,
     private readonly participantFormService: ParticipantFormService,
+    @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService,
   ) {}
 
   async getAllCompanies() {
@@ -86,27 +91,27 @@ export class CompanyService {
         .on('error', reject);
     });
 
-    await Promise.all(
-      results.map(async (row: ICompanyCSVRowData) => {
-        const sanitizedCompanyData = await sanitizeData(row);
-      }),
-    );
-
     // await Promise.all(
     //   results.map(async (row: ICompanyCSVRowData) => {
     //     const sanitizedCompanyData = await sanitizeData(row);
-    //     await this.changeCompanyData(sanitizedCompanyData);
     //   }),
     // );
+
+    await Promise.all(
+      results.map(async (row: ICompanyCSVRowData) => {
+        const sanitizedCompanyData = await sanitizeData(row);
+        await this.changeCompanyData(sanitizedCompanyData);
+      }),
+    );
 
     return companyResponseMsgs.csvUploadSuccessful;
   }
 
-  async changeCompanyData(sanitizedData: ISanitizedData) {
+  async changeCompanyData(sanitized: ISanitizedData) {
     const companyFormData =
       await this.companyFormService.getCompanyFormByTaxData(
-        sanitizedData.company.taxInfo.taxIdNumber,
-        sanitizedData.company.taxInfo.taxIdType,
+        sanitized.company.taxInfo.taxIdNumber,
+        sanitized.company.taxInfo.taxIdType,
       );
     const companyFormId = companyFormData && companyFormData['id'];
 
@@ -121,12 +126,12 @@ export class CompanyService {
       const applicantsIds = [];
       let answerCount = 0;
 
-      if (!sanitizedData.company.names.legalName) {
+      if (!sanitized.company.names.legalName) {
         throw new BadRequestException('Company Name is not Exist');
       }
 
       const participantsData = await Promise.all(
-        sanitizedData.participants.map((participant) =>
+        sanitized.participants.map((participant) =>
           this.participantFormService.createParticipantFormFromCsv(participant),
         ),
       );
@@ -142,7 +147,7 @@ export class CompanyService {
 
       const companyForm =
         await this.companyFormService.createCompanyFormFromCsv(
-          sanitizedData.company,
+          sanitized.company,
         );
 
       answerCount += companyForm.answerCount;
@@ -156,16 +161,14 @@ export class CompanyService {
 
       company.answersCount = answerCount;
       company.reqFieldsCount = this.calculateReqFieldsCount(company);
-
-      await company.save();
     } else {
       await this.companyFormService.updateCompanyForm(
-        sanitizedData.company,
+        sanitized.company,
         companyFormId,
         company['id'],
       );
 
-      const participantPromises = sanitizedData.participants.map(
+      const participantPromises = sanitized.participants.map(
         async (participant) => {
           const existParticipant =
             await this.participantFormService.findParticipantFormByDocDataAndIds(
@@ -200,10 +203,23 @@ export class CompanyService {
       );
 
       await Promise.all(participantPromises);
+    }
 
-      company.reqFieldsCount = this.calculateReqFieldsCount(company);
+    company.reqFieldsCount = this.calculateReqFieldsCount(company);
+    await company.save();
+    const user = await this.userService.getUserByEmail(sanitized.user.email);
 
-      await company.save();
+    if (!user) {
+      await this.userService.createUserFromCsvData(
+        sanitized.user.email,
+        sanitized.user.name,
+        company['_id'] as string,
+      );
+    } else {
+      await this.userService.addCompanyToUser(
+        user['id'],
+        company['_id'] as string,
+      );
     }
   }
 
@@ -244,19 +260,29 @@ export class CompanyService {
       throw new NotFoundException(companyResponseMsgs.companyNotFound);
     }
 
-    if (company.forms.applicants.length || company.forms.owners.length) {
-      const participantsForms = [
-        ...company.forms.owners,
-        ...company.forms.applicants,
-      ].map(async (participant: any) => {
-        // await this.participantFormService.deleteParticipantFormById(
-        //   participant,
-        // );
-      });
+    if (company.forms.applicants.length) {
+      const applicantForms = company.forms.applicants.map(
+        async (applicant) =>
+          await this.participantFormService.deleteParticipantFormById(
+            applicant as unknown as string,
+            true,
+          ),
+      );
 
-      await Promise.all(participantsForms);
+      await Promise.all(applicantForms);
+    } else if (company.forms.owners.length) {
+      const ownerForms = company.forms.owners.map(
+        async (owner) =>
+          await this.participantFormService.deleteParticipantFormById(
+            owner as unknown as string,
+            false,
+          ),
+      );
+
+      await Promise.all(ownerForms);
     }
 
+    await this.userService.removeCompanyFromUser(company.user as unknown as string, companyId);
     await this.companyFormService.deleteCompanyFormById(
       company.forms.company as any,
     );
