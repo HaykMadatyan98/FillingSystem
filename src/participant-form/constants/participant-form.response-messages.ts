@@ -3,7 +3,8 @@ type ParticipantFormResponseKeys =
   | 'participantChanged'
   | 'participantDeleted'
   | 'participantCreated'
-  | 'participantRetrieved';
+  | 'participantRetrieved'
+  | 'participantsRetrieved';
 
 export const participantFormResponseMsgs: Record<
   ParticipantFormResponseKeys,
@@ -13,5 +14,6 @@ export const participantFormResponseMsgs: Record<
   participantChanged: 'participant data was changed',
   participantDeleted: 'participant form succesfully deleted',
   participantCreated: 'participant form succesfully created',
-  participantRetrieved: 'Participants retrieved successfully',
+  participantsRetrieved: 'Participants retrieved successfully',
+  participantRetrieved: 'Participant data retrieved successfully',
 };

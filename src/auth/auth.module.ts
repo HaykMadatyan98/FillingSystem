@@ -12,7 +12,6 @@ import { ExpirationTimes } from './constants';
 import { UserService } from '@/user/user.service';
 import { RolesGuard } from './guards/role.guard';
 import { CompanyModule } from '@/company/company.module';
-import { CompanyFormModule } from '@/company-form/company-form.module';
 
 @Module({
   imports: [

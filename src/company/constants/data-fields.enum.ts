@@ -15,7 +15,6 @@ export enum CompanyData {
 }
 
 export enum ParticipantData {
-  'IsApplicant' = 'isApplicant',
   'Is Existing Company' = 'applicant.isExistingCompany',
   'FinCEN ID' = 'finCENID.finCENID',
   'Last or Legal Name' = 'personalInfo.lastOrLegalName',
@@ -38,6 +37,11 @@ export enum ParticipantData {
   'Document Image' = 'identificationDetails.docImg',
   'Is Parent or Guardian' = 'beneficialOwner.isParentOrGuard',
   'Is Exempt Entity' = 'exemptEntity.isExemptEntity',
+}
+
+export enum UserData {
+  'User Name' = 'name',
+  'User Email' = 'email',
 }
 
 export const companyCSVRowDataKeys = [
@@ -97,8 +101,3 @@ export const companyCSVRowDataKeys = [
   'Owner Other Local or Tribal Description',
   'Owner Document Image',
 ] as const;
-
-export enum UserData {
-  'User Name' = 'name',
-  'User Email' = 'email',
-}

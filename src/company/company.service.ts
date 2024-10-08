@@ -19,12 +19,8 @@ import { companyResponseMsgs } from './constants';
 import { ICompanyCSVRowData } from './interfaces/company-csv.interface';
 import { ISanitizedData } from './interfaces';
 import * as moment from 'moment';
-import {
-  IRequestUser,
-  RequestWithUser,
-} from '@/auth/interfaces/request.interface';
+import { IRequestUser } from '@/auth/interfaces/request.interface';
 import { UserService } from '@/user/user.service';
-// import { ICompanyQuery } from './interfaces/query.interface';
 
 @Injectable()
 export class CompanyService {
@@ -67,7 +63,7 @@ export class CompanyService {
 
   async addCsvDataIntoDb(file: Express.Multer.File) {
     if (!file) {
-      throw new BadRequestException('Entered File is Missing');
+      throw new BadRequestException(companyResponseMsgs.csvFileIsMissing);
     }
 
     const results = [];
@@ -90,12 +86,6 @@ export class CompanyService {
         .on('end', () => resolve(results))
         .on('error', reject);
     });
-
-    // await Promise.all(
-    //   results.map(async (row: ICompanyCSVRowData) => {
-    //     const sanitizedCompanyData = await sanitizeData(row);
-    //   }),
-    // );
 
     await Promise.all(
       results.map(async (row: ICompanyCSVRowData) => {
@@ -127,7 +117,7 @@ export class CompanyService {
       let answerCount = 0;
 
       if (!sanitized.company.names.legalName) {
-        throw new BadRequestException('Company Name is required');
+        throw new BadRequestException(companyResponseMsgs.companyNameMissing);
       }
 
       const participantsData = await Promise.all(
@@ -310,10 +300,9 @@ export class CompanyService {
 
   async findExpiringCompanies(days: number) {
     const now = new Date();
-    const threshold = moment(now).add(days, 'days').toDate(); // or `new Date(now.getTime() + days * 86400000);`
-
+    const threshold = moment(now).add(days, 'days').toDate();
     return this.companyModel.find({
-      expirationDate: { $lt: threshold }, // $lt means "less than" in MongoDB queries
+      expirationDate: { $lt: threshold },
     });
   }
 
@@ -361,9 +350,7 @@ export class CompanyService {
         }
 
         if (!foundCompany) {
-          throw new ForbiddenException(
-            `No permission for the provided ${fieldName}.`,
-          );
+          throw new ForbiddenException(companyResponseMsgs.dontHavePermission);
         }
       }
     }

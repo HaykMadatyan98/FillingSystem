@@ -62,7 +62,7 @@ export class ParticipantFormService {
 
   async changeParticipantForm(
     participantData: any,
-    participantFormId: any,
+    participantFormId: string,
     isApplicant: boolean,
     companyId: string,
     user?: IRequestUser,
@@ -104,7 +104,10 @@ export class ParticipantFormService {
     );
 
     await participant.save();
-    return { participant, message: 'participant changed' };
+    return {
+      participant,
+      message: participantFormResponseMsgs.participantChanged,
+    };
   }
 
   async findParticipantFormByDocDataAndIds(
@@ -140,8 +143,6 @@ export class ParticipantFormService {
       'company',
     );
 
-    // add calculation of answers
-
     const company = await this.companyService.getCompanyById(companyId);
     const createdParticipant = isApplicant
       ? await this.applicantFormModel.create({
@@ -153,6 +154,14 @@ export class ParticipantFormService {
       createdParticipant['id'],
     );
 
+    const answerCount = await calculateRequiredFieldsCount(
+      createdParticipant,
+      isApplicant ? requiredApplicantFields : requiredOwnerFields,
+    );
+
+    createdParticipant.answerCount = answerCount;
+
+    await createdParticipant.save();
     await company.save();
   }
 
@@ -175,7 +184,10 @@ export class ParticipantFormService {
       throw new NotFoundException(companyFormResponseMsgs.companyFormNotFound);
     }
 
-    return participantForm;
+    return {
+      participantForm,
+      message: participantFormResponseMsgs.participantRetrieved,
+    };
   }
 
   async deleteParticipantFormById(
@@ -207,7 +219,6 @@ export class ParticipantFormService {
   private async uploadAnImageToTheCloud(
     file: Express.Multer.File,
   ): Promise<string> {
-    // update later
     return 'exampleUrt123qww21';
   }
 
@@ -308,6 +319,9 @@ export class ParticipantFormService {
       }),
     );
 
-    return { message: 'Participants retrieved successfully', allParticipants };
+    return {
+      message: participantFormResponseMsgs.participantsRetrieved,
+      allParticipants,
+    };
   }
 }
