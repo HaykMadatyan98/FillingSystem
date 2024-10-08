@@ -1,3 +1,4 @@
+import { participantFormResponseMsgs } from './constants/participant-form.response-messages';
 import {
   Body,
   Controller,
@@ -19,6 +20,7 @@ import {
   ApiBody,
   ApiConsumes,
   ApiCreatedResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiTags,
@@ -27,6 +29,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApplicantFormDto,
   CreateParticipantDocDto,
+  OwnerFormDto,
 } from './dtos/participant-form.dto';
 import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
 import { RequestWithUser } from '@/auth/interfaces/request.interface';
@@ -93,17 +96,7 @@ export class ApplicantFormController {
     required: true,
     description: 'ID of the applicant form',
   })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        docImg: {
-          type: 'string',
-          format: 'binary',
-        },
-      },
-    },
-  })
+  @ApiBody({ type: ApplicantFormDto })
   @ApiCreatedResponse({ type: ApplicantFormDto })
   @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
@@ -163,17 +156,6 @@ export class ApplicantFormController {
     name: 'participantId',
     required: true,
     description: 'ID of applicant which doc image will send',
-  })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        docImg: {
-          type: 'string',
-          format: 'binary',
-        },
-      },
-    },
   })
   @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
@@ -240,16 +222,23 @@ export class ApplicantFormController {
     );
   }
 
-  @Get('/all/:userId')
+  @Get('/company/:userId')
   @ApiParam({
     required: true,
-    name: 'userId'
+    name: 'userId',
+  })
+  @ApiOperation({
+    summary: 'Get all user companies applicant information',
+  })
+  @ApiOkResponse({
+    description: participantFormResponseMsgs.participantRetrieved,
   })
   @UseGuards(AccessTokenGuard)
   @ApiBearerAuth()
-  async getAllCompaniesApplicants(
-    @Param('userId') userId: string,
-  ) {
-    return this.participantFormService.getAllCompaniesParticipants(true, userId)
+  async getAllCompaniesApplicants(@Param('userId') userId: string) {
+    return this.participantFormService.getAllCompaniesParticipants(
+      true,
+      userId,
+    );
   }
 }

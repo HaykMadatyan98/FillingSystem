@@ -82,7 +82,6 @@ export class AuthController {
     description: authResponseMsgs.tokenPayloadMissingFields,
   })
   async refreshTokens(@Req() req: RequestWithUser) {
-    console.log(req.user);
     return this.authService.refreshTokens(
       req.user['userId'] as string,
       req.user['refreshToken'],

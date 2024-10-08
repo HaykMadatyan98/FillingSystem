@@ -127,7 +127,7 @@ export class CompanyService {
       let answerCount = 0;
 
       if (!sanitized.company.names.legalName) {
-        throw new BadRequestException('Company Name is not Exist');
+        throw new BadRequestException('Company Name is required');
       }
 
       const participantsData = await Promise.all(
@@ -137,8 +137,6 @@ export class CompanyService {
       );
 
       participantsData.forEach((participant) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-
         participant[0]
           ? applicantsIds.push(participant[1])
           : ownersIds.push(participant[1]);
@@ -399,7 +397,6 @@ export class CompanyService {
       user: userId,
     });
 
-    console.log(companies);
     if (!companies.length) {
       throw new NotFoundException(companyResponseMsgs.companyNotFound);
     }
@@ -408,6 +405,6 @@ export class CompanyService {
       isApplicant ? company.forms.applicants : company.forms.owners,
     );
 
-    return allParticipants;
+    return allParticipants.flat();
   }
 }

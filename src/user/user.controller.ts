@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Body,
-  Param,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, UseGuards } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -27,26 +20,6 @@ import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-
-  @Get()
-  @Roles(Role.Admin)
-  @UseGuards(RolesGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get all users' })
-  @ApiOkResponse({ description: 'Returns all users.' })
-  @ApiForbiddenResponse({ description: authResponseMsgs.accessDenied })
-  async findAll(): Promise<User[]> {
-    return this.userService.getAllUsers();
-  }
-
-  @Get(':userId')
-  @ApiBearerAuth()
-  @UseGuards(AccessTokenGuard)
-  @ApiOperation({ summary: 'Get a user by ID' })
-  @ApiOkResponse({ description: 'Returns a user.' })
-  async findOne(@Param('userId') userId: string): Promise<User> {
-    return this.userService.getUserById(userId);
-  }
 
   @Post('company/:userId')
   @ApiOperation({ summary: 'Add company(or companies) to user' })

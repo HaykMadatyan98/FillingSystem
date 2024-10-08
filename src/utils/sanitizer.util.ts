@@ -140,6 +140,5 @@ export async function sanitizeData(
 
   await validateData(sanitized);
 
-  console.log(sanitized);
   return sanitized;
 }

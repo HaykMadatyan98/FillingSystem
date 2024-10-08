@@ -274,14 +274,40 @@ export class ParticipantFormService {
   }
 
   async getAllCompaniesParticipants(isApplicant: boolean, userId: string) {
-    const userCompaniesIds =
+    const userParticipantsIds =
       await this.companyService.getUserCompaniesParticipants(
         userId,
         isApplicant,
       );
 
-    console.log(userCompaniesIds);
+    const allParticipants = await Promise.all(
+      userParticipantsIds.map(async (participantId) => {
+        const participant = isApplicant
+          ? await this.applicantFormModel.findById(participantId, {
+              id: 1,
+              answerCount: 1,
+              personalInfo: 1,
+            })
+          : await this.ownerFormModel.findById(participantId, {
+              id: 1,
+              answerCount: 1,
+              personalInfo: 1,
+            });
 
-    return {};
+        return {
+          id: participant['id'],
+          fullName:
+            participant.personalInfo.firstName +
+            ' ' +
+            participant.personalInfo.lastOrLegalName,
+          percentage:
+            (isApplicant
+              ? participant.answerCount / 15
+              : participant.answerCount / 11) * 100,
+        };
+      }),
+    );
+
+    return { message: 'Participants retrieved successfully', allParticipants };
   }
 }

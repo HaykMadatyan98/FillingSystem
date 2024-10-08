@@ -4,11 +4,6 @@ import { Document } from 'mongoose';
 export type OwnerFormDocument = OwnerForm & Document;
 export type ApplicantFormDocument = ApplicantForm & Document;
 
-// enum AddressTypeEnum {
-//   BUSINESS = 'business',
-//   RESIDENTIAL = 'residential',
-// }
-
 @Schema({ _id: false })
 class BeneficialOwner {
   @Prop()
@@ -63,6 +58,7 @@ class OwnerAddress {
   postalCode: string;
 }
 
+@Schema({ _id: false })
 class ApplicantAddress extends OwnerAddress {
   @Prop({ required: true })
   type: string;
