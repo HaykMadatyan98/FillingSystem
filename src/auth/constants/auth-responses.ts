@@ -19,15 +19,15 @@ type AuthResponseKeys =
   | 'accessDenied'
   | 'expiredRefreshToken'
   | 'tokenPayloadMissingFields'
-  | 'successfullLogout'
+  | 'successfulLogout'
   | 'tokenIsMissing'
   | 'accessTokenExpired';
 
 export const authResponseMsgs: Record<AuthResponseKeys, string> = {
   successfulLogin: 'Sign-in successful',
   otpWasSent: 'One-time password sent.',
-  tokenRefreshed: 'Token succesfully updated',
-  successfullLogout: 'Succesfully signed out',
+  tokenRefreshed: 'Token successfully updated',
+  successfulLogout: 'Successfully signed out',
   // errors
   wrongSendedEmailOrPass: 'Email or Password was not correct',
   tokenIsMissing: 'No Token provided',

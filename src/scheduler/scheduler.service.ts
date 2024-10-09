@@ -1,7 +1,7 @@
 import { CompanyService } from '@/company/company.service';
 import { UserService } from '@/user/user.service';
 import { Injectable } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+// import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class SchedulerService {

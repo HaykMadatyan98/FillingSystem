@@ -1,5 +1,4 @@
 import {
-  TRChangeParticipantForm,
   TRCreateParticipantByCSV,
   TRResponseMsg,
 } from './interfaces/participant-service.interface';
@@ -219,6 +218,7 @@ export class ParticipantFormService {
   private async uploadAnImageToTheCloud(
     file: Express.Multer.File,
   ): Promise<string> {
+    console.log(file);
     return 'exampleUrt123qww21';
   }
 
@@ -233,7 +233,7 @@ export class ParticipantFormService {
       'participantForm',
     );
 
-    const [isApllicant, company] =
+    const [isApplicant, company] =
       await this.companyService.getByParticipantId(participantId);
 
     const docImgUrl = await this.uploadAnImageToTheCloud(docImg);
@@ -241,7 +241,7 @@ export class ParticipantFormService {
     await this.changeParticipantForm(
       { identificationDetails: { docImgUrl } },
       participantId,
-      isApllicant,
+      isApplicant,
       company['id'],
     );
 

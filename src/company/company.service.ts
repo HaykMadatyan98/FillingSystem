@@ -36,7 +36,7 @@ export class CompanyService {
     const companies = await this.companyModel.find();
     // let selection: string;
     // if (query?.expTime) {
-    //   query['expirtionTime'] = query.expirationTime;
+    //   query['expiationTime'] = query.expirationTime;
     // }
 
     // if (query?.isFree) {
@@ -50,7 +50,7 @@ export class CompanyService {
     //   .populate({
     //     path: 'user',
     //     model: 'User',
-    //     select: 'firstname email',
+    //     select: 'firstName email',
     //   })
     //   .exec();
 
@@ -127,9 +127,11 @@ export class CompanyService {
       );
 
       participantsData.forEach((participant) => {
-        participant[0]
-          ? applicantsIds.push(participant[1])
-          : ownersIds.push(participant[1]);
+        if (participant[0]) {
+          applicantsIds.push(participant[1]);
+        } else {
+          ownersIds.push(participant[1]);
+        }
 
         answerCount += participant[2];
       });
@@ -236,8 +238,8 @@ export class CompanyService {
       throw new ConflictException(companyResponseMsgs.companyWasCreated);
     }
 
-    let newCompanyForm = await this.companyFormService.create(payload);
-    let newCompany = new this.companyModel();
+    const newCompanyForm = await this.companyFormService.create(payload);
+    const newCompany = new this.companyModel();
     newCompany['forms.company'] = newCompanyForm['id'];
     newCompany['reqFieldsCount'] = 9;
 

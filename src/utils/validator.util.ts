@@ -17,9 +17,7 @@ export async function validateData(data: any) {
     forbidNonWhitelisted: true,
   });
   errorMessages.push(
-    ...userValidationResults.map(
-      (error) => formatError(error, 'user', false), 
-    ),
+    ...userValidationResults.map((error) => formatError(error, 'user', false)),
   );
 
   const companyDtoInstance = plainToInstance(CSVCompanyFormDto, data.company);
@@ -31,8 +29,8 @@ export async function validateData(data: any) {
     },
   );
   errorMessages.push(
-    ...companyValidationResults.map(
-      (error) => formatError(error, 'company', true),
+    ...companyValidationResults.map((error) =>
+      formatError(error, 'company', true),
     ),
   );
 
@@ -51,8 +49,8 @@ export async function validateData(data: any) {
         },
       );
 
-      return participantValidationResults.map(
-        (error) => formatError(error, `participant at index ${index}`, true), 
+      return participantValidationResults.map((error) =>
+        formatError(error, `participant at index ${index}`, true),
       );
     }),
   );

@@ -29,7 +29,6 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApplicantFormDto,
   CreateParticipantDocDto,
-  OwnerFormDto,
 } from './dtos/participant-form.dto';
 import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
 import { RequestWithUser } from '@/auth/interfaces/request.interface';

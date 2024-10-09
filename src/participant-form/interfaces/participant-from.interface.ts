@@ -1,8 +1,4 @@
-import {
-  AllCountryEnum,
-  DocumentTypeEnum,
-  StatesEnum,
-} from '@/company/constants';
+import { AllCountryEnum, StatesEnum } from '@/company/constants';
 
 export interface IChangeParticipantForm {
   applicant?: {

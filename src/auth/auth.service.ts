@@ -64,7 +64,7 @@ export class AuthService {
   async logout(userId: string) {
     await this.userService.changeRefreshToken(userId, '');
 
-    return { message: authResponseMsgs.successfullLogout };
+    return { message: authResponseMsgs.successfulLogout };
   }
 
   async generateNewToken(userId: string, email: string, role: string) {
@@ -99,6 +99,7 @@ export class AuthService {
     try {
       decoded = jwt.verify(refToken, this.refreshSecretKey) as IDecodedToken;
     } catch (err) {
+      console.log(err);
       throw new UnauthorizedException(authResponseMsgs.expiredRefreshToken);
     }
 

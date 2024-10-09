@@ -24,6 +24,7 @@ export class RefreshTokenGuard implements CanActivate {
       request.user = { ...user, refreshToken };
       return true;
     } catch (err) {
+      console.log(err);
       return false;
     }
   }

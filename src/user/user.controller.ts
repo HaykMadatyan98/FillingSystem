@@ -7,10 +7,9 @@ import {
   ApiParam,
   ApiBearerAuth,
   ApiForbiddenResponse,
-  ApiOkResponse,
 } from '@nestjs/swagger';
 import { UserService } from './user.service';
-import { User } from './schema/user.schema';
+// import { User } from './schema/user.schema';
 import { Roles } from '@/auth/decorators/roles.decorator';
 import { authResponseMsgs, Role } from '@/auth/constants';
 import { RolesGuard } from '@/auth/guards/role.guard';

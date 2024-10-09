@@ -7,13 +7,12 @@ import {
   Param,
   ParseFilePipe,
   Post,
-  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { CompanyService } from './company.service';
-import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
+// import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
@@ -30,7 +29,7 @@ import { Role } from '@/auth/constants';
 import { RolesGuard } from '@/auth/guards/role.guard';
 import { CreateCompanyFormDto } from '@/company-form/dtos/company-form.dto';
 import { companyCSVRowDataKeys, companyResponseMsgs } from './constants';
-import { ResponseMessageDto } from './dtos/reponse.dto';
+import { ResponseMessageDto } from './dtos/response';
 
 @ApiTags('company')
 @Controller('company')

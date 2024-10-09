@@ -1,9 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsBooleanString,
-  IsNumberString,
-  IsOptional,
-} from 'class-validator';
+import { IsBooleanString, IsNumberString, IsOptional } from 'class-validator';
 
 export class CompanyQueryDto {
   @ApiProperty({ required: false })
@@ -16,8 +12,8 @@ export class CompanyQueryDto {
   @IsOptional()
   page: number;
 
-  @ApiProperty({required: false})
+  @ApiProperty({ required: false })
   @IsBooleanString()
   @IsOptional()
-  addedToUser: boolean
+  addedToUser: boolean;
 }

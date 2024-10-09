@@ -16,9 +16,9 @@ type CompanyResponseMsgKeys =
 export const companyResponseMsgs: Record<CompanyResponseMsgKeys, string> = {
   csvUploadSuccessful: 'Data is successfully saved',
   companyNotFound: 'Company Not found',
-  companyCreated: 'Company succesfully created',
+  companyCreated: 'Company successfully created',
   companyChanged: 'Company data was changed',
-  companyDeleted: 'Company succefully deleted',
+  companyDeleted: 'Company successfully deleted',
   dontHavePermission: 'You do not have permission to perform this action.',
   companyWasCreated: 'Company with that tax Id Number was already created',
   companyNameMissing: 'Company Nam is Required',

@@ -1,6 +1,6 @@
 export interface ICompanyCSVRowData {
-  'User Name': string,
-  'User Email': string,
+  'User Name': string;
+  'User Email': string;
   'Company Request To Receive Foreign ID': string;
   'Company Foreign Pooled': string;
   'Company Legal Name': string;

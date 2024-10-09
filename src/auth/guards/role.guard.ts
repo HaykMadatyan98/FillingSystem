@@ -2,7 +2,6 @@ import {
   Injectable,
   CanActivate,
   ExecutionContext,
-  ForbiddenException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
@@ -43,6 +42,7 @@ export class RolesGuard implements CanActivate {
 
       return requiredRoles.includes(user.role);
     } catch (err) {
+      console.log(err);
       throw new UnauthorizedException(authResponseMsgs.accessTokenExpired);
     }
   }

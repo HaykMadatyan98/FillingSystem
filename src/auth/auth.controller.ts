@@ -91,7 +91,7 @@ export class AuthController {
   @Get('logout/:id')
   @ApiOkResponse({
     type: ResponseMessageDto,
-    description: authResponseMsgs.successfullLogout,
+    description: authResponseMsgs.successfulLogout,
   })
   @ApiNotFoundResponse({ description: authResponseMsgs.userNotFound })
   @ApiOperation({ summary: 'Sign out by entered user id' })
