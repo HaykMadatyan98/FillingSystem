@@ -1,20 +1,22 @@
 import {
-  Injectable,
   CanActivate,
   ExecutionContext,
+  Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { ROLES_KEY } from '../decorators/roles.decorator';
 import { authResponseMsgs, Role } from '../constants';
+import { ROLES_KEY } from '../decorators/roles.decorator';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
   canActivate(context: ExecutionContext): boolean {
@@ -37,7 +39,7 @@ export class RolesGuard implements CanActivate {
 
     try {
       const user = this.jwtService.verify(accessToken, {
-        secret: process.env.JWT_ACCESS_SECRET,
+        secret: this.configService.get<string>('TOKEN.accessSecret'),
       });
 
       return requiredRoles.includes(user.role);

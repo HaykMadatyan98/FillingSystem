@@ -2,12 +2,12 @@ import { CompanyData, ParticipantData, UserData } from '@/company/constants';
 import {
   ICompanyCSVRowData,
   ICompanyData,
-  ISanitizedData,
   IParticipantData,
+  ISanitizedData,
 } from '@/company/interfaces';
-import { validateData } from './validator.util';
-import { ConflictException } from '@nestjs/common';
 import { ICsvUser } from '@/company/interfaces/sanitized-data.interface';
+import { ConflictException } from '@nestjs/common';
+import { validateData } from './validator.util';
 
 export async function sanitizeData(
   data: ICompanyCSVRowData,
@@ -16,6 +16,9 @@ export async function sanitizeData(
     user: {} as ICsvUser,
     company: {} as ICompanyData,
     participants: [] as IParticipantData[],
+    BOIRExpTime: data['BOIR Submission Deadline']
+      ? new Date(data['BOIR Submission Deadline'])
+      : null,
   };
 
   const participantKeys = Object.keys(

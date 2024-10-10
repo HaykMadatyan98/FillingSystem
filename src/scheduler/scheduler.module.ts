@@ -1,10 +1,10 @@
+import { CompanyModule } from '@/company/company.module';
+import { MailModule } from '@/mail/mail.module';
 import { Module } from '@nestjs/common';
 import { SchedulerService } from './scheduler.service';
-import { CompanyModule } from '@/company/company.module';
-import { UserModule } from '@/user/user.module';
 
 @Module({
-  imports: [CompanyModule, UserModule],
+  imports: [CompanyModule, MailModule],
   providers: [SchedulerService],
   exports: [SchedulerService],
 })

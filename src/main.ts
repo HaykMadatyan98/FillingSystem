@@ -1,15 +1,17 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import * as dotenv from 'dotenv';
-import { GlobalExceptionFilter } from './exceptions/global-exception.filter';
 import { Logger, ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as dotenv from 'dotenv';
+import { AppModule } from './app.module';
+import { GlobalExceptionFilter } from './exceptions/global-exception.filter';
 
 dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const PORT = process.env.PORT || 3000;
+  const configService = app.get(ConfigService);
+  const PORT = configService.get<number>('PORT');
   app.enableCors();
 
   if (process.env.NODE_ENV !== 'production') {

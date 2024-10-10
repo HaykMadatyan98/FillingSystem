@@ -6,6 +6,7 @@ import {
   Get,
   Param,
   ParseFilePipe,
+  Patch,
   Post,
   UploadedFile,
   UseGuards,
@@ -30,6 +31,7 @@ import { RolesGuard } from '@/auth/guards/role.guard';
 import { CreateCompanyFormDto } from '@/company-form/dtos/company-form.dto';
 import { companyCSVRowDataKeys, companyResponseMsgs } from './constants';
 import { ResponseMessageDto } from './dtos/response';
+import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
 
 @ApiTags('company')
 @Controller('company')
@@ -128,5 +130,11 @@ export class CompanyController {
   @ApiOperation({ summary: 'Send company fields for csv' })
   async getCompanyFields() {
     return { csvRowDataKeys: companyCSVRowDataKeys };
+  }
+
+  @Patch('/submit/:companyId')
+  @UseGuards(AccessTokenGuard)
+  async submitCompanyBoir (@Param('companyId') companyId: string) {
+    return this.companyService.submitCompanyById(companyId)
   }
 }

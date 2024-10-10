@@ -16,3 +16,13 @@ export class LoginDto {
   @IsNumber()
   oneTimePass: number;
 }
+
+
+export class LoginAdminDto {
+  @ApiProperty({type: String, required:true})
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({type: String, required: true})
+  password: string;
+}

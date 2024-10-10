@@ -1,30 +1,39 @@
 import {
+  authResponseMsgs,
+  ExpirationTimes,
+  ILoginResponse,
+  IResponseMessage,
+} from '@/auth/constants';
+import { MailService } from '@/mail/mail.service';
+import { UserService } from '@/user/user.service';
+import {
   BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
-import { MailService } from '@/mail/mail.service';
-import { UserService } from '@/user/user.service';
 import * as moment from 'moment';
-import {
-  authResponseMsgs,
-  IResponseMessage,
-  ExpirationTimes,
-  ILoginResponse,
-} from '@/auth/constants';
+import { LoginAdminDto } from './dtos/auth.dto';
 
 @Injectable()
 export class AuthService {
-  private readonly accessSecretKey = process.env.JWT_ACCESS_SECRET;
-  private readonly refreshSecretKey = process.env.JWT_REFRESH_SECRET;
+  private accessSecretKey: string;
+  private refreshSecretKey: string;
 
   constructor(
-    private mailerService: MailService,
-    private userService: UserService,
-  ) {}
+    private readonly mailerService: MailService,
+    private readonly userService: UserService,
+    private readonly configService: ConfigService,
+  ) {
+    this.accessSecretKey = this.configService.get<string>('TOKEN.accessSecret');
+    this.refreshSecretKey = this.configService.get<string>(
+      'TOKEN.refreshSecret',
+    );
+  }
 
   async sendValidationEmail(email: string): Promise<IResponseMessage> {
     const oneTimePass = Math.floor(100000 + Math.random() * 900000);
@@ -120,5 +129,34 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+
+  async signInAdmin(email: string, userId: string) {
+    const user = await this.userService.getUserByEmail(email);
+
+    if (!user) {
+      throw new NotFoundException(authResponseMsgs.userNotFound);
+    }
+
+    const { accessToken, refreshToken } = await this.generateNewToken(
+      userId,
+      email,
+      'admin',
+    );
+
+    return {
+      message: authResponseMsgs.successfulLogin,
+      accessToken,
+      refreshToken,
+      userId,
+    };
+  }
+
+  async validateUser(loginAdminDto: LoginAdminDto): Promise<any> {
+    const user = await this.userService.getUserByEmail(loginAdminDto.email);
+    if (user && (await bcrypt.compare(loginAdminDto.password, user.password))) {
+      return { email: loginAdminDto.email, userId: user['id'] };
+    }
+    return null;
   }
 }

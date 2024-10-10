@@ -1,3 +1,8 @@
+import { IRequestUser } from '@/auth/interfaces/request.interface';
+import { CompanyFormService } from '@/company-form/company-form.service';
+import { ParticipantFormService } from '@/participant-form/participant-form.service';
+import { UserService } from '@/user/user.service';
+import { sanitizeData } from '@/utils/sanitizer.util';
 import {
   BadRequestException,
   ConflictException,
@@ -8,19 +13,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Company, CompanyDocument } from './schemas/company.schema';
-import mongoose, { Model } from 'mongoose';
 import * as csvParser from 'csv-parser';
-import * as Stream from 'stream';
-import { CompanyFormService } from '@/company-form/company-form.service';
-import { ParticipantFormService } from '@/participant-form/participant-form.service';
-import { sanitizeData } from '@/utils/sanitizer.util';
-import { companyResponseMsgs } from './constants';
-import { ICompanyCSVRowData } from './interfaces/company-csv.interface';
-import { ISanitizedData } from './interfaces';
 import * as moment from 'moment';
-import { IRequestUser } from '@/auth/interfaces/request.interface';
-import { UserService } from '@/user/user.service';
+import mongoose, { Model } from 'mongoose';
+import * as Stream from 'stream';
+import { companyResponseMsgs } from './constants';
+import { ISanitizedData } from './interfaces';
+import { ICompanyCSVRowData } from './interfaces/company-csv.interface';
+import { Company, CompanyDocument } from './schemas/company.schema';
 
 @Injectable()
 export class CompanyService {
@@ -112,6 +112,12 @@ export class CompanyService {
       }));
 
     if (!company) {
+      if (!sanitized.BOIRExpTime) {
+        throw new BadRequestException(
+          'expiration time is required for company creating',
+        );
+      }
+
       const ownersIds = [];
       const applicantsIds = [];
       let answerCount = 0;
@@ -148,6 +154,7 @@ export class CompanyService {
         ['forms.applicants']: applicantsIds,
         ['forms.owners']: ownersIds,
         name: companyForm.companyName,
+        expTime: sanitized.BOIRExpTime,
       });
 
       company.answersCount = answerCount;
@@ -191,9 +198,11 @@ export class CompanyService {
         },
       );
 
+      company.isSubmitted = false;
       await Promise.all(participantPromises);
     }
 
+    sanitized.BOIRExpTime && (company.expTime = sanitized.BOIRExpTime);
     company.reqFieldsCount = this.calculateReqFieldsCount(company);
     const user = await this.userService.getUserByEmail(sanitized.user.email);
 
@@ -300,12 +309,17 @@ export class CompanyService {
     return company;
   }
 
-  async findExpiringCompanies(days: number) {
+  async findExpiringCompanies(days?: number) {
     const now = new Date();
-    const threshold = moment(now).add(days, 'days').toDate();
-    return this.companyModel.find({
-      expirationDate: { $lt: threshold },
-    });
+
+    return this.companyModel
+      .find({
+        expirationDate: {
+          $lt: days ? moment(now).add(days, 'days').toDate() : now,
+        },
+      })
+      .populate('user', 'email')
+      .select('name user');
   }
 
   async getByParticipantId(
@@ -378,6 +392,10 @@ export class CompanyService {
 
     company.reqFieldsCount += count;
 
+    if (company.isSubmitted) {
+      company.isSubmitted = false;
+    }
+
     await company.save();
   }
 
@@ -395,5 +413,38 @@ export class CompanyService {
     );
 
     return allParticipants.flat();
+  }
+
+  async submitCompanyById(companyId: string) {
+    const company = await this.companyModel.findById(companyId);
+
+    if (!company) {
+      throw new NotFoundException(companyResponseMsgs.companyNotFound);
+    }
+
+    if (company.reqFieldsCount !== company.answersCount) {
+      throw new BadRequestException('Company BOIR is not full filled');
+    }
+
+    company.isSubmitted = true;
+
+    await company.save();
+
+    return { message: 'Company BOIR is submitted' };
+  }
+
+  async getSubmittedCompanies(
+    companyIds: string[],
+  ): Promise<CompanyDocument[]> {
+    const companies = await this.companyModel.find({
+      id: { $in: companyIds },
+      isSubmitted: true,
+    });
+
+    if (!companies.length) {
+      throw new BadRequestException('Companies with that ids is not submitted');
+    }
+
+    return companies;
   }
 }

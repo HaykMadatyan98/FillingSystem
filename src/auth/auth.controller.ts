@@ -1,15 +1,13 @@
-import { ILoginResponse } from './constants/auth-responses';
+import { IResponseMessage } from '@/user/constants';
 import {
-  Controller,
-  Post,
   Body,
+  Controller,
   Get,
   Param,
-  UseGuards,
+  Post,
   Req,
+  UseGuards,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { LoginDto, SendEmailDto } from './dtos/auth.dto';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -21,13 +19,16 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { AuthService } from './auth.service';
 import { authResponseMsgs } from './constants';
-import { IResponseMessage } from '@/user/constants';
+import { ILoginResponse } from './constants/auth-responses';
+import { LoginAdminDto, LoginDto, SendEmailDto } from './dtos/auth.dto';
 import {
   LoginResponseDto,
   RefreshTokenResponseDto,
   ResponseMessageDto,
 } from './dtos/response.dto';
+import { LocalAuthGuard } from './guards/local-auth.guard';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { RequestWithUser } from './interfaces/request.interface';
 
@@ -62,6 +63,18 @@ export class AuthController {
   @ApiUnauthorizedResponse({ description: authResponseMsgs.codeWasExpired })
   async login(@Body() body: LoginDto): Promise<ILoginResponse> {
     return this.authService.login(body.email, body.oneTimePass);
+  }
+
+  @Post('login/admin')
+  @ApiBody({ type: LoginAdminDto })
+  @UseGuards(LocalAuthGuard)
+  @ApiNotFoundResponse({ description: authResponseMsgs.userNotFound })
+  @ApiOkResponse({
+    description: authResponseMsgs.successfulLogin,
+    type: LoginResponseDto,
+  })
+  async signInAdmin(@Body() body: LoginAdminDto) {
+    return this.authService.signInAdmin(body.email, body.password);
   }
 
   @Get('refresh')
