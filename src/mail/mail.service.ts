@@ -54,32 +54,47 @@ export class MailService {
     }
   }
 
-  async sendEmailToParticipants(emails: any) {
-    const emailPromises = emails.map(async ({ email }) => {
-      try {
-        const templatePath = path.join(
-          path.resolve(),
-          '/src/mail/templates/participantEmail.hbs', // path to participant Email hbs file
-        );
+  async sendEmailToFormFillers(
+    data: {
+      email: string;
+      companyName: string;
+      userName: string;
+      isNewCompany: boolean;
+    }[],
+  ) {
+    const emailPromises = data.map(
+      async ({ email, companyName, userName, isNewCompany }) => {
+        try {
+          const templatePath = path.join(
+            path.resolve(),
+            `/src/mail/templates/${isNewCompany ? 'invitation' : 'change-notification'}.hbs`,
+          );
 
-        const template = fs.readFileSync(templatePath, 'utf-8');
-        const compiledFile = Handlebars.compile(template);
-        const htmlContent = compiledFile({}); // the data which need to add in handlebars file
+          const template = fs.readFileSync(templatePath, 'utf-8');
+          const compiledFile = Handlebars.compile(template);
+          const htmlContent = compiledFile({ companyName, userName });
+          const mail: SendGrid.MailDataRequired = {
+            to: email,
+            from: this.emailFrom,
+            subject: 'Mail for BOIR Filler',
+            html: htmlContent,
+          };
 
-        const mail: SendGrid.MailDataRequired = {
-          to: email,
-          from: this.emailFrom,
-          subject: 'Participant Mails', // change
-          html: htmlContent,
-        };
-
-        await SendGrid.send(mail);
-      } catch (error) {
-        console.log(error);
-        // catch error and save data into db
-      }
-      await Promise.all(emailPromises);
-    });
+          await SendGrid.send(mail);
+        } catch (error) {
+          console.log(error);
+          throw new HttpException(
+            {
+              status: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+              error: error.message || 'An unexpected error occurred',
+            },
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          );
+          // catch error and save data into db
+        }
+      },
+    );
+    await Promise.all(emailPromises);
   }
 
   async sendInvitationEmail(email: string, userName: string): Promise<void> {

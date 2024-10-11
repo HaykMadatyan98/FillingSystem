@@ -1,5 +1,6 @@
 import { IRequestUser } from '@/auth/interfaces/request.interface';
 import { CompanyFormService } from '@/company-form/company-form.service';
+import { MailService } from '@/mail/mail.service';
 import { ParticipantFormService } from '@/participant-form/participant-form.service';
 import { UserService } from '@/user/user.service';
 import { sanitizeData } from '@/utils/sanitizer.util';
@@ -30,6 +31,7 @@ export class CompanyService {
     private readonly participantFormService: ParticipantFormService,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
+    private readonly mailService: MailService,
   ) {}
 
   async getAllCompanies() {
@@ -90,14 +92,14 @@ export class CompanyService {
     await Promise.all(
       results.map(async (row: ICompanyCSVRowData) => {
         const sanitizedCompanyData = await sanitizeData(row);
-        await this.changeCompanyData(sanitizedCompanyData);
+        await this.ParseCsvData(sanitizedCompanyData);
       }),
     );
 
     return companyResponseMsgs.csvUploadSuccessful;
   }
 
-  async changeCompanyData(sanitized: ISanitizedData) {
+  private async ParseCsvData(sanitized: ISanitizedData) {
     const companyFormData =
       await this.companyFormService.getCompanyFormByTaxData(
         sanitized.company.taxInfo.taxIdNumber,
@@ -111,98 +113,28 @@ export class CompanyService {
         'forms.company': companyFormId,
       }));
 
+    const userEmailData: {
+      email: string;
+      companyName: string;
+      userName: string;
+      isNewCompany: boolean;
+    }[] = [];
+
     if (!company) {
-      if (!sanitized.BOIRExpTime) {
-        throw new BadRequestException(
-          'expiration time is required for company creating',
-        );
-      }
-
-      const ownersIds = [];
-      const applicantsIds = [];
-      let answerCount = 0;
-
-      if (!sanitized.company.names.legalName) {
-        throw new BadRequestException(companyResponseMsgs.companyNameMissing);
-      }
-
-      const participantsData = await Promise.all(
-        sanitized.participants.map((participant) =>
-          this.participantFormService.createParticipantFormFromCsv(participant),
-        ),
-      );
-
-      participantsData.forEach((participant) => {
-        if (participant[0]) {
-          applicantsIds.push(participant[1]);
-        } else {
-          ownersIds.push(participant[1]);
-        }
-
-        answerCount += participant[2];
-      });
-
-      const companyForm =
-        await this.companyFormService.createCompanyFormFromCsv(
-          sanitized.company,
-        );
-
-      answerCount += companyForm.answerCount;
-
-      company = new this.companyModel({
-        ['forms.company']: companyForm.id,
-        ['forms.applicants']: applicantsIds,
-        ['forms.owners']: ownersIds,
-        name: companyForm.companyName,
-        expTime: sanitized.BOIRExpTime,
-      });
-
-      company.answersCount = answerCount;
-      company.reqFieldsCount = this.calculateReqFieldsCount(company);
+      company = await this.createNewCompanyFromCsv(sanitized, userEmailData);
     } else {
-      await this.companyFormService.updateCompanyForm(
-        sanitized.company,
+      await this.changeCompanyByCsv(
+        company,
         companyFormId,
-        company['id'],
+        sanitized,
+        userEmailData,
       );
-
-      const participantPromises = sanitized.participants.map(
-        async (participant) => {
-          const existParticipant =
-            await this.participantFormService.findParticipantFormByDocDataAndIds(
-              participant.identificationDetails.docNumber,
-              participant.identificationDetails.docType,
-              [...company.forms.owners, ...company.forms.applicants],
-              participant.isApplicant,
-            );
-
-          if (existParticipant) {
-            await this.participantFormService.changeParticipantForm(
-              participant,
-              existParticipant['id'],
-              participant['isApplicant'],
-              company['id'],
-            );
-          } else {
-            const newParticipant =
-              await this.participantFormService.createParticipantFormFromCsv(
-                participant,
-              );
-            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-            newParticipant[0]
-              ? company.forms.applicants.push(newParticipant[1])
-              : company.forms.owners.push(newParticipant[1]);
-
-            company.answersCount += newParticipant[2];
-          }
-        },
-      );
-
-      company.isSubmitted = false;
-      await Promise.all(participantPromises);
     }
 
-    sanitized.BOIRExpTime && (company.expTime = sanitized.BOIRExpTime);
+    if (sanitized.BOIRExpTime) {
+      company.expTime = sanitized.BOIRExpTime;
+    }
+
     company.reqFieldsCount = this.calculateReqFieldsCount(company);
     const user = await this.userService.getUserByEmail(sanitized.user.email);
 
@@ -225,6 +157,127 @@ export class CompanyService {
     }
 
     await company.save();
+    await this.mailService.sendEmailToFormFillers(userEmailData);
+  }
+
+  private async createNewCompanyFromCsv(
+    sanitized: ISanitizedData,
+    userEmailData: any[],
+  ) {
+    let company = null;
+
+    if (!sanitized.BOIRExpTime) {
+      throw new BadRequestException(
+        'expiration time is required for company creating',
+      );
+    }
+
+    const ownersIds = [];
+    const applicantsIds = [];
+    let answerCount = 0;
+
+    if (!sanitized.company.names.legalName) {
+      throw new BadRequestException(companyResponseMsgs.companyNameMissing);
+    }
+
+    const participantsData = await Promise.all(
+      sanitized.participants.map((participant) =>
+        this.participantFormService.createParticipantFormFromCsv(participant),
+      ),
+    );
+
+    participantsData.forEach((participant) => {
+      if (participant[0]) {
+        applicantsIds.push(participant[1]);
+      } else {
+        ownersIds.push(participant[1]);
+      }
+
+      answerCount += participant[2];
+    });
+
+    const companyForm = await this.companyFormService.createCompanyFormFromCsv(
+      sanitized.company,
+    );
+
+    answerCount += companyForm.answerCount;
+
+    company = new this.companyModel({
+      ['forms.company']: companyForm.id,
+      ['forms.applicants']: applicantsIds,
+      ['forms.owners']: ownersIds,
+      name: companyForm.companyName,
+      expTime: sanitized.BOIRExpTime,
+    });
+
+    company.answersCount = answerCount;
+    company.reqFieldsCount = this.calculateReqFieldsCount(company);
+    userEmailData.push({
+      companyName: company.name,
+      email: sanitized.user.email,
+      userName: sanitized.user.name,
+      isNewCompany: true,
+    });
+
+    return company;
+  }
+
+  private async changeCompanyByCsv(
+    company: CompanyDocument,
+    companyFormId: string,
+    sanitized: ISanitizedData,
+    userEmailData: any[],
+  ) {
+    await this.companyFormService.updateCompanyForm(
+      sanitized.company,
+      companyFormId,
+      company['id'],
+    );
+
+    const participantPromises = sanitized.participants.map(
+      async (participant) => {
+        const existParticipant =
+          await this.participantFormService.findParticipantFormByDocDataAndIds(
+            participant.identificationDetails.docNumber,
+            participant.identificationDetails.docType,
+            [...company.forms.owners, ...company.forms.applicants],
+            participant.isApplicant,
+          );
+
+        if (existParticipant) {
+          await this.participantFormService.changeParticipantForm(
+            participant,
+            existParticipant['id'],
+            participant['isApplicant'],
+            company['id'],
+          );
+        } else {
+          const newParticipant =
+            await this.participantFormService.createParticipantFormFromCsv(
+              participant,
+            );
+          // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+          newParticipant[0]
+            ? company.forms.applicants.push(newParticipant[1])
+            : company.forms.owners.push(newParticipant[1]);
+
+          company.answersCount += newParticipant[2];
+        }
+      },
+    );
+
+    const user = await this.userService.getUserById(
+      company.user as unknown as string,
+    );
+
+    userEmailData.push({
+      companyName: company.name,
+      email: user.email,
+      userName: user.firstName,
+      isNewCompany: false,
+    });
+    company.isSubmitted = false;
+    await Promise.all(participantPromises);
   }
 
   async getCompaniesByIds(companyIds: string[]) {

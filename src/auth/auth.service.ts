@@ -47,7 +47,7 @@ export class AuthService {
     const user = await this.userService.getUserByEmail(email);
 
     if (!user || user.oneTimePass !== oneTimePass) {
-      throw new NotFoundException(authResponseMsgs.wrongSendedEmailOrPass);
+      throw new NotFoundException(authResponseMsgs.wrongSentEmailOrPass);
     }
 
     if (moment(user.oneTimeExpiration).isBefore(moment())) {
@@ -143,6 +143,8 @@ export class AuthService {
       email,
       'admin',
     );
+
+    await this.userService.changeRefreshToken(user['id'], refreshToken);
 
     return {
       message: authResponseMsgs.successfulLogin,

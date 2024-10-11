@@ -6,7 +6,7 @@ import {
   ISanitizedData,
 } from '@/company/interfaces';
 import { ICsvUser } from '@/company/interfaces/sanitized-data.interface';
-import { ConflictException } from '@nestjs/common';
+import { BadRequestException, ConflictException } from '@nestjs/common';
 import { validateData } from './validator.util';
 
 export async function sanitizeData(
@@ -139,6 +139,10 @@ export async function sanitizeData(
     throw new ConflictException(
       'Country/Jurisdiction can be added only if tax type is Foreign',
     );
+  }
+
+  if (sanitized.BOIRExpTime && isNaN(sanitized.BOIRExpTime.getTime())) {
+    throw new BadRequestException('Invalid expiration time format.');
   }
 
   await validateData(sanitized);

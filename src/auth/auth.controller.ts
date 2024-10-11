@@ -59,7 +59,7 @@ export class AuthController {
     type: LoginResponseDto,
   })
   @ApiOperation({ summary: 'Sign in by one time pass' })
-  @ApiNotFoundResponse({ description: authResponseMsgs.wrongSendedEmailOrPass })
+  @ApiNotFoundResponse({ description: authResponseMsgs.wrongSentEmailOrPass })
   @ApiUnauthorizedResponse({ description: authResponseMsgs.codeWasExpired })
   async login(@Body() body: LoginDto): Promise<ILoginResponse> {
     return this.authService.login(body.email, body.oneTimePass);
@@ -69,6 +69,9 @@ export class AuthController {
   @ApiBody({ type: LoginAdminDto })
   @UseGuards(LocalAuthGuard)
   @ApiNotFoundResponse({ description: authResponseMsgs.userNotFound })
+  @ApiBadRequestResponse({
+    description: authResponseMsgs.wrongSentEmailOrPass,
+  })
   @ApiOkResponse({
     description: authResponseMsgs.successfulLogin,
     type: LoginResponseDto,

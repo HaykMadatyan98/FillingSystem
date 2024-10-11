@@ -4,3 +4,7 @@ export enum ExpirationTimes {
 }
 
 export const userVerificationTime = [1, 'hour'];
+export const companyExpirationTimes = {
+  oneDay: '24 hours',
+  oneWeek: '7 days',
+};
