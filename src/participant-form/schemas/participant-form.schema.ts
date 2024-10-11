@@ -140,5 +140,12 @@ export class OwnerForm {
 }
 
 export const OwnerFormSchema = SchemaFactory.createForClass(OwnerForm);
-
+OwnerFormSchema.index({
+  'identificationDetails.docType': 1,
+  'identificationDetails.docNumber': 1,
+});
 export const ApplicantFormSchema = SchemaFactory.createForClass(ApplicantForm);
+ApplicantFormSchema.index({
+  'identificationDetails.docType': 1,
+  'identificationDetails.docNumber': 1,
+});

@@ -34,15 +34,11 @@ export class CompanyService {
     private readonly mailService: MailService,
   ) {}
 
-  async getAllCompanies() {
+  async getAllCompanies(): Promise<CompanyDocument[]> {
     const companies = await this.companyModel.find();
     // let selection: string;
     // if (query?.expTime) {
     //   query['expiationTime'] = query.expirationTime;
-    // }
-
-    // if (query?.isFree) {
-    //   query['isFree'];
     // }
 
     // const companies = await this.companyModel
@@ -54,10 +50,6 @@ export class CompanyService {
     //     model: 'User',
     //     select: 'firstName email',
     //   })
-    //   .exec();
-
-    // const countOfNotEntered = await this.companyModel
-    //   .countDocuments({ user: '' })
     //   .exec();
 
     return companies;
@@ -136,24 +128,16 @@ export class CompanyService {
     }
 
     company.reqFieldsCount = this.calculateReqFieldsCount(company);
-    const user = await this.userService.getUserByEmail(sanitized.user.email);
 
-    if (!user) {
-      const newUser = await this.userService.createUserFromCsvData(
-        sanitized.user.email,
-        sanitized.user.name,
-        company['_id'] as string,
-      );
-      company.user = newUser;
-    } else {
-      await this.userService.addCompanyToUser(
-        user['id'],
-        company['_id'] as string,
-      );
+    const user = await this.userService.findOrCreateUser(
+      sanitized.user.email || null,
+      sanitized.user.name,
+      company['_id'] as unknown as string,
+      (company.user as unknown as string) || null,
+    );
 
-      if (!company.user) {
-        company.user = user['id'];
-      }
+    if (!company.user) {
+      company.user = user['id'];
     }
 
     await company.save();
@@ -168,7 +152,7 @@ export class CompanyService {
 
     if (!sanitized.BOIRExpTime) {
       throw new BadRequestException(
-        'expiration time is required for company creating',
+        companyResponseMsgs.expirationTimeIsMissing,
       );
     }
 
@@ -476,14 +460,14 @@ export class CompanyService {
     }
 
     if (company.reqFieldsCount !== company.answersCount) {
-      throw new BadRequestException('Company BOIR is not full filled');
+      throw new BadRequestException(companyResponseMsgs.BOIRfieldsMissing);
     }
 
     company.isSubmitted = true;
 
     await company.save();
 
-    return { message: 'Company BOIR is submitted' };
+    return { message: companyResponseMsgs.BOIRisSubmitted };
   }
 
   async getSubmittedCompanies(
@@ -495,7 +479,7 @@ export class CompanyService {
     });
 
     if (!companies.length) {
-      throw new BadRequestException('Companies with that ids is not submitted');
+      throw new BadRequestException(companyResponseMsgs.companiesNotSubmitted);
     }
 
     return companies;

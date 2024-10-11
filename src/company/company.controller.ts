@@ -1,3 +1,8 @@
+import { Role } from '@/auth/constants';
+import { Roles } from '@/auth/decorators/roles.decorator';
+import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
+import { RolesGuard } from '@/auth/guards/role.guard';
+import { CreateCompanyFormDto } from '@/company-form/dtos/company-form.dto';
 import {
   Body,
   Controller,
@@ -12,8 +17,6 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { CompanyService } from './company.service';
-// import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
@@ -25,20 +28,15 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { Roles } from '@/auth/decorators/roles.decorator';
-import { Role } from '@/auth/constants';
-import { RolesGuard } from '@/auth/guards/role.guard';
-import { CreateCompanyFormDto } from '@/company-form/dtos/company-form.dto';
+import { CompanyService } from './company.service';
 import { companyCSVRowDataKeys, companyResponseMsgs } from './constants';
 import { ResponseMessageDto } from './dtos/response';
-import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
 
 @ApiTags('company')
 @Controller('company')
 export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
 
-  //TODO
   @Get()
   @Roles(Role.Admin)
   @UseGuards(RolesGuard)
@@ -46,10 +44,12 @@ export class CompanyController {
   @ApiForbiddenResponse({ description: companyResponseMsgs.dontHavePermission })
   @ApiOperation({ summary: 'Get all company data(Admin)' })
   async getAllCompanies() {
-    return this.companyService.getAllCompanies();
+    return {
+      companies: await this.companyService.getAllCompanies(),
+      message: companyResponseMsgs.companiesDataRetrieved,
+    };
   }
 
-  //TODO
   @Get(':companyId')
   @Roles(Role.Admin)
   @UseGuards(RolesGuard)
@@ -57,7 +57,10 @@ export class CompanyController {
   @ApiForbiddenResponse({ description: companyResponseMsgs.dontHavePermission })
   @ApiOperation({ summary: 'Get company by entered company Id' })
   async getCompanyById(@Param('companyId') companyId: string) {
-    return this.companyService.getCompanyById(companyId);
+    return {
+      company: await this.companyService.getCompanyById(companyId),
+      message: companyResponseMsgs.companyDataRetrieved,
+    };
   }
 
   @Post()
@@ -82,14 +85,14 @@ export class CompanyController {
   @ApiOperation({
     summary: 'Create or change company data by entered .csv file (Admin)',
   })
-  @UseInterceptors(FileInterceptor('company'))
+  @UseInterceptors(FileInterceptor('csvFile'))
   @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
-        company: {
+        csvFile: {
           type: 'string',
           format: 'binary',
         },
@@ -134,7 +137,7 @@ export class CompanyController {
 
   @Patch('/submit/:companyId')
   @UseGuards(AccessTokenGuard)
-  async submitCompanyBoir (@Param('companyId') companyId: string) {
-    return this.companyService.submitCompanyById(companyId)
+  async submitCompanyBoir(@Param('companyId') companyId: string) {
+    return this.companyService.submitCompanyById(companyId);
   }
 }

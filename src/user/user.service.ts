@@ -1,3 +1,5 @@
+import { authResponseMsgs, userVerificationTime } from '@/auth/constants';
+import { CompanyService } from '@/company/company.service';
 import {
   forwardRef,
   Inject,
@@ -5,12 +7,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { User, UserDocument } from './schema/user.schema';
 import * as moment from 'moment';
-import { CompanyService } from '@/company/company.service';
+import { Model } from 'mongoose';
 import { userResponseMsgs } from './constants';
-import { authResponseMsgs, userVerificationTime } from '@/auth/constants';
+import { User, UserDocument } from './schema/user.schema';
 
 @Injectable()
 export class UserService {
@@ -122,5 +122,40 @@ export class UserService {
     if (user.companies.length === 0) {
       await this.userModel.deleteOne({ _id: userId });
     }
+  }
+
+  async findOrCreateUser(
+    email: string | null,
+    userName: string,
+    companyId: string,
+    userId: string | null,
+  ) {
+    let user = null;
+
+    if (email) {
+      user = await this.userModel.findOne({ email });
+    }
+
+    if (!user && userId) {
+      user = await this.userModel.findById(userId);
+    }
+
+    if (user) {
+      user = await this.userModel.findOneAndUpdate(
+        { _id: user._id },
+        { $addToSet: { companies: companyId } }, 
+        { new: true },
+      );
+    }
+
+    if (!user) {
+      user = await this.userModel.create({
+        email,
+        firstName: userName,
+        companies: [companyId], 
+      });
+    }
+
+    return user;
   }
 }
