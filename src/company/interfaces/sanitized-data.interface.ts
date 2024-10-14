@@ -2,7 +2,7 @@ export interface ISanitizedData {
   user: ICsvUser;
   company: ICompanyData;
   participants: IParticipantData[];
-  BOIRExpTime: Date
+  BOIRExpTime: Date;
 }
 
 export interface ICsvUser {

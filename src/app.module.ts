@@ -23,9 +23,9 @@ import { UserModule } from './user/user.module';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URL'), 
+        uri: configService.get<string>('MONGODB_URL'),
       }),
-      inject: [ConfigService], 
+      inject: [ConfigService],
     }),
     UserModule,
     CompanyFormModule,

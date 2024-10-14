@@ -30,9 +30,9 @@ export class TransactionService {
     }, 0);
 
     const paymentIntent = await this.stripe.paymentIntents.create({
-      amount: totalAmount * 100, 
+      amount: totalAmount * 100,
       currency: 'usd',
-      metadata: { companyIds: companyIds.join(',') }, 
+      metadata: { companyIds: companyIds.join(',') },
     });
 
     return {

@@ -143,7 +143,7 @@ export class UserService {
     if (user) {
       user = await this.userModel.findOneAndUpdate(
         { _id: user._id },
-        { $addToSet: { companies: companyId } }, 
+        { $addToSet: { companies: companyId } },
         { new: true },
       );
     }
@@ -152,7 +152,7 @@ export class UserService {
       user = await this.userModel.create({
         email,
         firstName: userName,
-        companies: [companyId], 
+        companies: [companyId],
       });
     }
 

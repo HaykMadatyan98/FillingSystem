@@ -65,4 +65,4 @@ export class Company {
 }
 
 export const CompanySchema = SchemaFactory.createForClass(Company);
-CompanySchema.index({ taxIdType: 1, taxIdNumber: 1 }); 
+CompanySchema.index({ taxIdType: 1, taxIdNumber: 1 });

@@ -7,7 +7,7 @@ export class TransactionController {
 
   @Post('create-payment-intent')
   async createPaymentIntent(@Body() body, @Res() res) {
-    const { companyIds } = body; 
+    const { companyIds } = body;
     const paymentIntent =
       await this.transactionService.createPaymentIntent(companyIds);
     return res.json(paymentIntent);
@@ -16,7 +16,10 @@ export class TransactionController {
   @Post('webhook')
   async stripeWebhook(@Req() req, @Res() res) {
     const signature = req.headers['stripe-signature'];
-    const event = this.transactionService.verifyStripeEvent(req.body, signature);
+    const event = this.transactionService.verifyStripeEvent(
+      req.body,
+      signature,
+    );
     await this.transactionService.handleEvent(event);
     res.json({ received: true });
   }

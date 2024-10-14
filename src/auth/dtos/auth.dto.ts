@@ -17,12 +17,11 @@ export class LoginDto {
   oneTimePass: number;
 }
 
-
 export class LoginAdminDto {
-  @ApiProperty({type: String, required:true})
+  @ApiProperty({ type: String, required: true })
   @IsEmail()
   email: string;
 
-  @ApiProperty({type: String, required: true})
+  @ApiProperty({ type: String, required: true })
   password: string;
 }

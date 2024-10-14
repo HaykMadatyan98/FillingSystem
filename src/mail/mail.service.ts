@@ -163,6 +163,7 @@ export class MailService {
     companies: { name: string; user: { name: string; email: string } }[],
     adminEmail: string,
   ) {
+    console.log(companies, adminEmail);
     // implement in future
   }
 }

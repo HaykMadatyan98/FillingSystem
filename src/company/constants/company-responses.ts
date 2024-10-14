@@ -17,7 +17,7 @@ type CompanyResponseMsgKeys =
   | 'companiesNotSubmitted'
   | 'BOIRisSubmitted'
   | 'companiesDataRetrieved'
-  | 'companyDataRetrieved'
+  | 'companyDataRetrieved';
 
 export const companyResponseMsgs: Record<CompanyResponseMsgKeys, string> = {
   csvUploadSuccessful: 'Data is successfully saved',
