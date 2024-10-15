@@ -7,7 +7,6 @@ export {
   CompanyData,
   ParticipantData,
   UserData,
-  companyCSVRowDataKeys,
 } from './data-fields.enum';
 export { companyResponseMsgs } from './company-responses';
 export {

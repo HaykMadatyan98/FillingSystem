@@ -47,6 +47,12 @@ export class UserService {
     return this.userModel.findOne({ email });
   }
 
+  async getUserByTokenAndId(userId: string, refreshToken: string) {
+    const user = await this.userModel.findOne({ _id: userId, refreshToken });
+
+    return user;
+  }
+
   async createUserFromCsvData(
     email: string,
     name: string,

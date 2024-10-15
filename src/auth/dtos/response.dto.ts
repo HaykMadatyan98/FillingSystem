@@ -1,6 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Response } from 'express';
 import { authResponseMsgs } from '../constants';
 
+export interface ICustomResponse extends Response {
+  cookie(name: string, value: string, options?: { [key: string]: any }): this;
+  json(body?: any): this;
+}
 export class LoginResponseDto {
   @ApiProperty({ example: authResponseMsgs.successfulLogin })
   message: string;

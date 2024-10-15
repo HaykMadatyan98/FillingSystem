@@ -1,18 +1,12 @@
-import { Controller, Post, Get, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBody,
-  ApiParam,
   ApiBearerAuth,
-  ApiForbiddenResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags
 } from '@nestjs/swagger';
 import { UserService } from './user.service';
 // import { User } from './schema/user.schema';
-import { Roles } from '@/auth/decorators/roles.decorator';
-import { authResponseMsgs, Role } from '@/auth/constants';
-import { RolesGuard } from '@/auth/guards/role.guard';
 import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
 
 @ApiTags('users')
@@ -20,43 +14,43 @@ import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post('company/:userId')
-  @ApiOperation({ summary: 'Add company(or companies) to user' })
-  @ApiResponse({
-    status: 200,
-    description: 'successfully added',
-  })
-  @ApiParam({
-    name: 'userId',
-    description: 'The unique identifier (ID) for the user',
-    type: String,
-  })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        companyIds: {
-          type: 'array',
-          items: {
-            type: 'string',
-            description: 'The unique identifier (ID) for the entity',
-          },
-          description: 'Array of unique identifiers for companies',
-        },
-      },
-      required: ['companyIds'],
-    },
-  })
-  @ApiBearerAuth()
-  @Roles(Role.Admin)
-  @UseGuards(RolesGuard)
-  @ApiForbiddenResponse({ description: authResponseMsgs.accessDenied })
-  async addCompaniesToUser(
-    @Param('userId') userId: string,
-    @Body() body: { companyIds: string[] },
-  ) {
-    await this.userService.addCompaniesToUser(userId, body.companyIds);
-  }
+  // @Post('company/:userId')
+  // @ApiOperation({ summary: 'Add company(or companies) to user' })
+  // @ApiResponse({
+  //   status: 200,
+  //   description: 'successfully added',
+  // })
+  // @ApiParam({
+  //   name: 'userId',
+  //   description: 'The unique identifier (ID) for the user',
+  //   type: String,
+  // })
+  // @ApiBody({
+  //   schema: {
+  //     type: 'object',
+  //     properties: {
+  //       companyIds: {
+  //         type: 'array',
+  //         items: {
+  //           type: 'string',
+  //           description: 'The unique identifier (ID) for the entity',
+  //         },
+  //         description: 'Array of unique identifiers for companies',
+  //       },
+  //     },
+  //     required: ['companyIds'],
+  //   },
+  // })
+  // @ApiBearerAuth()
+  // @Roles(Role.Admin)
+  // @UseGuards(RolesGuard)
+  // @ApiForbiddenResponse({ description: authResponseMsgs.accessDenied })
+  // async addCompaniesToUser(
+  //   @Param('userId') userId: string,
+  //   @Body() body: { companyIds: string[] },
+  // ) {
+  //   await this.userService.addCompaniesToUser(userId, body.companyIds);
+  // }
 
   @Get('company/:userId')
   @ApiParam({

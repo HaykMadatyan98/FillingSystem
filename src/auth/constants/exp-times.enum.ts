@@ -8,3 +8,5 @@ export const companyExpirationTimes = {
   oneDay: '24 hours',
   oneWeek: '7 days',
 };
+
+export const cookieExpTime = 1000 * 60 * 60 * 24; // 1 day

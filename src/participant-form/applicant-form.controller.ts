@@ -1,4 +1,5 @@
-import { participantFormResponseMsgs } from './constants/participant-form.response-messages';
+import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
+import { RequestWithUser } from '@/auth/interfaces/request.interface';
 import {
   Body,
   Controller,
@@ -14,7 +15,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { ParticipantFormService } from './participant-form.service';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -25,13 +26,12 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { participantFormResponseMsgs } from './constants/participant-form.response-messages';
 import {
   ApplicantFormDto,
   CreateParticipantDocDto,
 } from './dtos/participant-form.dto';
-import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
-import { RequestWithUser } from '@/auth/interfaces/request.interface';
+import { ParticipantFormService } from './participant-form.service';
 
 @ApiTags('form/applicant')
 @Controller('form/applicant')
@@ -42,26 +42,12 @@ export class ApplicantFormController {
 
   @Post('/create/:companyId')
   @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        docImg: {
-          type: 'string',
-          format: 'binary',
-        },
-      },
-    },
+    type: ApplicantFormDto,
   })
   @ApiParam({
     name: 'companyId',
     required: true,
     description: 'ID of the company',
-  })
-  @ApiParam({
-    name: 'participant',
-    required: true,
-    description: 'is applicant or not',
-    example: 'applicant',
   })
   @ApiOperation({
     summary: 'Create new applicant',

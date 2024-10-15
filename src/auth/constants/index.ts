@@ -1,8 +1,12 @@
 export {
-  authResponseMsgs,
-  IResponseMessage,
   ILoginResponse,
+  IResponseMessage,
+  authResponseMsgs,
 } from './auth-responses';
 
-export { ExpirationTimes, userVerificationTime } from './exp-times.enum';
+export {
+  ExpirationTimes,
+  cookieExpTime,
+  userVerificationTime,
+} from './exp-times.enum';
 export { Role } from './roles.enum';

@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -24,6 +25,7 @@ import { authResponseMsgs } from './constants';
 import { ILoginResponse } from './constants/auth-responses';
 import { LoginAdminDto, LoginDto, SendEmailDto } from './dtos/auth.dto';
 import {
+  ICustomResponse,
   LoginResponseDto,
   RefreshTokenResponseDto,
   ResponseMessageDto,
@@ -61,8 +63,8 @@ export class AuthController {
   @ApiOperation({ summary: 'Sign in by one time pass' })
   @ApiNotFoundResponse({ description: authResponseMsgs.wrongSentEmailOrPass })
   @ApiUnauthorizedResponse({ description: authResponseMsgs.codeWasExpired })
-  async login(@Body() body: LoginDto): Promise<ILoginResponse> {
-    return this.authService.login(body.email, body.oneTimePass);
+  async login(@Body() body: LoginDto, @Res() res: ICustomResponse): Promise<ILoginResponse> {
+    return this.authService.login(body.email, body.oneTimePass, res);
   }
 
   @Post('login/admin')
@@ -77,7 +79,7 @@ export class AuthController {
     type: LoginResponseDto,
   })
   async signInAdmin(@Body() body: LoginAdminDto) {
-    return this.authService.signInAdmin(body.email, body.password);
+    return this.authService.signInAdmin(body.email);
   }
 
   @Get('refresh')
