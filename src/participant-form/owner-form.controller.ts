@@ -1,3 +1,5 @@
+import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
+import { RequestWithUser } from '@/auth/interfaces/request.interface';
 import {
   Body,
   Controller,
@@ -13,24 +15,24 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { ParticipantFormService } from './participant-form.service';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
   ApiBody,
   ApiConsumes,
   ApiCreatedResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { participantFormResponseMsgs } from './constants/participant-form.response-messages';
 import {
   ApplicantFormDto,
   CreateParticipantDocDto,
   OwnerFormDto,
 } from './dtos/participant-form.dto';
-import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
-import { RequestWithUser } from '@/auth/interfaces/request.interface';
+import { ParticipantFormService } from './participant-form.service';
 
 @ApiTags('form/owner')
 @Controller('form/owner')
@@ -41,15 +43,7 @@ export class OwnerFormController {
 
   @Post('create/:companyId')
   @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        docImg: {
-          type: 'string',
-          format: 'binary',
-        },
-      },
-    },
+    type: OwnerFormDto,
   })
   @ApiParam({
     name: 'companyId',
@@ -57,7 +51,7 @@ export class OwnerFormController {
     description: 'ID of the company',
   })
   @ApiOperation({
-    summary: 'Create new applicant/owner',
+    summary: 'Create new owner',
   })
   @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
@@ -193,6 +187,26 @@ export class OwnerFormController {
       payload,
       false,
       req.user,
+    );
+  }
+
+  @Get('/company/:userId')
+  @ApiParam({
+    required: true,
+    name: 'userId',
+  })
+  @ApiOperation({
+    summary: 'Get all user companies applicant information',
+  })
+  @ApiOkResponse({
+    description: participantFormResponseMsgs.participantRetrieved,
+  })
+  @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth()
+  async getAllCompaniesOwners(@Param('userId') userId: string) {
+    return this.participantFormService.getAllCompaniesParticipants(
+      false,
+      userId,
     );
   }
 }

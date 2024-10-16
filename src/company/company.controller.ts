@@ -29,7 +29,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { CompanyService } from './company.service';
-import { companyCSVRowDataKeys, companyResponseMsgs } from './constants';
+import { companyResponseMsgs } from './constants';
 import { ResponseMessageDto } from './dtos/response';
 
 @ApiTags('company')
@@ -124,15 +124,6 @@ export class CompanyController {
   @ApiOperation({ summary: 'Delete company by companyId (Admin)' })
   async deleteCompany(@Param('companyId') companyId: string) {
     return this.companyService.deleteCompanyById(companyId);
-  }
-
-  @Get('/fields/csv')
-  @Roles(Role.Admin)
-  @UseGuards(RolesGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Send company fields for csv' })
-  async getCompanyFields() {
-    return { csvRowDataKeys: companyCSVRowDataKeys };
   }
 
   @Patch('/submit/:companyId')

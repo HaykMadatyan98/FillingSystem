@@ -6,7 +6,6 @@ export interface ILoginResponse {
   message: string;
   userId: string;
   accessToken: string;
-  refreshToken: string;
 }
 
 type AuthResponseKeys =

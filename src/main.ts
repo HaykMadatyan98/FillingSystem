@@ -2,6 +2,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as cookieParser from 'cookie-parser';
 import * as dotenv from 'dotenv';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './exceptions/global-exception.filter';
@@ -12,7 +13,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
   const PORT = configService.get<number>('PORT');
-  app.enableCors();
+  app.enableCors({ credentials: true });
+  app.use(cookieParser());
 
   if (process.env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder()

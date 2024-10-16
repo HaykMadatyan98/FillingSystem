@@ -1,13 +1,12 @@
 import {
   authResponseMsgs,
+  cookieExpTime,
   ExpirationTimes,
-  ILoginResponse,
   IResponseMessage,
 } from '@/auth/constants';
 import { MailService } from '@/mail/mail.service';
 import { UserService } from '@/user/user.service';
 import {
-  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -18,6 +17,7 @@ import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import * as moment from 'moment';
 import { LoginAdminDto } from './dtos/auth.dto';
+import { ICustomResponse } from './dtos/response.dto';
 
 @Injectable()
 export class AuthService {
@@ -43,7 +43,11 @@ export class AuthService {
     return { message: authResponseMsgs.otpWasSent };
   }
 
-  async login(email: string, oneTimePass: number): Promise<ILoginResponse> {
+  async login(
+    email: string,
+    oneTimePass: number,
+    res: ICustomResponse,
+  ): Promise<any> {
     const user = await this.userService.getUserByEmail(email);
 
     if (!user || user.oneTimePass !== oneTimePass) {
@@ -60,14 +64,20 @@ export class AuthService {
       user.role,
     );
 
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: cookieExpTime,
+    });
+
     await this.userService.changeRefreshToken(user['id'], refreshToken);
 
-    return {
+    return res.json({
       message: authResponseMsgs.successfulLogin,
       userId: user['id'],
       accessToken: accessToken,
-      refreshToken: refreshToken,
-    };
+    });
   }
 
   async logout(userId: string) {
@@ -97,41 +107,28 @@ export class AuthService {
   }
 
   async refreshTokens(userId: string, refToken: string) {
-    const user = await this.userService.getUserById(userId as string);
+    const user = await this.userService.getUserByTokenAndId(
+      userId as string,
+      refToken,
+    );
 
-    if (!user || !user.refreshToken) {
+    if (!user) {
       throw new ForbiddenException(authResponseMsgs.accessDenied);
     }
 
-    let decoded: IDecodedToken;
-
-    try {
-      decoded = jwt.verify(refToken, this.refreshSecretKey) as IDecodedToken;
-    } catch (err) {
-      console.log(err);
-      throw new UnauthorizedException(authResponseMsgs.expiredRefreshToken);
-    }
-
-    if (!decoded.email || !decoded.role) {
-      throw new BadRequestException(authResponseMsgs.tokenPayloadMissingFields);
-    }
-
-    const { accessToken, refreshToken } = await this.generateNewToken(
+    const { accessToken } = await this.generateNewToken(
       userId,
-      decoded.email,
-      decoded.role,
+      user.email,
+      user.role,
     );
-
-    await this.userService.changeRefreshToken(userId, refreshToken);
 
     return {
       message: authResponseMsgs.tokenRefreshed,
       accessToken,
-      refreshToken,
     };
   }
 
-  async signInAdmin(email: string, userId: string) {
+  async signInAdmin(email: string) {
     const user = await this.userService.getUserByEmail(email);
 
     if (!user) {
@@ -139,7 +136,7 @@ export class AuthService {
     }
 
     const { accessToken, refreshToken } = await this.generateNewToken(
-      userId,
+      user['id'],
       email,
       'admin',
     );
@@ -150,7 +147,7 @@ export class AuthService {
       message: authResponseMsgs.successfulLogin,
       accessToken,
       refreshToken,
-      userId,
+      userId: user['id'],
     };
   }
 

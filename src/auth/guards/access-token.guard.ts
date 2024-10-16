@@ -1,6 +1,6 @@
 import {
-  Injectable,
   ExecutionContext,
+  Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -14,6 +14,7 @@ export class AccessTokenGuard extends AuthGuard('jwt') {
 
     const request = context.switchToHttp().getRequest();
 
+    console.log(request);
     request.user = {
       userId: user.id,
       email: user.email,

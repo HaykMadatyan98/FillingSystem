@@ -18,7 +18,7 @@ export class RefreshTokenGuard implements CanActivate {
       return false;
     }
 
-    const refreshToken = authHeader.replace('Bearer ', '').trim();
+    const refreshToken = request.cookies?.refreshToken;
 
     try {
       const user = this.jwtService.verify(refreshToken, {
