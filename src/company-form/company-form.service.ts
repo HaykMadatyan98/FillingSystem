@@ -143,4 +143,8 @@ export class CompanyFormService {
       'taxInfo.taxIdType': taxType,
     });
   }
+
+  async changeCompanyPaidStatus() {
+    
+  }
 }

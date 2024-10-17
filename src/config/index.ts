@@ -2,12 +2,6 @@ import * as process from 'process';
 
 interface IStripeConfig {
   apiKey: string;
-  webhookConfig: {
-    requestBodyProperty: string;
-    stripeSecrets: {
-      account: string;
-    };
-  };
 }
 
 interface IJsonTokenEnv {
@@ -43,12 +37,6 @@ const configs = (): ConfigProps => ({
   PORT: parseInt(process.env.PORT, 10) || 4000,
   STRIPE: {
     apiKey: getEnvVar('STRIPE_API_KEY'),
-    webhookConfig: {
-      requestBodyProperty: 'rawBody',
-      stripeSecrets: {
-        account: getEnvVar('STRIPE_WEBHOOK_SECRET'),
-      },
-    },
   },
   TOKEN: {
     accessSecret: getEnvVar('JWT_ACCESS_SECRET'),

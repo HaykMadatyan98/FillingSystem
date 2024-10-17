@@ -1,5 +1,5 @@
 import { CompanyService } from '@/company/company.service';
-import { forwardRef, Inject } from '@nestjs/common';
+import { forwardRef, Inject, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import Stripe from 'stripe';
@@ -44,6 +44,7 @@ export class TransactionService {
       currentCompaniesTransactions[0].paymentDate = new Date(
         paymentIntent.created * 1000,
       );
+      await currentCompaniesTransactions[0].save();
     } else {
       let currentTransaction: TransactionDocument | undefined =
         currentCompaniesTransactions.find(
@@ -125,18 +126,10 @@ export class TransactionService {
     };
   }
 
-  verifyStripeEvent(payload: any, signature: string) {
-    return this.stripe.webhooks.constructEvent(
-      payload,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET,
-    );
-  }
-
   private async findAllTransactionsForCurrentYear(
     companyIds: string[],
   ): Promise<TransactionDocument[]> {
-    const currentYearStart = new Date(new Date().getFullYear(), 0, 1); 
+    const currentYearStart = new Date(new Date().getFullYear(), 0, 1);
     const currentYearEnd = new Date(
       new Date().getFullYear(),
       11,
@@ -149,10 +142,11 @@ export class TransactionService {
     return this.transactionModel
       .find({
         paymentDate: {
-          $gte: currentYearStart, 
-          $lte: currentYearEnd, 
+          $gte: currentYearStart,
+          $lte: currentYearEnd,
         },
-        companies: { $in: companyIds }, 
+        companies: { $in: companyIds },
+        status: {$ne: 'succeed'}
       })
       .exec();
   }
@@ -164,42 +158,26 @@ export class TransactionService {
 
     return result;
   }
-  // async handleEvent(event: any) {
-  //   const eventType = event.type;
 
-  //   switch (eventType) {
-  //     case 'payment_intent.succeeded': {
-  //       const paymentIntent = event.data.object;
-  //       const companyIds = paymentIntent.metadata.companyIds.split(',');
-  //       await this.recordTransaction(companyIds, paymentIntent);
-  //       break;
-  //     }
-  //     case 'payment_intent.payment_failed': {
-  //       break;
-  //     }
-  //     default:
-  //       console.log(`Unhandled event type ${eventType}`);
-  //   }
-  // }
+  async updateTransactionStatus(payload: any) {
+    const { paymentIntent } = payload;
 
-  // async recordTransaction(companyIds: string[], paymentIntent: any) {
-  //   const companies =
-  //     await this.companyService.getSubmittedCompanies(companyIds);
+    const transaction = await this.getTransactionByTId(paymentIntent.id);
 
-  //   for (const company of companies) {
-  //     const transaction = new this.transactionModel({
-  //       transactionId: paymentIntent.id,
-  //       amountPaid: paymentIntent.amount / 100,
-  //       status: 'succeeded',
-  //       paymentDate: new Date(),
-  //       paymentMethod: paymentIntent.payment_method,
-  //       company: company['id'],
-  //     });
+    transaction.status = paymentIntent.status;
+    await transaction.save();
+    await this.companyService.changeCompanyPaidStatus(transaction.id)
 
-  //     await transaction.save();
-  //     company.transactions.push(transaction['_id'] as Transaction);
-  //     company.isPaid = true;
-  //     await company.save();
-  //   }
-  // }
+    return { message: 'transaction status changed' };
+  }
+
+  private async getTransactionByTId(transactionId: string) {
+    const transaction = await this.transactionModel.findOne({ transactionId });
+
+    if (!transaction) {
+      throw new NotFoundException('transaction not found');
+    }
+
+    return transaction;
+  }
 }

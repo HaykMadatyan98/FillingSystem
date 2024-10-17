@@ -1,5 +1,5 @@
 import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { CreatePaymentIntentDto } from './dtos/transaction.dto';
 import { TransactionService } from './transaction.service';
@@ -20,14 +20,10 @@ export class TransactionController {
     );
   }
 
-  // @Post('webhook')
-  // async stripeWebhook(@Req() req, @Res() res) {
-  //   const signature = req.headers['stripe-signature'];
-  //   const event = this.transactionService.verifyStripeEvent(
-  //     req.body,
-  //     signature,
-  //   );
-  //   await this.transactionService.handleEvent(event);
-  //   res.json({ received: true });
-  // }
+  @Patch('payment-succeed')
+  @ApiBody({})
+  @UseGuards(AccessTokenGuard)
+  async updatePaymentStatus(@Body() body: any) {
+    return this.transactionService.updateTransactionStatus(body);
+  }
 }

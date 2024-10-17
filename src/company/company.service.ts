@@ -561,4 +561,20 @@ export class CompanyService {
 
     return company;
   }
+
+  async changeCompanyPaidStatus(transactionId: string): Promise<void> {
+    const company = await this.companyModel.findOne({
+      transactions: {
+        $in: [transactionId],
+      },
+    });
+
+    if (!company) {
+      throw new NotFoundException(companyResponseMsgs.companyNotFound);
+    }
+
+    company.isPaid = true;
+
+    await company.save();
+  }
 }
