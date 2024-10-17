@@ -20,23 +20,107 @@ export class TransactionService {
     });
   }
 
+  private async createOrChangeTransaction(paymentIntent, companyIds) {
+    const currentCompaniesTransactions =
+      await this.findAllTransactionsForCurrentYear(companyIds);
+
+    if (!currentCompaniesTransactions.length) {
+      const transaction = new this.transactionModel({
+        transactionId: paymentIntent.id,
+        amountPaid: paymentIntent.amount / 100,
+        status: paymentIntent.status,
+        paymentDate: new Date(paymentIntent.created * 1000),
+        paymentMethod: paymentIntent.payment_method_types?.[0] || 'unknown',
+        transactionType: 'BOIR Payment',
+        companies: companyIds,
+      });
+      await transaction.save();
+      await this.companyService.addTransactionToCompanies(
+        companyIds,
+        transaction['id'],
+      );
+    } else if (currentCompaniesTransactions.length === 1) {
+      currentCompaniesTransactions[0].transactionId = paymentIntent.id;
+      currentCompaniesTransactions[0].paymentDate = new Date(
+        paymentIntent.created * 1000,
+      );
+    } else {
+      let currentTransaction: TransactionDocument | undefined =
+        currentCompaniesTransactions.find(
+          (company) => (company.companies = [...companyIds]),
+        );
+
+      if (!currentTransaction) {
+        const transaction = new this.transactionModel({
+          transactionId: paymentIntent.id,
+          amountPaid: paymentIntent.amount / 100,
+          status: paymentIntent.status,
+          paymentDate: new Date(paymentIntent.created * 1000),
+          paymentMethod: paymentIntent.payment_method_types?.[0] || 'unknown',
+          transactionType: 'BOIR Payment',
+          companies: companyIds,
+        });
+        await transaction.save();
+        await this.companyService.addTransactionToCompanies(
+          companyIds,
+          transaction['id'],
+        );
+        currentTransaction = transaction;
+      } else {
+        currentTransaction.transactionId = paymentIntent.id;
+        currentTransaction.paymentDate = new Date(paymentIntent.created * 1000);
+
+        await currentTransaction.save();
+      }
+
+      const otherTransactions: {
+        transactionId: string;
+        companyIds: string[];
+      }[] = currentCompaniesTransactions.map((transaction) => {
+        if (transaction.transactionId !== currentTransaction.transactionId) {
+          return {
+            transactionId: transaction.transactionId as string,
+            companyIds: transaction.companies as unknown[] as string[],
+          };
+        }
+      });
+
+      await Promise.all(
+        otherTransactions.map(async (transaction) => {
+          await this.companyService.removeCompanyTransaction(
+            transaction.companyIds,
+            transaction.transactionId,
+          );
+        }),
+      );
+
+      const transactionsToRemove = otherTransactions.map(
+        (data) => data.transactionId,
+      );
+
+      await this.removeTransactions(transactionsToRemove);
+    }
+  }
+
   async createPaymentIntent(companyIds: string[]) {
-    const companies =
-      await this.companyService.getSubmittedCompanies(companyIds);
+    const { companiesAndTheirAmount, totalAmount } =
+      await this.companyService.getSubmittedCompaniesAndTheirAmount(companyIds);
 
-    const totalAmount = companies.reduce((sum, company, index) => {
-      const discount = index === 1 ? 0.25 : index > 1 ? 0.5 : 0;
-      return sum + 100 * (1 - discount);
-    }, 0);
-
+    const companyNames = companiesAndTheirAmount.map((company) => company.name);
     const paymentIntent = await this.stripe.paymentIntents.create({
       amount: totalAmount * 100,
       currency: 'usd',
-      metadata: { companyIds: companyIds.join(',') },
+      metadata: { companyNames: companyNames.join(',') },
+      automatic_payment_methods: {
+        enabled: true,
+      },
     });
+
+    await this.createOrChangeTransaction(paymentIntent, companyIds);
 
     return {
       clientSecret: paymentIntent.client_secret,
+      companies: companiesAndTheirAmount,
       totalAmount,
     };
   }
@@ -49,42 +133,73 @@ export class TransactionService {
     );
   }
 
-  async handleEvent(event: any) {
-    const eventType = event.type;
+  private async findAllTransactionsForCurrentYear(
+    companyIds: string[],
+  ): Promise<TransactionDocument[]> {
+    const currentYearStart = new Date(new Date().getFullYear(), 0, 1); 
+    const currentYearEnd = new Date(
+      new Date().getFullYear(),
+      11,
+      31,
+      23,
+      59,
+      59,
+    );
 
-    switch (eventType) {
-      case 'payment_intent.succeeded': {
-        const paymentIntent = event.data.object;
-        const companyIds = paymentIntent.metadata.companyIds.split(',');
-        await this.recordTransaction(companyIds, paymentIntent);
-        break;
-      }
-      case 'payment_intent.payment_failed': {
-        break;
-      }
-      default:
-        console.log(`Unhandled event type ${eventType}`);
-    }
+    return this.transactionModel
+      .find({
+        paymentDate: {
+          $gte: currentYearStart, 
+          $lte: currentYearEnd, 
+        },
+        companies: { $in: companyIds }, 
+      })
+      .exec();
   }
 
-  async recordTransaction(companyIds: string[], paymentIntent: any) {
-    const companies =
-      await this.companyService.getSubmittedCompanies(companyIds);
+  private async removeTransactions(transactions: string[]) {
+    const result = await this.transactionModel.deleteMany({
+      _id: { $in: transactions },
+    });
 
-    for (const company of companies) {
-      const transaction = new this.transactionModel({
-        transactionId: paymentIntent.id,
-        amountPaid: paymentIntent.amount / 100,
-        status: 'succeeded',
-        paymentDate: new Date(),
-        paymentMethod: paymentIntent.payment_method,
-        company: company['id'],
-      });
-
-      await transaction.save();
-      company.transactions.push(transaction['_id'] as Transaction);
-      company.isPaid = true;
-      await company.save();
-    }
+    return result;
   }
+  // async handleEvent(event: any) {
+  //   const eventType = event.type;
+
+  //   switch (eventType) {
+  //     case 'payment_intent.succeeded': {
+  //       const paymentIntent = event.data.object;
+  //       const companyIds = paymentIntent.metadata.companyIds.split(',');
+  //       await this.recordTransaction(companyIds, paymentIntent);
+  //       break;
+  //     }
+  //     case 'payment_intent.payment_failed': {
+  //       break;
+  //     }
+  //     default:
+  //       console.log(`Unhandled event type ${eventType}`);
+  //   }
+  // }
+
+  // async recordTransaction(companyIds: string[], paymentIntent: any) {
+  //   const companies =
+  //     await this.companyService.getSubmittedCompanies(companyIds);
+
+  //   for (const company of companies) {
+  //     const transaction = new this.transactionModel({
+  //       transactionId: paymentIntent.id,
+  //       amountPaid: paymentIntent.amount / 100,
+  //       status: 'succeeded',
+  //       paymentDate: new Date(),
+  //       paymentMethod: paymentIntent.payment_method,
+  //       company: company['id'],
+  //     });
+
+  //     await transaction.save();
+  //     company.transactions.push(transaction['_id'] as Transaction);
+  //     company.isPaid = true;
+  //     await company.save();
+  //   }
+  // }
 }

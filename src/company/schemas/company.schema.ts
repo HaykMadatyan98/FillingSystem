@@ -17,14 +17,14 @@ class Forms {
 
   @Prop({
     type: [MongoSchema.Types.ObjectId],
-    ref: 'ParticipantForm',
+    ref: 'ApplicantForm',
     default: [],
   })
   applicants: ApplicantForm[];
 
   @Prop({
     type: [MongoSchema.Types.ObjectId],
-    ref: 'ParticipantForm',
+    ref: 'OwnerForm',
     default: [],
   })
   owners: OwnerForm[];

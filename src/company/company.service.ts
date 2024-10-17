@@ -470,18 +470,95 @@ export class CompanyService {
     return { message: companyResponseMsgs.BOIRisSubmitted };
   }
 
-  async getSubmittedCompanies(
-    companyIds: string[],
-  ): Promise<CompanyDocument[]> {
+  async getSubmittedCompaniesAndTheirAmount(companyIds: string[]): Promise<{
+    companiesAndTheirAmount: { name: string; amount: number }[];
+    totalAmount: number;
+  }> {
     const companies = await this.companyModel.find({
-      id: { $in: companyIds },
+      _id: { $in: companyIds },
       isSubmitted: true,
+      isPaid: false,
     });
 
     if (!companies.length) {
       throw new BadRequestException(companyResponseMsgs.companiesNotSubmitted);
     }
 
-    return companies;
+    const companiesAndTheirAmount: { name: string; amount: number }[] =
+      companies.map((company, index) => ({
+        name: company.name,
+        amount: 100 * (index === 1 ? 0.75 : index > 1 ? 0.5 : 1),
+      }));
+
+    const totalAmount = companiesAndTheirAmount.reduce(
+      (sum, { amount }, index) => {
+        return sum + amount;
+      },
+      0,
+    );
+
+    return { companiesAndTheirAmount, totalAmount };
+  }
+
+  async removeCompanyTransaction(companyIds: string[], transactionId: string) {
+    for (const companyId of companyIds) {
+      const company = await this.companyModel.findOne({
+        companyId,
+        transactions: { $in: [transactionId] },
+      });
+
+      company.transactions = company.transactions.filter(
+        (transaction) => transaction.toString() !== transactionId,
+      );
+
+      await company.save();
+    }
+  }
+
+  async addTransactionToCompanies(companyIds: string, transactionId: string) {
+    for (let companyId of companyIds) {
+      const company = await this.companyModel.findById(companyId);
+
+      if (!company) {
+        throw new Error(`Company with ID ${companyId} not found`);
+      }
+
+      if (!company.transactions.includes(transactionId as any)) {
+        company.transactions.push(transactionId as any);
+
+        await company.save();
+      }
+    }
+  }
+
+  async getAllCompanyData(companyId: string, user: IRequestUser) {
+    await this.checkUserCompanyPermission(user, companyId, 'company');
+
+    const company = await this.companyModel
+      .findById(companyId)
+      .select('name answersCount reqFieldsCount forms -_id ')
+      .populate({
+        path: 'forms.company',
+        model: 'CompanyForm',
+        select: '-answerCount -_id -createdAt -updatedAt -__v',
+      })
+      .populate({
+        path: 'forms.applicants',
+        model: 'ApplicantForm',
+        select: '-answerCount -applicant -_id -createdAt -updatedAt -__v',
+      })
+      .populate({
+        path: 'forms.owners',
+        model: 'OwnerForm',
+        select:
+          '-answerCount -exemptEntity -beneficialOwner -_id -createdAt -updatedAt -__v',
+      })
+      .exec();
+
+    if (!company) {
+      throw new NotFoundException(companyResponseMsgs.companyNotFound);
+    }
+
+    return company;
   }
 }

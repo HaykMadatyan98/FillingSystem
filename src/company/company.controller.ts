@@ -13,6 +13,7 @@ import {
   ParseFilePipe,
   Patch,
   Post,
+  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -31,6 +32,7 @@ import {
 import { CompanyService } from './company.service';
 import { companyResponseMsgs } from './constants';
 import { ResponseMessageDto } from './dtos/response';
+import { RequestWithUser } from '@/auth/interfaces/request.interface';
 
 @ApiTags('company')
 @Controller('company')
@@ -59,6 +61,18 @@ export class CompanyController {
   async getCompanyById(@Param('companyId') companyId: string) {
     return {
       company: await this.companyService.getCompanyById(companyId),
+      message: companyResponseMsgs.companyDataRetrieved,
+    };
+  }
+
+  @Get('data/:companyId')
+  @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth()
+  @ApiForbiddenResponse({ description: companyResponseMsgs.dontHavePermission })
+  @ApiOperation({ summary: 'Get company full data by entered company Id' })
+  async getAllCompanyData(@Param('companyId') companyId: string, @Req() req: RequestWithUser) {
+    return {
+      company: await this.companyService.getAllCompanyData(companyId, req.user),
       message: companyResponseMsgs.companyDataRetrieved,
     };
   }

@@ -28,8 +28,8 @@ export class Transaction {
   })
   transactionType: string;
 
-  @Prop({ type: MongoSchema.Types.ObjectId, ref: 'Company', required: false })
-  company: Company;
+  @Prop({ type: [MongoSchema.Types.ObjectId], ref: 'Company', required: false })
+  companies: Company[];
 }
 
 export const TransactionSchema = SchemaFactory.createForClass(Transaction);
