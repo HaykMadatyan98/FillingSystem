@@ -36,6 +36,8 @@ export async function sanitizeData(
       return true;
     } else if (value.toLowerCase() === 'false') {
       return false;
+    } else if (key === 'altName') {
+      return value.trim().split(',');
     }
     return value.trim();
   }
@@ -85,21 +87,46 @@ export async function sanitizeData(
     if (hasMultipleParticipants) {
       const firstNames = data[`${prefix} First Name`].split(',');
       firstNames.forEach((_, index) => {
+        if (!(sanitized.company.isExistingCompany && isApplicant)) {
+          const participant: any = { isApplicant };
+          participantKeys.forEach((key) => {
+            const value = data[`${prefix} ${key}`];
+            if (value) {
+              const splitValues = value.split(',');
+              const trimmedValue = splitValues[index]?.trim();
+              if (trimmedValue) {
+                const mappedField = ParticipantData[key];
+
+                mapFieldToObject(
+                  mappedField,
+                  trimmedValue,
+                  participant as IParticipantData,
+                );
+              }
+            }
+          });
+
+          if (isApplicant && participant.address) {
+            if (!participant.address.type) {
+              throw new ConflictException('Address type is missing');
+            }
+          }
+
+          sanitized.participants.push({ ...participant });
+        }
+      });
+    } else {
+      if (!(sanitized.company.isExistingCompany && isApplicant)) {
         const participant: any = { isApplicant };
         participantKeys.forEach((key) => {
           const value = data[`${prefix} ${key}`];
           if (value) {
-            const splitValues = value.split(',');
-            const trimmedValue = splitValues[index]?.trim();
-            if (trimmedValue) {
-              const mappedField = ParticipantData[key];
-
-              mapFieldToObject(
-                mappedField,
-                trimmedValue,
-                participant as IParticipantData,
-              );
-            }
+            const mappedField = ParticipantData[key];
+            mapFieldToObject(
+              mappedField,
+              value,
+              participant as IParticipantData,
+            );
           }
         });
 
@@ -110,24 +137,7 @@ export async function sanitizeData(
         }
 
         sanitized.participants.push({ ...participant });
-      });
-    } else {
-      const participant: any = { isApplicant };
-      participantKeys.forEach((key) => {
-        const value = data[`${prefix} ${key}`];
-        if (value) {
-          const mappedField = ParticipantData[key];
-          mapFieldToObject(mappedField, value, participant as IParticipantData);
-        }
-      });
-
-      if (isApplicant && participant.address) {
-        if (!participant.address.type) {
-          throw new ConflictException('Address type is missing');
-        }
       }
-
-      sanitized.participants.push({ ...participant });
     }
   });
 

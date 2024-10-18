@@ -12,10 +12,10 @@ export enum CompanyData {
   'Company US or Territory' = 'address.usOrUsTerritory',
   'Company State' = 'address.state',
   'Company Zip code' = 'address.zipCode',
+  'Company Exists' = 'isExistingCompany',
 }
 
 export enum ParticipantData {
-  'Is Existing Company' = 'applicant.isExistingCompany',
   'FinCEN ID' = 'finCENID.finCENID',
   'Last or Legal Name' = 'personalInfo.lastOrLegalName',
   'First Name' = 'personalInfo.firstName',
@@ -40,6 +40,7 @@ export enum ParticipantData {
 }
 
 export enum UserData {
-  'User Name' = 'name',
+  'User FirstName' = 'firstName',
   'User Email' = 'email',
+  'User LastName' = 'lastName',
 }

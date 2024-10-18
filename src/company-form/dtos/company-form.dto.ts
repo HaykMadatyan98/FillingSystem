@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  IsArray,
   IsBoolean,
   IsEnum,
   IsNumber,
@@ -13,8 +14,8 @@ import {
 } from 'class-validator';
 
 import {
-  IdentificationTypesEnum,
   AllCountryEnum,
+  IdentificationTypesEnum,
   StatesEnum,
   USTerritoryEnum,
 } from '@/company/constants';
@@ -41,9 +42,10 @@ class LegalAndAltNamesDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsString()
-  @MaxLength(255)
-  altName?: string;
+  @IsArray()
+  @IsString({ each: true })
+  @Type(() => String)
+  altName?: string[];
 }
 
 class JurisdictionOfFormationDto {
@@ -87,10 +89,12 @@ class CreateLegalAndAltNamesDto {
   @IsString()
   legalName: string;
 
-  @ApiProperty({ required: false })
+  @ApiProperty({ required: false, type: [String] })
   @IsOptional()
-  @IsString()
-  altName?: string;
+  @IsArray()
+  @IsString({ each: true })
+  @Type(() => String)
+  altName?: string[];
 }
 
 class TaxInformation {
@@ -139,6 +143,11 @@ export class ChangeCompanyFormDto {
   @ValidateNested({ each: true })
   @Type(() => CompanyAddressDto)
   address?: CompanyAddressDto;
+
+  @ApiProperty({ type: Boolean, required: false })
+  @IsOptional()
+  @IsBoolean()
+  isExistingCompany: boolean;
 }
 
 export class CreateCompanyFormDto {
@@ -169,6 +178,11 @@ export class CreateCompanyFormDto {
   @ValidateNested({ each: true })
   @Type(() => CompanyAddressDto)
   address?: CompanyAddressDto;
+
+  @ApiProperty({ type: Boolean, required: false })
+  @IsOptional()
+  @IsBoolean()
+  isExistingCompany: boolean;
 }
 
 export class CSVCompanyFormDto {
@@ -199,4 +213,8 @@ export class CSVCompanyFormDto {
   @ValidateNested({ each: true })
   @Type(() => CompanyAddressDto)
   address?: CompanyAddressDto;
+
+  @ApiProperty({ type: Boolean, required: true })
+  @IsBoolean()
+  isExistingCompany: boolean;
 }

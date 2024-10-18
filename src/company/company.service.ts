@@ -1,12 +1,12 @@
 import { IRequestUser } from '@/auth/interfaces/request.interface';
 import { CompanyFormService } from '@/company-form/company-form.service';
+import { IUserInvitationEmail } from '@/mail/interfaces/mail.interface';
 import { MailService } from '@/mail/mail.service';
 import { ParticipantFormService } from '@/participant-form/participant-form.service';
 import { UserService } from '@/user/user.service';
 import { sanitizeData } from '@/utils/sanitizer.util';
 import {
   BadRequestException,
-  ConflictException,
   ForbiddenException,
   forwardRef,
   Inject,
@@ -105,12 +105,7 @@ export class CompanyService {
         'forms.company': companyFormId,
       }));
 
-    const userEmailData: {
-      email: string;
-      companyName: string;
-      userName: string;
-      isNewCompany: boolean;
-    }[] = [];
+    const userEmailData: IUserInvitationEmail[] = [];
 
     if (!company) {
       company = await this.createNewCompanyFromCsv(sanitized, userEmailData);
@@ -131,7 +126,8 @@ export class CompanyService {
 
     const user = await this.userService.findOrCreateUser(
       sanitized.user.email || null,
-      sanitized.user.name,
+      sanitized.user.firstName,
+      sanitized.user.lastName,
       company['_id'] as unknown as string,
       (company.user as unknown as string) || null,
     );
@@ -141,7 +137,7 @@ export class CompanyService {
     }
 
     await company.save();
-    await this.mailService.sendEmailToFormFillers(userEmailData);
+    await this.mailService.sendInvitationEmailToFormFillers(userEmailData);
   }
 
   private async createNewCompanyFromCsv(
@@ -156,6 +152,9 @@ export class CompanyService {
       );
     }
 
+    const isExistingCompany = sanitized.company.isExistingCompany;
+    delete sanitized.company.isExistingCompany;
+
     const ownersIds = [];
     const applicantsIds = [];
     let answerCount = 0;
@@ -165,9 +164,16 @@ export class CompanyService {
     }
 
     const participantsData = await Promise.all(
-      sanitized.participants.map((participant) =>
-        this.participantFormService.createParticipantFormFromCsv(participant),
-      ),
+      sanitized.participants.map((participant) => {
+        if (
+          !participant.isApplicant ||
+          (participant.isApplicant && !isExistingCompany)
+        ) {
+          return this.participantFormService.createParticipantFormFromCsv(
+            participant,
+          );
+        }
+      }),
     );
 
     participantsData.forEach((participant) => {
@@ -188,10 +194,10 @@ export class CompanyService {
 
     company = new this.companyModel({
       ['forms.company']: companyForm.id,
-      ['forms.applicants']: applicantsIds,
-      ['forms.owners']: ownersIds,
       name: companyForm.companyName,
       expTime: sanitized.BOIRExpTime,
+      ['forms.owners']: ownersIds,
+      ...(isExistingCompany ? {} : { ['forms.applicants']: applicantsIds }),
     });
 
     company.answersCount = answerCount;
@@ -199,7 +205,7 @@ export class CompanyService {
     userEmailData.push({
       companyName: company.name,
       email: sanitized.user.email,
-      userName: sanitized.user.name,
+      fullName: `${sanitized.user.firstName} ${sanitized.user.lastName}`,
       isNewCompany: true,
     });
 
@@ -210,7 +216,7 @@ export class CompanyService {
     company: CompanyDocument,
     companyFormId: string,
     sanitized: ISanitizedData,
-    userEmailData: any[],
+    userEmailData: IUserInvitationEmail[],
   ) {
     await this.companyFormService.updateCompanyForm(
       sanitized.company,
@@ -257,7 +263,7 @@ export class CompanyService {
     userEmailData.push({
       companyName: company.name,
       email: user.email,
-      userName: user.firstName,
+      fullName: `${user.firstName} ${user.lastName}`,
       isNewCompany: false,
     });
     company.isSubmitted = false;
@@ -273,26 +279,26 @@ export class CompanyService {
   }
 
   // need some changes after admin part creating
-  async createNewCompany(payload: any) {
-    const existCompanyForm =
-      await this.companyFormService.getCompanyFormByTaxData(
-        payload.taxIdNumber,
-        payload.taxIdType,
-      );
+  // async createNewCompany(payload: any) {
+  //   const existCompanyForm =
+  //     await this.companyFormService.getCompanyFormByTaxData(
+  //       payload.taxIdNumber,
+  //       payload.taxIdType,
+  //     );
 
-    if (existCompanyForm) {
-      throw new ConflictException(companyResponseMsgs.companyWasCreated);
-    }
+  //   if (existCompanyForm) {
+  //     throw new ConflictException(companyResponseMsgs.companyWasCreated);
+  //   }
 
-    const newCompanyForm = await this.companyFormService.create(payload);
-    const newCompany = new this.companyModel();
-    newCompany['forms.company'] = newCompanyForm['id'];
-    newCompany['reqFieldsCount'] = 9;
+  //   const newCompanyForm = await this.companyFormService.create(payload);
+  //   const newCompany = new this.companyModel();
+  //   newCompany['forms.company'] = newCompanyForm['id'];
+  //   newCompany['reqFieldsCount'] = 9;
 
-    await newCompany.save();
+  //   await newCompany.save();
 
-    return { message: companyResponseMsgs.companyCreated };
-  }
+  //   return { message: companyResponseMsgs.companyCreated };
+  // }
 
   async deleteCompanyById(companyId: string): Promise<{ message: string }> {
     const company = await this.companyModel.findById(companyId);
@@ -301,7 +307,7 @@ export class CompanyService {
       throw new NotFoundException(companyResponseMsgs.companyNotFound);
     }
 
-    if (company.forms.applicants.length) {
+    if (company.forms.applicants && company.forms.applicants.length) {
       const applicantForms = company.forms.applicants.map(
         async (applicant) =>
           await this.participantFormService.deleteParticipantFormById(
@@ -311,7 +317,9 @@ export class CompanyService {
       );
 
       await Promise.all(applicantForms);
-    } else if (company.forms.owners.length) {
+    }
+
+    if (company.forms.owners.length) {
       const ownerForms = company.forms.owners.map(
         async (owner) =>
           await this.participantFormService.deleteParticipantFormById(
@@ -420,6 +428,7 @@ export class CompanyService {
   async changeCompanyReqFieldsCount(
     companyId: string,
     count: number,
+    existingCompanyStatusChanged?: boolean,
   ): Promise<void> {
     const company = await this.companyModel.findById(companyId);
 
@@ -428,6 +437,41 @@ export class CompanyService {
     }
 
     company.reqFieldsCount += count;
+
+    if (
+      existingCompanyStatusChanged &&
+      company.forms.applicants &&
+      company.forms.applicants.length
+    ) {
+      company.answersCount = company.isExistingCompany
+        ? 9 + company.forms.owners.length * 11
+        : this.calculateReqFieldsCount(company);
+
+      await company.populate({
+        path: 'forms.company',
+        select: 'answerCount',
+      });
+
+      await company.populate({
+        path: 'forms.applicants',
+        select: 'answerCount',
+      });
+
+      await company.populate({
+        path: 'forms.owners',
+        select: 'answerCount',
+      });
+
+      let totalCount = 0;
+      company.forms.applicants.forEach(
+        (applicant) => (totalCount += applicant.answerCount),
+      );
+      company.forms.owners.forEach(
+        (owner) => (totalCount += owner.answerCount),
+      );
+      totalCount += company.forms.company.answerCount;
+      company.answersCount = totalCount;
+    }
 
     if (company.isSubmitted) {
       company.isSubmitted = false;
@@ -533,7 +577,7 @@ export class CompanyService {
 
     const company = await this.companyModel
       .findById(companyId)
-      .select('name answersCount reqFieldsCount forms -_id ')
+      .select('name answersCount reqFieldsCount forms -_id  isExistingCompany')
       .populate({
         path: 'forms.company',
         model: 'CompanyForm',
@@ -572,6 +616,39 @@ export class CompanyService {
 
     company.isPaid = true;
 
+    await company.save();
+  }
+
+  async getSubmittedCompanies(user: IRequestUser, userId: string) {
+    if (user.userId !== userId) {
+      if (user.role !== 'admin') {
+        throw new ForbiddenException(companyResponseMsgs.dontHavePermission);
+      }
+    }
+
+    const userCompanies = await this.companyModel
+      .find({ user: userId, isSubmitted: true, isPaid: false })
+      .select('name _id')
+      .exec();
+
+    if (!userCompanies.length) {
+      throw new NotFoundException(companyResponseMsgs.companyNotFound);
+    }
+
+    return userCompanies;
+  }
+
+  async changeExistingCompanyStatus(
+    companyId: string,
+    isExistingCompany: boolean,
+  ) {
+    const company = await this.companyModel.findById(companyId);
+
+    if (!company) {
+      throw new NotFoundException(companyResponseMsgs.companyNotFound);
+    }
+
+    company.isExistingCompany = isExistingCompany;
     await company.save();
   }
 }

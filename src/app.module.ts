@@ -7,12 +7,13 @@ import { AuthModule } from './auth/auth.module';
 import { CompanyFormModule } from './company-form/company-form.module';
 import { CompanyModule } from './company/company.module';
 import configs from './config';
+import { GovernmentModule } from './government/government.module';
 import { MailModule } from './mail/mail.module';
 import { ParticipantFormModule } from './participant-form/participant-form.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
-import { SeederService } from './seeders/seeder/seeder.service';
+import { SeederService } from './seeders/admin/admin-seeder.service';
+import { TransactionModule } from './transaction/transaction.module';
 import { UserModule } from './user/user.module';
-import { GovernmentModule } from './government/government.module';
 
 @Module({
   imports: [
@@ -43,7 +44,7 @@ import { GovernmentModule } from './government/government.module';
       },
     ]),
     GovernmentModule,
-    // StripeModule.forRootAsync(),
+    TransactionModule,
   ],
   providers: [
     {

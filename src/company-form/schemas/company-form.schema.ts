@@ -18,7 +18,7 @@ class LegalAndAltNames {
   legalName: string;
 
   @Prop()
-  altName: string;
+  altName: string[];
 }
 
 @Schema({ _id: false })

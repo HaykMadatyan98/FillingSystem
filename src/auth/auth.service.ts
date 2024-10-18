@@ -128,7 +128,7 @@ export class AuthService {
     };
   }
 
-  async signInAdmin(email: string) {
+  async signInAdmin(email: string, res: ICustomResponse) {
     const user = await this.userService.getUserByEmail(email);
 
     if (!user) {
@@ -141,14 +141,20 @@ export class AuthService {
       'admin',
     );
 
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: cookieExpTime,
+    });
+
     await this.userService.changeRefreshToken(user['id'], refreshToken);
 
-    return {
+    return res.json({
       message: authResponseMsgs.successfulLogin,
-      accessToken,
-      refreshToken,
       userId: user['id'],
-    };
+      accessToken: accessToken,
+    });
   }
 
   async validateUser(loginAdminDto: LoginAdminDto): Promise<any> {

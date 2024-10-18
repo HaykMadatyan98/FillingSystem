@@ -39,5 +39,9 @@ export class CSVUserDto {
 
   @ApiProperty({ required: true })
   @IsString()
-  name: string;
+  firstName: string;
+
+  @ApiProperty({ required: true })
+  @IsString()
+  lastName: string;
 }

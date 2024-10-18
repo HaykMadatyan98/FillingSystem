@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as moment from 'moment';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { userResponseMsgs } from './constants';
 import { User, UserDocument } from './schema/user.schema';
 
@@ -27,7 +27,7 @@ export class UserService {
     const user = await this.userModel.findOne({ email });
 
     if (!user) {
-      throw new NotFoundException(userResponseMsgs.userNotFound);
+      throw new NotFoundException(userResponseMsgs.notFound);
     }
 
     user.oneTimePass = oneTimePass;
@@ -54,13 +54,11 @@ export class UserService {
   }
 
   async createUserFromCsvData(
-    email: string,
-    name: string,
+    userData: { firstName: string; lastName: string; email: string },
     companyId: string,
   ): Promise<UserDocument> {
     const newUser = new this.userModel({
-      email,
-      firstName: name,
+      ...userData,
       companies: [companyId],
     });
     await newUser.save();
@@ -113,16 +111,16 @@ export class UserService {
     userId: string,
     companyId: string,
   ): Promise<void> {
+
     const user = await this.userModel.findOneAndUpdate(
       { _id: userId },
-      { $pull: { companies: companyId } },
+      { $pull: { companies: new Types.ObjectId(companyId) } },
       { new: true },
     );
 
+
     if (!user) {
-      throw new NotFoundException(
-        `No user is associated with company ID ${companyId}`,
-      );
+      throw new NotFoundException(userResponseMsgs.notFound);
     }
 
     if (user.companies.length === 0) {
@@ -132,7 +130,8 @@ export class UserService {
 
   async findOrCreateUser(
     email: string | null,
-    userName: string,
+    firstName: string,
+    lastName: string,
     companyId: string,
     userId: string | null,
   ) {
@@ -152,14 +151,17 @@ export class UserService {
         { $addToSet: { companies: companyId } },
         { new: true },
       );
-    }
-
-    if (!user) {
-      user = await this.userModel.create({
-        email,
-        firstName: userName,
-        companies: [companyId],
-      });
+    } else {
+      user = await this.userModel.findOneAndUpdate(
+        { email },
+        {
+          email,
+          firstName,
+          lastName,
+          $addToSet: { companies: companyId },
+        },
+        { new: true, upsert: true },
+      );
     }
 
     return user;

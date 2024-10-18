@@ -1,3 +1,8 @@
+import { IRequestUser } from '@/auth/interfaces/request.interface';
+import { CompanyService } from '@/company/company.service';
+import { requiredCompanyFields } from '@/company/constants';
+import { TRResponseMsg } from '@/participant-form/interfaces';
+import { calculateRequiredFieldsCount } from '@/utils/req-field.util';
 import {
   ConflictException,
   forwardRef,
@@ -7,20 +12,15 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import {
-  CompanyForm,
-  CompanyFormDocument,
-} from './schemas/company-form.schema';
+import { companyFormResponseMsgs } from './constants';
 import {
   IChangeCompanyForm,
   ICompanyForm,
 } from './interfaces/company-form.interface';
-import { calculateRequiredFieldsCount } from '@/utils/req-field.util';
-import { requiredCompanyFields } from '@/company/constants';
-import { companyFormResponseMsgs } from './constants';
-import { CompanyService } from '@/company/company.service';
-import { IRequestUser } from '@/auth/interfaces/request.interface';
-import { TRResponseMsg } from '@/participant-form/interfaces';
+import {
+  CompanyForm,
+  CompanyFormDocument,
+} from './schemas/company-form.schema';
 
 @Injectable()
 export class CompanyFormService {
@@ -30,11 +30,6 @@ export class CompanyFormService {
     @Inject(forwardRef(() => CompanyService))
     private readonly companyService: CompanyService,
   ) {}
-
-  async create(companyFormData: ICompanyForm): Promise<CompanyForm> {
-    const companyForm = new this.companyFormModel(companyFormData);
-    return companyForm.save();
-  }
 
   async createCompanyFormFromCsv(companyFormData: ICompanyForm) {
     const companyData = new this.companyFormModel({ ...companyFormData });
@@ -54,11 +49,12 @@ export class CompanyFormService {
   }
 
   async updateCompanyForm(
-    companyFormData: ICompanyForm | IChangeCompanyForm,
+    companyFormData: IChangeCompanyForm,
     companyFormDataId: string,
     companyId: string,
     user?: IRequestUser,
   ): TRResponseMsg {
+    console.log(companyId, 'companyId', companyFormDataId, 'formDataId');
     if (user) {
       await this.companyService.checkUserCompanyPermission(
         user,
@@ -80,6 +76,13 @@ export class CompanyFormService {
       }
     }
 
+    if (typeof companyFormData.isExistingCompany !== 'undefined') {
+      await this.companyService.changeExistingCompanyStatus(
+        companyId,
+        companyFormData.isExistingCompany,
+      );
+    }
+
     const answerCountBefore = await calculateRequiredFieldsCount(
       companyData,
       requiredCompanyFields,
@@ -98,7 +101,8 @@ export class CompanyFormService {
     const countDiff = answerCountBefore - answerCountAfter;
     companyData.answerCount += countDiff;
     await companyData.save();
-    await this.companyService.changeCompanyReqFieldsCount(companyId, countDiff);
+    console.log(companyId);
+    await this.companyService.changeCompanyReqFieldsCount(companyId, countDiff, typeof companyFormData.isExistingCompany !== 'undefined');
     return {
       message: companyFormResponseMsgs.companyFormUpdated,
     };

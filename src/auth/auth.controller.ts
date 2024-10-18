@@ -81,8 +81,8 @@ export class AuthController {
     description: authResponseMsgs.successfulLogin,
     type: LoginResponseDto,
   })
-  async signInAdmin(@Body() body: LoginAdminDto) {
-    return this.authService.signInAdmin(body.email);
+  async signInAdmin(@Body() body: LoginAdminDto, @Res() res: ICustomResponse) {
+    return this.authService.signInAdmin(body.email, res);
   }
 
   @Get('refresh')

@@ -5,6 +5,7 @@ import * as SendGrid from '@sendgrid/mail';
 import Handlebars from 'handlebars';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { IUserInvitationEmail } from './interfaces/mail.interface';
 
 @Injectable()
 export class MailService {
@@ -54,16 +55,9 @@ export class MailService {
     }
   }
 
-  async sendEmailToFormFillers(
-    data: {
-      email: string;
-      companyName: string;
-      userName: string;
-      isNewCompany: boolean;
-    }[],
-  ) {
+  async sendInvitationEmailToFormFillers(data: IUserInvitationEmail[]) {
     const emailPromises = data.map(
-      async ({ email, companyName, userName, isNewCompany }) => {
+      async ({ email, companyName, fullName, isNewCompany }) => {
         try {
           const templatePath = path.join(
             path.resolve(),
@@ -72,7 +66,7 @@ export class MailService {
 
           const template = fs.readFileSync(templatePath, 'utf-8');
           const compiledFile = Handlebars.compile(template);
-          const htmlContent = compiledFile({ companyName, userName });
+          const htmlContent = compiledFile({ companyName, fullName });
           const mail: SendGrid.MailDataRequired = {
             to: email,
             from: this.emailFrom,

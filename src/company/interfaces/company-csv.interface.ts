@@ -1,6 +1,8 @@
 export interface ICompanyCSVRowData {
-  'User Name': string;
+  'User FirstName': string;
+  'User LastName': string;
   'User Email': string;
+  'BOIR Submission Deadline': string;
   'Company Request To Receive Foreign ID': string;
   'Company Foreign Pooled': string;
   'Company Legal Name': string;
@@ -14,7 +16,7 @@ export interface ICompanyCSVRowData {
   'Company US or Territory': string;
   'Company State': string;
   'Company Zip code': string;
-  'Applicant Is Existing Company': string;
+  'Company Exists': string;
   'Applicant FinCEN ID': string;
   'Applicant Last or Legal Name': string;
   'Applicant First Name': string;

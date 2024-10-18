@@ -5,7 +5,7 @@ export interface IRepCompanyInfo {
 
 export interface ILegalAndAltNames {
   legalName?: string;
-  altName?: string;
+  altName?: string[];
 }
 
 export interface ITaxInformation {
@@ -40,4 +40,5 @@ export interface IChangeCompanyForm {
   formationJurisdiction?: IJurisdictionOfFormation;
   taxInfo?: ITaxInformation;
   address?: ICompanyAddress;
+  isExistingCompany: boolean;
 }

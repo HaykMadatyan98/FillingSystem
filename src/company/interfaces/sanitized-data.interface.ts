@@ -7,12 +7,13 @@ export interface ISanitizedData {
 
 export interface ICsvUser {
   email: string;
-  name: string;
+  firstName: string;
+  lastName: string;
 }
 export interface ICompanyData {
   names?: {
     legalName?: string;
-    altName?: string;
+    altName?: string[];
   };
   taxInfo: {
     taxIdType: string;
@@ -24,6 +25,7 @@ export interface ICompanyData {
   };
   address?: IAddress;
   repCompanyInfo?: IRepCompanyInfo;
+  isExistingCompany: boolean;
 }
 
 interface IRepCompanyInfo {
@@ -33,7 +35,6 @@ interface IRepCompanyInfo {
 
 export interface IParticipantData {
   isApplicant: boolean;
-  applicant?: IApplicant;
   finCENID?: {
     finCENID: string;
   };

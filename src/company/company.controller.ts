@@ -2,9 +2,8 @@ import { Role } from '@/auth/constants';
 import { Roles } from '@/auth/decorators/roles.decorator';
 import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
 import { RolesGuard } from '@/auth/guards/role.guard';
-import { CreateCompanyFormDto } from '@/company-form/dtos/company-form.dto';
+import { RequestWithUser } from '@/auth/interfaces/request.interface';
 import {
-  Body,
   Controller,
   Delete,
   FileTypeValidator,
@@ -22,22 +21,43 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
   ApiBody,
-  ApiConflictResponse,
   ApiConsumes,
   ApiForbiddenResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import { CompanyService } from './company.service';
 import { companyResponseMsgs } from './constants';
-import { ResponseMessageDto } from './dtos/response';
-import { RequestWithUser } from '@/auth/interfaces/request.interface';
 
 @ApiTags('company')
 @Controller('company')
 export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
+
+  @Get('/submitted/:userId')
+  @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'userId',
+    required: true,
+    description: 'user Id',
+  })
+  @ApiForbiddenResponse({ description: companyResponseMsgs.dontHavePermission })
+  @ApiOperation({ summary: 'Get submitted companies for current user by Id' })
+  async getAllSubmittedCompanies(
+    @Param('userId') userId: string,
+    @Req() req: RequestWithUser,
+  ) {
+    return {
+      company: await this.companyService.getSubmittedCompanies(
+        req.user,
+        userId,
+      ),
+      message: companyResponseMsgs.companyDataRetrieved,
+    };
+  }
 
   @Get()
   @Roles(Role.Admin)
@@ -80,21 +100,21 @@ export class CompanyController {
     };
   }
 
-  @Post()
-  @Roles(Role.Admin)
-  @UseGuards(RolesGuard)
-  @ApiBearerAuth()
-  @ApiOkResponse({
-    type: ResponseMessageDto,
-    description: companyResponseMsgs.companyCreated,
-  })
-  @ApiBody({ type: CreateCompanyFormDto })
-  @ApiForbiddenResponse({ description: companyResponseMsgs.dontHavePermission })
-  @ApiOperation({ summary: 'Create new company (Admin)' })
-  @ApiConflictResponse({ description: companyResponseMsgs.companyWasCreated })
-  async createNewCompany(@Body() body: CreateCompanyFormDto) {
-    return this.companyService.createNewCompany(body);
-  }
+  // @Post()
+  // @Roles(Role.Admin)
+  // @UseGuards(RolesGuard)
+  // @ApiBearerAuth()
+  // @ApiOkResponse({
+  //   type: ResponseMessageDto,
+  //   description: companyResponseMsgs.companyCreated,
+  // })
+  // @ApiBody({ type: CreateCompanyFormDto })
+  // @ApiForbiddenResponse({ description: companyResponseMsgs.dontHavePermission })
+  // @ApiOperation({ summary: 'Create new company (Admin)' })
+  // @ApiConflictResponse({ description: companyResponseMsgs.companyWasCreated })
+  // async createNewCompany(@Body() body: CreateCompanyFormDto) {
+  //   return this.companyService.createNewCompany(body);
+  // }
 
   @Post('csv')
   @Roles(Role.Admin)
@@ -145,6 +165,7 @@ export class CompanyController {
 
   @Patch('/submit/:companyId')
   @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth()
   async submitCompanyBoir(@Param('companyId') companyId: string) {
     return this.companyService.submitCompanyById(companyId);
   }

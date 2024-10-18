@@ -3,7 +3,7 @@ import {
   ApplicantForm,
   OwnerForm,
 } from '@/participant-form/schemas/participant-form.schema';
-import { Transaction } from '@/government/schemas/transaction.schema';
+import { Transaction } from '@/transaction/schemas/transaction.schema';
 import { User } from '@/user/schema/user.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongoSchema } from 'mongoose';
@@ -16,9 +16,9 @@ class Forms {
   company: CompanyForm;
 
   @Prop({
+    required: false,
     type: [MongoSchema.Types.ObjectId],
     ref: 'ApplicantForm',
-    default: [],
   })
   applicants: ApplicantForm[];
 
@@ -62,6 +62,9 @@ export class Company {
 
   @Prop({ default: [] })
   transactions: Transaction[];
+
+  @Prop({ default: false })
+  isExistingCompany: boolean;
 }
 
 export const CompanySchema = SchemaFactory.createForClass(Company);

@@ -18,6 +18,13 @@ interface IGovernmentConfig {
   apiKey: string;
 }
 
+interface IAdminConfig {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
 export interface ConfigProps {
   NODE_ENV: string;
   STRIPE: IStripeConfig;
@@ -26,6 +33,7 @@ export interface ConfigProps {
   MONGODB_URL: string;
   SENDGRID: ISendgridConfig;
   GOVERNMENT: IGovernmentConfig;
+  ADMIN: IAdminConfig;
 }
 
 const getEnvVar = (key: string, fallback?: string): string => {
@@ -53,6 +61,12 @@ const configs = (): ConfigProps => ({
   },
   GOVERNMENT: {
     apiKey: getEnvVar('GOVERNMENT_API_KEY'),
+  },
+  ADMIN: {
+    email: getEnvVar('ADMIN_EMAIL'),
+    password: getEnvVar('ADMIN_PASSWORD'),
+    firstName: getEnvVar('ADMIN_FIRSTNAME'),
+    lastName: getEnvVar('ADMIN_LASTNAME')
   },
 });
 
