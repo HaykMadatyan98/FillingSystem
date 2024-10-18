@@ -14,6 +14,10 @@ interface ISendgridConfig {
   apiKey: string;
 }
 
+interface IGovernmentConfig {
+  apiKey: string;
+}
+
 export interface ConfigProps {
   NODE_ENV: string;
   STRIPE: IStripeConfig;
@@ -21,6 +25,7 @@ export interface ConfigProps {
   TOKEN: IJsonTokenEnv;
   MONGODB_URL: string;
   SENDGRID: ISendgridConfig;
+  GOVERNMENT: IGovernmentConfig;
 }
 
 const getEnvVar = (key: string, fallback?: string): string => {
@@ -45,6 +50,9 @@ const configs = (): ConfigProps => ({
   SENDGRID: {
     emailFrom: getEnvVar('SENDGRID_EMAIL_FROM'),
     apiKey: getEnvVar('SENDGRID_API_KEY'),
+  },
+  GOVERNMENT: {
+    apiKey: getEnvVar('GOVERNMENT_API_KEY'),
   },
 });
 

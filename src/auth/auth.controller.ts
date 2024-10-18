@@ -63,7 +63,10 @@ export class AuthController {
   @ApiOperation({ summary: 'Sign in by one time pass' })
   @ApiNotFoundResponse({ description: authResponseMsgs.wrongSentEmailOrPass })
   @ApiUnauthorizedResponse({ description: authResponseMsgs.codeWasExpired })
-  async login(@Body() body: LoginDto, @Res() res: ICustomResponse): Promise<ILoginResponse> {
+  async login(
+    @Body() body: LoginDto,
+    @Res() res: ICustomResponse,
+  ): Promise<ILoginResponse> {
     return this.authService.login(body.email, body.oneTimePass, res);
   }
 

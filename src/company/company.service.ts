@@ -490,12 +490,9 @@ export class CompanyService {
         amount: 100 * (index === 1 ? 0.75 : index > 1 ? 0.5 : 1),
       }));
 
-    const totalAmount = companiesAndTheirAmount.reduce(
-      (sum, { amount }, index) => {
-        return sum + amount;
-      },
-      0,
-    );
+    const totalAmount = companiesAndTheirAmount.reduce((sum, { amount }) => {
+      return sum + amount;
+    }, 0);
 
     return { companiesAndTheirAmount, totalAmount };
   }
@@ -516,7 +513,7 @@ export class CompanyService {
   }
 
   async addTransactionToCompanies(companyIds: string, transactionId: string) {
-    for (let companyId of companyIds) {
+    for (const companyId of companyIds) {
       const company = await this.companyModel.findById(companyId);
 
       if (!company) {

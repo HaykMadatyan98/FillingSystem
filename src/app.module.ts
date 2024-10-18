@@ -12,6 +12,8 @@ import { ParticipantFormModule } from './participant-form/participant-form.modul
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { SeederService } from './seeders/seeder/seeder.service';
 import { UserModule } from './user/user.module';
+import { GovernmentModule } from './government/government.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -40,6 +42,7 @@ import { UserModule } from './user/user.module';
         limit: 1000,
       },
     ]),
+    GovernmentModule,
     // StripeModule.forRootAsync(),
   ],
   providers: [
@@ -49,7 +52,6 @@ import { UserModule } from './user/user.module';
     },
     SeederService,
   ],
-  controllers: [],
 })
 export class AppModule implements OnModuleInit {
   constructor(private readonly seederService: SeederService) {}

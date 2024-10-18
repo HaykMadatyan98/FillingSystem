@@ -3,7 +3,7 @@ import {
   ApiBearerAuth,
   ApiOperation,
   ApiParam,
-  ApiTags
+  ApiTags,
 } from '@nestjs/swagger';
 import { UserService } from './user.service';
 // import { User } from './schema/user.schema';

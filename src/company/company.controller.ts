@@ -70,7 +70,10 @@ export class CompanyController {
   @ApiBearerAuth()
   @ApiForbiddenResponse({ description: companyResponseMsgs.dontHavePermission })
   @ApiOperation({ summary: 'Get company full data by entered company Id' })
-  async getAllCompanyData(@Param('companyId') companyId: string, @Req() req: RequestWithUser) {
+  async getAllCompanyData(
+    @Param('companyId') companyId: string,
+    @Req() req: RequestWithUser,
+  ) {
     return {
       company: await this.companyService.getAllCompanyData(companyId, req.user),
       message: companyResponseMsgs.companyDataRetrieved,

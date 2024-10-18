@@ -37,11 +37,3 @@ export interface IReqOwnerData {
     docImg: string;
   };
 }
-
-interface IReqApplicantData extends IReqOwnerData {
-  personalInfo: {
-    lastName: string;
-    firstName: string;
-    dateOfBirth: Date;
-  };
-}

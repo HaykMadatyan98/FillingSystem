@@ -10,13 +10,13 @@ export const transactionMessages: Record<TTransactionMsgKeys, string> = {
 };
 
 export enum PaymentStatusEnum {
-    SUCCEED = 'succeed'
+  SUCCEED = 'succeed',
 }
 
 export enum CurrencyEnum {
-    USD = 'usd'
+  USD = 'usd',
 }
 
 export enum TransactionTypeEnum {
-    BOIR_PAYMENT = 'BOIR Payment'
+  BOIR_PAYMENT = 'BOIR Payment',
 }
