@@ -24,7 +24,6 @@ export class SeederService {
         password: hashedPassword,
         role: 'admin',
       });
-      console.log('Database seeded with user!');
     }
   }
 }

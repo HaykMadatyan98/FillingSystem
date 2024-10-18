@@ -3,6 +3,12 @@ import { forwardRef, Inject, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import Stripe from 'stripe';
+import {
+  CurrencyEnum,
+  PaymentStatusEnum,
+  transactionMessages,
+  TransactionTypeEnum,
+} from './constants';
 import { Transaction, TransactionDocument } from './schemas/transaction.schema';
 
 export class TransactionService {
@@ -31,7 +37,7 @@ export class TransactionService {
         status: paymentIntent.status,
         paymentDate: new Date(paymentIntent.created * 1000),
         paymentMethod: paymentIntent.payment_method_types?.[0] || 'unknown',
-        transactionType: 'BOIR Payment',
+        transactionType: TransactionTypeEnum.BOIR_PAYMENT,
         companies: companyIds,
       });
       await transaction.save();
@@ -58,7 +64,7 @@ export class TransactionService {
           status: paymentIntent.status,
           paymentDate: new Date(paymentIntent.created * 1000),
           paymentMethod: paymentIntent.payment_method_types?.[0] || 'unknown',
-          transactionType: 'BOIR Payment',
+          transactionType: TransactionTypeEnum.BOIR_PAYMENT,
           companies: companyIds,
         });
         await transaction.save();
@@ -110,7 +116,7 @@ export class TransactionService {
     const companyNames = companiesAndTheirAmount.map((company) => company.name);
     const paymentIntent = await this.stripe.paymentIntents.create({
       amount: totalAmount * 100,
-      currency: 'usd',
+      currency: CurrencyEnum.USD,
       metadata: { companyNames: companyNames.join(',') },
       automatic_payment_methods: {
         enabled: true,
@@ -146,7 +152,7 @@ export class TransactionService {
           $lte: currentYearEnd,
         },
         companies: { $in: companyIds },
-        status: {$ne: 'succeed'}
+        status: { $ne: PaymentStatusEnum.SUCCEED },
       })
       .exec();
   }
@@ -166,16 +172,16 @@ export class TransactionService {
 
     transaction.status = paymentIntent.status;
     await transaction.save();
-    await this.companyService.changeCompanyPaidStatus(transaction.id)
+    await this.companyService.changeCompanyPaidStatus(transaction.id);
 
-    return { message: 'transaction status changed' };
+    return { message: transactionMessages.statusChanged };
   }
 
   private async getTransactionByTId(transactionId: string) {
     const transaction = await this.transactionModel.findOne({ transactionId });
 
     if (!transaction) {
-      throw new NotFoundException('transaction not found');
+      throw new NotFoundException(transactionMessages.notFound);
     }
 
     return transaction;

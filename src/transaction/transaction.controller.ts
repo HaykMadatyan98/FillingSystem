@@ -1,7 +1,11 @@
 import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
 import { Body, Controller, Patch, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
-import { CreatePaymentIntentDto } from './dtos/transaction.dto';
+import { ApiBearerAuth, ApiBody, ApiNotFoundResponse } from '@nestjs/swagger';
+import { transactionMessages } from './constants';
+import {
+  CreatePaymentIntentDto,
+  SucceedPaymentDto,
+} from './dtos/transaction.dto';
 import { TransactionService } from './transaction.service';
 
 @Controller('transaction')
@@ -21,9 +25,10 @@ export class TransactionController {
   }
 
   @Patch('payment-succeed')
-  @ApiBody({})
+  @ApiBody({ type: SucceedPaymentDto })
   @UseGuards(AccessTokenGuard)
-  async updatePaymentStatus(@Body() body: any) {
+  @ApiNotFoundResponse({ description: transactionMessages.notFound })
+  async updatePaymentStatus(@Body() body: SucceedPaymentDto) {
     return this.transactionService.updateTransactionStatus(body);
   }
 }

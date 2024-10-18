@@ -26,7 +26,7 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { participantFormResponseMsgs } from './constants/participant-form.response-messages';
+import { participantFormResponseMsgs } from './constants';
 import {
   ApplicantFormDto,
   CreateParticipantDocDto,
