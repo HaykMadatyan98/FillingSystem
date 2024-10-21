@@ -66,7 +66,7 @@ const configs = (): ConfigProps => ({
     email: getEnvVar('ADMIN_EMAIL'),
     password: getEnvVar('ADMIN_PASSWORD'),
     firstName: getEnvVar('ADMIN_FIRSTNAME'),
-    lastName: getEnvVar('ADMIN_LASTNAME')
+    lastName: getEnvVar('ADMIN_LASTNAME'),
   },
 });
 

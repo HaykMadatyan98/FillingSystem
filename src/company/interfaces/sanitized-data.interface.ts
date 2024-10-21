@@ -45,10 +45,6 @@ export interface IParticipantData {
   exemptEntity?: IExemptEntity;
 }
 
-interface IApplicant {
-  isExistingCompany: boolean;
-}
-
 interface IPersonalInfo {
   lastOrLegalName?: string;
   firstName?: string;

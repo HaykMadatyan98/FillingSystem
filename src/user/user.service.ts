@@ -111,13 +111,11 @@ export class UserService {
     userId: string,
     companyId: string,
   ): Promise<void> {
-
     const user = await this.userModel.findOneAndUpdate(
       { _id: userId },
       { $pull: { companies: new Types.ObjectId(companyId) } },
       { new: true },
     );
-
 
     if (!user) {
       throw new NotFoundException(userResponseMsgs.notFound);

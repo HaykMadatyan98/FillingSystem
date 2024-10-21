@@ -218,6 +218,7 @@ export class ParticipantFormService {
   private async uploadAnImageToTheCloud(
     file: Express.Multer.File,
   ): Promise<string> {
+    console.log(file);
     return 'exampleUrt123qww21';
   }
 

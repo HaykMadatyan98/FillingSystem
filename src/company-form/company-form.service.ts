@@ -102,7 +102,11 @@ export class CompanyFormService {
     companyData.answerCount += countDiff;
     await companyData.save();
     console.log(companyId);
-    await this.companyService.changeCompanyReqFieldsCount(companyId, countDiff, typeof companyFormData.isExistingCompany !== 'undefined');
+    await this.companyService.changeCompanyReqFieldsCount(
+      companyId,
+      countDiff,
+      typeof companyFormData.isExistingCompany !== 'undefined',
+    );
     return {
       message: companyFormResponseMsgs.companyFormUpdated,
     };
