@@ -443,29 +443,33 @@ export class CompanyService {
       company.forms.applicants &&
       company.forms.applicants.length
     ) {
-      company.answersCount = company.isExistingCompany
+      const isExisted = company.isExistingCompany;
+      company.reqFieldsCount = isExisted
         ? 9 + company.forms.owners.length * 11
         : this.calculateReqFieldsCount(company);
 
       await company.populate({
         path: 'forms.company',
-        select: 'answerCount',
+        select: 'answerCount -_id',
       });
 
       await company.populate({
         path: 'forms.applicants',
-        select: 'answerCount',
+        select: 'answerCount -_id',
       });
 
       await company.populate({
         path: 'forms.owners',
-        select: 'answerCount',
+        select: 'answerCount -_id',
       });
 
       let totalCount = 0;
-      company.forms.applicants.forEach(
-        (applicant) => (totalCount += applicant.answerCount),
-      );
+
+      if (!isExisted) {
+        company.forms.applicants.forEach(
+          (applicant) => (totalCount += applicant.answerCount),
+        );
+      }
       company.forms.owners.forEach(
         (owner) => (totalCount += owner.answerCount),
       );
@@ -648,7 +652,13 @@ export class CompanyService {
       throw new NotFoundException(companyResponseMsgs.companyNotFound);
     }
 
+    if (company.isExistingCompany === isExistingCompany) {
+      return false;
+    }
+
     company.isExistingCompany = isExistingCompany;
     await company.save();
+
+    return true;
   }
 }

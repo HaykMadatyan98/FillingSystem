@@ -54,7 +54,6 @@ export class CompanyFormService {
     companyId: string,
     user?: IRequestUser,
   ): TRResponseMsg {
-    console.log(companyId, 'companyId', companyFormDataId, 'formDataId');
     if (user) {
       await this.companyService.checkUserCompanyPermission(
         user,
@@ -76,8 +75,9 @@ export class CompanyFormService {
       }
     }
 
+    let existingStatusChanged = false;
     if (typeof companyFormData.isExistingCompany !== 'undefined') {
-      await this.companyService.changeExistingCompanyStatus(
+      existingStatusChanged = await this.companyService.changeExistingCompanyStatus(
         companyId,
         companyFormData.isExistingCompany,
       );
@@ -101,11 +101,10 @@ export class CompanyFormService {
     const countDiff = answerCountBefore - answerCountAfter;
     companyData.answerCount += countDiff;
     await companyData.save();
-    console.log(companyId);
     await this.companyService.changeCompanyReqFieldsCount(
       companyId,
       countDiff,
-      typeof companyFormData.isExistingCompany !== 'undefined',
+      existingStatusChanged
     );
     return {
       message: companyFormResponseMsgs.companyFormUpdated,
