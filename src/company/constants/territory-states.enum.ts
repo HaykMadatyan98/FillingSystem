@@ -3,7 +3,7 @@ export enum USTerritoryEnum {
   AMERICAN_SAMOA = 'American Samoa',
   GUAM = 'Guam',
   MARSHALL_ISLANDS = 'Marshall Islands',
-  MICRONESIA = 'Micaronesia, Federated States',
+  MICRONESIA = 'Micronesia, Federated States',
   NORTHERN_MARIANA_ISLANDS = 'Northern Marianna Islands',
   PALAU = 'Palau',
   PUERTO_RICO = 'Puerto Rico',
@@ -71,4 +71,7 @@ export enum StatesEnum {
   NORTHERN_MARIANA_ISLANDS = 'Northern Mariana Islands',
   PUERTO_RICO = 'Puerto Rico',
   US_VIRGIN_ISLANDS = 'U.S. Virgin Islands',
+  PALAU = 'Palau',
+  MARSHALL_ISLANDS = 'Marshall Islands',
+  MICRONESIA = 'Micronesia, Federated States',
 }

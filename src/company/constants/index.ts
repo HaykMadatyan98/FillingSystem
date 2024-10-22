@@ -11,3 +11,4 @@ export {
 } from './document-types.enum';
 export { USTerritoryEnum, StatesEnum } from './territory-states.enum';
 export { AllCountryEnum, ForeignCountryEnum } from './country.enum';
+export { TribalDataEnum} from './localOrTribal';

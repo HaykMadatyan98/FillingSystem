@@ -12,12 +12,6 @@ export class RefreshTokenGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<RequestWithUser>();
-    const authHeader = request.headers['authorization'];
-
-    if (!authHeader) {
-      return false;
-    }
-
     const refreshToken = request.cookies?.refreshToken;
 
     try {

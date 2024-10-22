@@ -8,18 +8,27 @@ export type ApplicantFormDocument = ApplicantForm & Document;
 class BeneficialOwner {
   @Prop()
   isParentOrGuard: boolean;
+
+  @Prop({ default: false })
+  isVerified: boolean;
 }
 
 @Schema({ _id: false })
 class ExistingCompanyApplicant {
   @Prop()
   isExistingCompany: boolean;
+
+  @Prop({ default: false })
+  isVerified: boolean;
 }
 
 @Schema({ _id: false })
 class FinCENID {
   @Prop()
   finCENID: string;
+
+  @Prop({ default: false })
+  isVerified: boolean;
 }
 
 @Schema({ _id: false })
@@ -38,6 +47,9 @@ class PersonalInformation {
 
   @Prop()
   dateOfBirth: Date;
+
+  @Prop({ default: false })
+  isVerified: boolean;
 }
 
 @Schema({ _id: false })
@@ -56,6 +68,9 @@ class OwnerAddress {
 
   @Prop()
   postalCode: string;
+
+  @Prop({ default: false })
+  isVerified: boolean;
 }
 
 @Schema({ _id: false })
@@ -86,12 +101,18 @@ class IdentificationAndJurisdiction {
 
   @Prop()
   docImg: string;
+
+  @Prop({ default: false })
+  isVerified: boolean;
 }
 
 @Schema({ _id: false })
 class ExemptEntity {
   @Prop()
   isExemptEntity: boolean;
+
+  @Prop({ default: false })
+  isVerified: boolean;
 }
 
 @Schema({ timestamps: true })

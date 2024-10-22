@@ -18,9 +18,6 @@ export const requiredOwnerFields = [
   'identificationDetails.docType',
   'identificationDetails.docNumber',
   'identificationDetails.countryOrJurisdiction',
-  'identificationDetails.state',
-  'identificationDetails.localOrTribal',
-  'identificationDetails.otherLocalOrTribalDesc',
   'identificationDetails.docImg',
 ];
 

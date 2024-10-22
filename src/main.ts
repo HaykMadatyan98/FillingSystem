@@ -13,7 +13,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
   const PORT = configService.get<number>('PORT');
-  app.enableCors({ credentials: true });
+  const CLIENT_PORT = configService.get<number>('CLIENT_PORT');
+  const HOST = configService.get<string>('HOST');
+
+  console.log(`${HOST}:${CLIENT_PORT}`);
+  app.enableCors({ credentials: true, origin: `${HOST}:${CLIENT_PORT}`});
   app.use(cookieParser());
 
   if (process.env.NODE_ENV !== 'production') {

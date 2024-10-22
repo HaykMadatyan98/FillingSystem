@@ -10,6 +10,9 @@ class RepCompanyInfo {
 
   @Prop({ default: false })
   foreignPooled: boolean;
+
+  @Prop({ default: false })
+  isVerified: boolean;
 }
 
 @Schema({ _id: false })
@@ -19,6 +22,9 @@ class LegalAndAltNames {
 
   @Prop()
   altName: string[];
+
+  @Prop({ default: false })
+  isVerified: boolean;
 }
 
 @Schema({ _id: false })
@@ -27,16 +33,31 @@ class TaxInformation {
   taxIdType: string;
 
   @Prop({ required: true })
-  taxIdNumber: string;
+  taxIdNumber: number;
 
   @Prop()
   countryOrJurisdiction: string;
+
+  @Prop({ default: false })
+  isVerified: boolean;
 }
 
 @Schema({ _id: false })
 class JurisdictionOfFormation {
   @Prop()
   countryOrJurisdictionOfFormation: string;
+
+  @Prop({ required: false })
+  stateOfFormation: string;
+
+  @Prop({ required: false })
+  tribalJurisdiction: string;
+
+  @Prop({ required: false })
+  nameOfOtherTribal: string;
+
+  @Prop({ default: false })
+  isVerified: boolean;
 }
 
 @Schema({ _id: false })
@@ -55,6 +76,9 @@ class CompanyAddress {
 
   @Prop()
   zipCode: string;
+
+  @Prop({ default: false })
+  isVerified: boolean;
 }
 
 @Schema({ timestamps: true })

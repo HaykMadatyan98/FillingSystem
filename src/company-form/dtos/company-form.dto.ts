@@ -17,6 +17,7 @@ import {
   AllCountryEnum,
   IdentificationTypesEnum,
   StatesEnum,
+  TribalDataEnum,
   USTerritoryEnum,
 } from '@/company/constants';
 import { Type } from 'class-transformer';
@@ -31,6 +32,11 @@ class RepCompanyInfoDto {
   @IsOptional()
   @IsBoolean()
   foreignPooled?: boolean;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsBoolean()
+  isVerified?: boolean;
 }
 
 class LegalAndAltNamesDto {
@@ -46,6 +52,11 @@ class LegalAndAltNamesDto {
   @IsString({ each: true })
   @Type(() => String)
   altName?: string[];
+
+  @ApiProperty()
+  @IsOptional()
+  @IsBoolean()
+  isVerified?: boolean;
 }
 
 class JurisdictionOfFormationDto {
@@ -53,6 +64,26 @@ class JurisdictionOfFormationDto {
   @IsOptional()
   @IsEnum(AllCountryEnum)
   countryOrJurisdictionOfFormation?: AllCountryEnum;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsEnum(TribalDataEnum)
+  tribalJurisdiction: TribalDataEnum;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  stateOfFormation: string;
+
+  @ApiProperty({required: false})
+  @IsOptional()
+  @IsString()
+  nameOfOtherTribal: string
+
+  @ApiProperty()
+  @IsOptional()
+  @IsBoolean()
+  isVerified?: boolean;
 }
 
 class CompanyAddressDto {
@@ -82,6 +113,11 @@ class CompanyAddressDto {
   @MinLength(5)
   @MaxLength(9)
   zipCode?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsBoolean()
+  isVerified?: boolean;
 }
 
 class CreateLegalAndAltNamesDto {
@@ -112,6 +148,11 @@ class TaxInformation {
   @IsOptional()
   @IsEnum(AllCountryEnum)
   countryOrJurisdiction?: AllCountryEnum;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsBoolean()
+  isVerified?: boolean;
 }
 export class ChangeCompanyFormDto {
   @ApiProperty({ type: RepCompanyInfoDto, required: false })

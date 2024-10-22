@@ -34,6 +34,8 @@ export interface ConfigProps {
   SENDGRID: ISendgridConfig;
   GOVERNMENT: IGovernmentConfig;
   ADMIN: IAdminConfig;
+  HOST: string;
+  CLIENT_PORT: string;
 }
 
 const getEnvVar = (key: string, fallback?: string): string => {
@@ -68,6 +70,8 @@ const configs = (): ConfigProps => ({
     firstName: getEnvVar('ADMIN_FIRSTNAME'),
     lastName: getEnvVar('ADMIN_LASTNAME'),
   },
+  HOST: getEnvVar('HOST'),
+  CLIENT_PORT: getEnvVar('CLIENT_PORT'),
 });
 
 export default configs;

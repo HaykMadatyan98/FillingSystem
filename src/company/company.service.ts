@@ -419,9 +419,7 @@ export class CompanyService {
 
   private calculateReqFieldsCount(company: CompanyDocument): number {
     return (
-      company.forms.applicants.length * 15 +
-      company.forms.owners.length * 11 +
-      9
+      company.forms.applicants.length * 12 + company.forms.owners.length * 8 + 9
     );
   }
 
@@ -445,7 +443,7 @@ export class CompanyService {
     ) {
       const isExisted = company.isExistingCompany;
       company.reqFieldsCount = isExisted
-        ? 9 + company.forms.owners.length * 11
+        ? 9 + company.forms.owners.length * 8
         : this.calculateReqFieldsCount(company);
 
       await company.populate({

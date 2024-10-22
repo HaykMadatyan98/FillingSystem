@@ -2,15 +2,16 @@ import {
   AllCountryEnum,
   DocumentTypeEnum,
   StatesEnum,
+  TribalDataEnum,
 } from '@/company/constants';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
   IsDate,
+  IsEnum,
   IsOptional,
   IsString,
-  IsEnum,
   ValidateNested,
 } from 'class-validator';
 
@@ -112,8 +113,8 @@ class IdentificationAndJurisdictionBaseDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsString()
-  localOrTribal?: string;
+  @IsEnum(TribalDataEnum)
+  localOrTribal?: TribalDataEnum;
 
   @ApiProperty({ required: false })
   @IsOptional()
