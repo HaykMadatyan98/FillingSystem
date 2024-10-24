@@ -15,12 +15,6 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-export class ExistingCompanyApplicantDto {
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsBoolean()
-  isExistingCompany?: boolean;
-}
 export class FinCENIDDto {
   @ApiProperty({ required: false })
   @IsOptional()
@@ -81,11 +75,13 @@ class OwnerAddressDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsEnum(AllCountryEnum)
+  @Transform(({ value }) => AllCountryEnum[value] || value)
   countryOrJurisdiction?: AllCountryEnum;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsEnum(StatesEnum)
+  @Transform(({ value }) => StatesEnum[value] || value)
   state?: StatesEnum;
 
   @ApiProperty({ required: false })
@@ -97,23 +93,26 @@ class OwnerAddressDto {
 class ApplicantAddressDto extends OwnerAddressDto {
   @ApiProperty({ required: true })
   @IsEnum(AddressTypeEnum)
+  @Transform(({ value }) => AddressTypeEnum[value] || value)
   type: AddressTypeEnum;
 }
 class IdentificationAndJurisdictionBaseDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsEnum(AllCountryEnum)
+  @Transform(({ value }) => AllCountryEnum[value] || value)
   countryOrJurisdiction?: AllCountryEnum;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsEnum(StatesEnum)
-  @Transform(({ value }) => StatesEnum[value])
+  @Transform(({ value }) => StatesEnum[value] || value)
   state?: StatesEnum;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsEnum(TribalDataEnum)
+  @Transform(({ value }) => TribalDataEnum[value] || value)
   localOrTribal?: TribalDataEnum;
 
   @ApiProperty({ required: false })
@@ -165,12 +164,6 @@ export class BaseParticipantFormDto {
 }
 
 export class ApplicantFormDto extends BaseParticipantFormDto {
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => ExistingCompanyApplicantDto)
-  applicant?: ExistingCompanyApplicantDto;
-
   @ApiProperty({ required: false })
   @IsOptional()
   @ValidateNested({ each: true })
@@ -226,6 +219,7 @@ export class CreateParticipantDocDto {
   isApplicant: boolean;
 
   @IsEnum(DocumentTypeEnum)
+  @Transform(({ value }) => AllCountryEnum[value] || value)
   docType: DocumentTypeEnum;
 
   @IsString()

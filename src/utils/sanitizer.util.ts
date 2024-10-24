@@ -12,7 +12,7 @@ import { validateData } from './validator.util';
 export async function sanitizeData(
   data: ICompanyCSVRowData,
 ): Promise<ISanitizedData> {
-  console.log(data);
+  // console.log(data);
   const sanitized: ISanitizedData = {
     user: {} as ICsvUser,
     company: {} as ICompanyData,

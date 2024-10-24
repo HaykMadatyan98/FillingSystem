@@ -20,3 +20,5 @@ export const companyFormResponseMsgs: Record<
   companyFormForeignTaxIdError:
     'Country and jurisdiction field can exist only if type is Foreign',
 };
+
+export { companyFormFields } from './company-form_fields';

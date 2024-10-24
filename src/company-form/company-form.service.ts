@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { companyFormResponseMsgs } from './constants';
+import { companyFormFields, companyFormResponseMsgs } from './constants';
 import {
   IChangeCompanyForm,
   ICompanyForm,
@@ -40,11 +40,14 @@ export class CompanyFormService {
 
     companyData.answerCount = answerCount;
 
+    const missingFormData = await this.getCompanyFormMissingFields(companyData);
+
     await companyData.save();
     return {
       id: companyData._id,
       companyName: companyData.names.legalName,
       answerCount,
+      missingFormData,
     };
   }
 
@@ -52,9 +55,10 @@ export class CompanyFormService {
     companyFormData: IChangeCompanyForm,
     companyFormDataId: string,
     companyId: string,
-    user?: IRequestUser,
+    user?: IRequestUser | boolean,
+    missingCompanyForm?: any,
   ): TRResponseMsg {
-    if (user) {
+    if (user && typeof user !== 'boolean') {
       await this.companyService.checkUserCompanyPermission(
         user,
         companyId,
@@ -77,10 +81,11 @@ export class CompanyFormService {
 
     let existingStatusChanged = false;
     if (typeof companyFormData.isExistingCompany !== 'undefined') {
-      existingStatusChanged = await this.companyService.changeExistingCompanyStatus(
-        companyId,
-        companyFormData.isExistingCompany,
-      );
+      existingStatusChanged =
+        await this.companyService.changeExistingCompanyStatus(
+          companyId,
+          companyFormData.isExistingCompany,
+        );
     }
 
     const answerCountBefore = await calculateRequiredFieldsCount(
@@ -104,8 +109,15 @@ export class CompanyFormService {
     await this.companyService.changeCompanyReqFieldsCount(
       companyId,
       countDiff,
-      existingStatusChanged
+      existingStatusChanged,
     );
+
+    if (missingCompanyForm) {
+      missingCompanyForm.company =
+        await this.getCompanyFormMissingFields(companyData);
+    }
+
+    console.log(missingCompanyForm);
     return {
       message: companyFormResponseMsgs.companyFormUpdated,
     };
@@ -149,5 +161,41 @@ export class CompanyFormService {
       'taxInfo.taxIdNumber': taxNumber,
       'taxInfo.taxIdType': taxType,
     });
+  }
+
+  async getCompanyFormMissingFields(companyForm: CompanyFormDocument) {
+    const topLevelKeys = Object.keys(companyFormFields);
+    const missingFields: string[] = [];
+
+    topLevelKeys.forEach((topLevelKey) => {
+      if (companyForm[topLevelKey]) {
+        if (
+          typeof companyForm[topLevelKey] !== 'string' ||
+          typeof companyForm[topLevelKey] !== 'boolean'
+        ) {
+          Object.keys(companyFormFields[topLevelKey]).forEach((lowLevelKey) => {
+            if (
+              companyForm[topLevelKey][lowLevelKey] === '' ||
+              companyForm[topLevelKey][lowLevelKey] === undefined ||
+              companyForm[topLevelKey][lowLevelKey] === null
+            ) {
+              if (
+                !(
+                  topLevelKey === 'taxInfo' &&
+                  lowLevelKey === 'countryOrJurisdiction' &&
+                  companyForm[topLevelKey]['taxIdType'] !== 'Foreign'
+                )
+              ) {
+                missingFields.push(companyFormFields[topLevelKey][lowLevelKey]);
+              }
+            }
+          });
+        }
+      } else {
+        missingFields.push(companyFormFields[topLevelKey]);
+      }
+    });
+
+    return missingFields;
   }
 }

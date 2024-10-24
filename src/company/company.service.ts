@@ -111,18 +111,28 @@ export class CompanyService {
         .on('error', reject);
     });
 
-    console.log('thats a results', resultData);
+    const allErrors = [];
+    const allReasons = [];
+    const missingFields = [];
     await Promise.all(
       resultData.map(async (row: ICompanyCSVRowData) => {
-        const sanitizedCompanyData = await sanitizeData(row);
-        await this.ParseCsvData(sanitizedCompanyData);
+        const { sanitized, errorData, reasons } = await sanitizeData(row);
+        allErrors.push(errorData);
+        allReasons.push(reasons);
+        missingFields.push(await this.ParseCsvData(sanitized));
       }),
     );
 
-    return companyResponseMsgs.csvUploadSuccessful;
+    return {
+      message: companyResponseMsgs.csvUploadSuccessful,
+      errors: allErrors,
+      reasons: allReasons,
+      missingFields,
+    };
   }
 
   private async ParseCsvData(sanitized: ISanitizedData) {
+    const missingFields = {};
     const companyFormData =
       await this.companyFormService.getCompanyFormByTaxData(
         sanitized.company.taxInfo.taxIdNumber,
@@ -139,13 +149,18 @@ export class CompanyService {
     const userEmailData: IUserInvitationEmail[] = [];
 
     if (!company) {
-      company = await this.createNewCompanyFromCsv(sanitized, userEmailData);
+      company = await this.createNewCompanyFromCsv(
+        sanitized,
+        userEmailData,
+        missingFields,
+      );
     } else {
       await this.changeCompanyByCsv(
         company,
         companyFormId,
         sanitized,
         userEmailData,
+        missingFields,
       );
     }
 
@@ -169,11 +184,14 @@ export class CompanyService {
 
     await company.save();
     await this.mailService.sendInvitationEmailToFormFillers(userEmailData);
+    console.log(missingFields, 'missingFields');
+    return missingFields;
   }
 
   private async createNewCompanyFromCsv(
     sanitized: ISanitizedData,
     userEmailData: any[],
+    missingFields: any,
   ) {
     let company = null;
 
@@ -221,6 +239,8 @@ export class CompanyService {
       sanitized.company,
     );
 
+    missingFields.company = companyForm.missingFormData;
+
     answerCount += companyForm.answerCount;
 
     company = new this.companyModel({
@@ -248,11 +268,14 @@ export class CompanyService {
     companyFormId: string,
     sanitized: ISanitizedData,
     userEmailData: IUserInvitationEmail[],
+    missingFields: { company?: string[] },
   ) {
     await this.companyFormService.updateCompanyForm(
       sanitized.company,
       companyFormId,
       company['id'],
+      false,
+      missingFields,
     );
 
     const participantPromises = sanitized.participants.map(
@@ -689,5 +712,14 @@ export class CompanyService {
     await company.save();
 
     return true;
+  }
+
+  async calculateCompanyFields(company: CompanyDocument) {
+    await company.populate({ path: 'forms.owners', model: 'OwnerForm' });
+    await company.populate({
+      path: 'forms.applicants',
+      model: 'ApplicantForm',
+    });
+    await company.populate({ path: 'forms.company', model: 'CompanyForm' });
   }
 }

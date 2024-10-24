@@ -1,0 +1,29 @@
+export const companyFormFields = {
+  repCompanyInfo: {
+    requestToReceiveFID: 'Company Request To Receive Foreign ID',
+    foreignPooled: 'Company Foreign Pooled',
+  },
+  names: {
+    legalName: 'Company Legal Name',
+    altName: 'Company Alternative Name',
+  },
+  taxInfo: {
+    taxIdType: 'Company Tax Id Type',
+    taxIdNumber: 'Company Tax Id Number',
+    countryOrJurisdiction: 'Company Country/Jurisdiction',
+  },
+  formationJurisdiction: {
+    countryOrJurisdictionOfFormation:
+      'Company Country/Jurisdiction of Formation',
+    stateOfFormation: 'Company State of Formation',
+  },
+  address: {
+    address: 'Company Address',
+    city: 'Company City',
+    usOrUsTerritory: 'Company US or Territory',
+    state: 'Company State',
+    zipCode: 'Company Zip code',
+  },
+  requestToReceiveFID: 'Company Request To Receive Foreign ID',
+  foreignPooled: 'Company Foreign Pooled',
+};

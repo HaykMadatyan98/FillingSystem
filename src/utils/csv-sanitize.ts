@@ -4,17 +4,17 @@ import {
   OwnerData,
   UserData,
 } from '@/company/constants';
-import {} from '@/company/constants/data-fields.enum';
+import { } from '@/company/constants/data-fields.enum';
 import {
   ICompanyData,
   IParticipantData,
   ISanitizedData,
 } from '@/company/interfaces';
 import { ICsvUser } from '@/company/interfaces/sanitized-data.interface';
-import { BadRequestException, ConflictException } from '@nestjs/common';
-import { validateData } from './validator.util';
+import { BadRequestException } from '@nestjs/common';
+import { clearWrongFields, validateData } from './validator.util';
 
-export async function sanitizeData(data: any): Promise<ISanitizedData> {
+export async function sanitizeData(data: any): Promise<{sanitized: ISanitizedData, errorData: any, reasons: any}> {
   const sanitized: ISanitizedData = {
     user: {} as ICsvUser,
     company: {} as ICompanyData,
@@ -23,6 +23,10 @@ export async function sanitizeData(data: any): Promise<ISanitizedData> {
       ? new Date(data['BOIR Submission Deadline'][0])
       : null,
   };
+
+  if (sanitized.BOIRExpTime && isNaN(sanitized.BOIRExpTime.getTime())) {
+    throw new BadRequestException('Invalid expiration time format.');
+  }
 
   const companyKeys = Object.keys(CompanyData) as (keyof typeof CompanyData)[];
   const userKeys = Object.keys(UserData) as (keyof typeof UserData)[];
@@ -75,7 +79,6 @@ export async function sanitizeData(data: any): Promise<ISanitizedData> {
   companyKeys.forEach((key) => {
     const mappedField = CompanyData[key];
     const value = data[key].join('');
-    console.log(value, value !== '', 'company value');
     if (value && value !== '') {
       mapFieldToObject(mappedField, value, sanitized.company);
     }
@@ -111,21 +114,8 @@ export async function sanitizeData(data: any): Promise<ISanitizedData> {
     sanitized.participants.push(participant);
   }
 
-  if (
-    sanitized.company.taxInfo.taxIdType &&
-    sanitized.company.taxInfo.taxIdType !== 'Foreign' &&
-    sanitized.company.taxInfo.countryOrJurisdiction
-  ) {
-    throw new ConflictException(
-      'Country/Jurisdiction can be added only if tax type is Foreign',
-    );
-  }
+  const errorData = await validateData(sanitized);
+  const reasons = await clearWrongFields(sanitized);
 
-  if (sanitized.BOIRExpTime && isNaN(sanitized.BOIRExpTime.getTime())) {
-    throw new BadRequestException('Invalid expiration time format.');
-  }
-
-
-  await validateData(sanitized);
-  return sanitized;
+  return {sanitized, reasons, errorData};
 }

@@ -1,3 +1,4 @@
+export { ApplicantFields, OwnerFields } from './participant-fields';
 type ParticipantFormResponseKeys =
   | 'participantFormNotFound'
   | 'participantChanged'

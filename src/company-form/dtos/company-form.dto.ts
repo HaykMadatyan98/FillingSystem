@@ -20,7 +20,7 @@ import {
   TribalDataEnum,
   USTerritoryEnum,
 } from '@/company/constants';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 
 class RepCompanyInfoDto {
   @ApiProperty({ default: false, required: false })
@@ -72,13 +72,13 @@ class JurisdictionOfFormationDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsString()
-  stateOfFormation: string;
+  @IsEnum(StatesEnum)
+  stateOfFormation: StatesEnum;
 
-  @ApiProperty({required: false})
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  nameOfOtherTribal: string
+  nameOfOtherTribal: string;
 
   @ApiProperty()
   @IsOptional()
@@ -105,6 +105,7 @@ class CompanyAddressDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsEnum(StatesEnum)
+  @Transform(({ value }) => StatesEnum[value])
   state?: StatesEnum;
 
   @ApiProperty({ required: false })
