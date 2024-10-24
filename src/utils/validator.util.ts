@@ -1,12 +1,12 @@
-import { ConflictException } from '@nestjs/common';
-import { plainToInstance } from 'class-transformer';
-import { validate } from 'class-validator';
+import { CSVCompanyFormDto } from '@/company-form/dtos/company-form.dto';
 import {
   CSVApplicantFormDto,
   CSVOwnerFormDto,
 } from '@/participant-form/dtos/participant-form.dto';
-import { CSVCompanyFormDto } from '@/company-form/dtos/company-form.dto';
 import { CSVUserDto } from '@/user/dtos/user.dto';
+import { ConflictException } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 
 export async function validateData(data: any) {
   const errorMessages: string[] = [];
@@ -59,6 +59,7 @@ export async function validateData(data: any) {
     errorMessages.push(...participantError),
   );
 
+  console.log(errorMessages);
   if (errorMessages.length > 0) {
     throw new ConflictException(
       `Validation for CSV failed: ${errorMessages.join('; ')}`,
@@ -78,7 +79,7 @@ function formatError(
     const constraintMessages = Object.values(constraints).join(', ');
     const valueDisplay =
       typeof value === 'object' ? JSON.stringify(value) : value;
-    message = `Property "${property}" with value "${valueDisplay}" in ${context} failed due to: ${constraintMessages}`;
+    message = `Property "${property}" with value "${valueDisplay}" in ${context} failed`;
   }
 
   if (allowNesting && children?.length > 0) {

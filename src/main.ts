@@ -16,8 +16,18 @@ async function bootstrap() {
   const CLIENT_PORT = configService.get<number>('CLIENT_PORT');
   const HOST = configService.get<string>('HOST');
 
-  console.log(`${HOST}:${CLIENT_PORT}`);
-  app.enableCors({ credentials: true, origin: `${HOST}:${CLIENT_PORT}`});
+  app.enableCors({
+    credentials: true,
+    origin: `${HOST}:${CLIENT_PORT}`,
+    allowedHeaders: [
+      'Access-Control-Allow-Credentials',
+      'Authorization',
+      'Content-Type',
+      'Accept',
+      'X-Requested-With',
+      'Origin',
+    ],
+  });
   app.use(cookieParser());
 
   if (process.env.NODE_ENV !== 'production') {

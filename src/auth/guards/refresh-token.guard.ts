@@ -14,11 +14,13 @@ export class RefreshTokenGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<RequestWithUser>();
     const refreshToken = request.cookies?.refreshToken;
 
+    console.log(refreshToken);
     try {
       const user = this.jwtService.verify(refreshToken, {
         secret: this.configService.get<string>('TOKEN.refreshSecret'),
       });
 
+      console.log(user, 'user');
       request.user = { ...user, refreshToken };
       return true;
     } catch (err) {

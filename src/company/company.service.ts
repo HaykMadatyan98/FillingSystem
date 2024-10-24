@@ -4,7 +4,8 @@ import { IUserInvitationEmail } from '@/mail/interfaces/mail.interface';
 import { MailService } from '@/mail/mail.service';
 import { ParticipantFormService } from '@/participant-form/participant-form.service';
 import { UserService } from '@/user/user.service';
-import { sanitizeData } from '@/utils/sanitizer.util';
+import { sanitizeData } from '@/utils/csv-sanitize';
+import { filterApplicantAndOwnerRowData } from '@/utils/rowdata-parser';
 import {
   BadRequestException,
   ForbiddenException,
@@ -14,7 +15,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import * as csvParser from 'csv-parser';
+import { parse } from 'fast-csv';
 import * as moment from 'moment';
 import mongoose, { Model } from 'mongoose';
 import * as Stream from 'stream';
@@ -60,29 +61,59 @@ export class CompanyService {
       throw new BadRequestException(companyResponseMsgs.csvFileIsMissing);
     }
 
-    const results = [];
     const bufferStream = new Stream.PassThrough();
     bufferStream.end(file.buffer);
 
-    await new Promise((resolve, reject) => {
-      bufferStream
-        .pipe(csvParser({ separator: ',', quote: '"' }))
-        .on('data', (data: []) => {
-          const trimmedData = Object.fromEntries(
-            Object.entries(data).map(([key, value]: [string, string]) => [
-              key.trim(),
-              value.trim(),
-            ]),
-          );
+    // const results = [];
+    // await new Promise((resolve, reject) => {
+    //   bufferStream
+    //     .pipe(csvParser({ separator: ',', quote: '"' }))
+    //     .on('data', (data: []) => {
+    //       console.log(data);
+    //       const trimmedData = Object.fromEntries(
+    //         Object.entries(data).map(([key, value]: [string, string]) => [
+    //           key.trim(),
+    //           value.trim(),
+    //         ]),
+    //       );
 
-          results.push(trimmedData);
+    //       results.push(trimmedData);
+    //     })
+    //     .on('end', () => resolve(results))
+    //     .on('error', reject);
+    // });
+
+    const resultData: any[] = await new Promise((resolve, reject) => {
+      const results: any[] = [];
+      const headers: string[] = [];
+
+      bufferStream
+        .pipe(parse({ headers: false, delimiter: ',', quote: '"' }))
+        .on('data', (row: string[]) => {
+          if (headers.length === 0) {
+            row.forEach((header) => headers.push(header.trim()));
+          } else {
+            const rowData: any = {};
+            row.forEach((value, index) => {
+              const header = headers[index].trim();
+              if (!rowData[header]) {
+                rowData[header] = [value.trim()];
+              } else {
+                rowData[header].push(value.trim());
+              }
+            });
+
+            filterApplicantAndOwnerRowData(rowData);
+            results.push(rowData);
+          }
         })
         .on('end', () => resolve(results))
         .on('error', reject);
     });
 
+    console.log('thats a results', resultData);
     await Promise.all(
-      results.map(async (row: ICompanyCSVRowData) => {
+      resultData.map(async (row: ICompanyCSVRowData) => {
         const sanitizedCompanyData = await sanitizeData(row);
         await this.ParseCsvData(sanitizedCompanyData);
       }),

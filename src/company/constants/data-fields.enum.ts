@@ -19,6 +19,8 @@ export enum CompanyData {
 }
 
 export enum ParticipantData {
+  'Is Parent or Guardian' = 'beneficialOwner.isParentOrGuard',
+  'Is Exempt Entity' = 'exemptEntity.isExemptEntity',
   'FinCEN ID' = 'finCENID.finCENID',
   'Last or Legal Name' = 'personalInfo.lastOrLegalName',
   'First Name' = 'personalInfo.firstName',
@@ -38,12 +40,55 @@ export enum ParticipantData {
   'Local or Tribal' = 'identificationDetails.localOrTribal',
   'Other Local or Tribal Description' = 'identificationDetails.otherLocalOrTribalDesc',
   'Document Image' = 'identificationDetails.docImg',
-  'Is Parent or Guardian' = 'beneficialOwner.isParentOrGuard',
-  'Is Exempt Entity' = 'exemptEntity.isExemptEntity',
 }
 
 export enum UserData {
   'User FirstName' = 'firstName',
   'User Email' = 'email',
   'User LastName' = 'lastName',
+}
+
+export enum ApplicantData {
+  'Applicant FinCEN ID' = 'finCENID.finCENID',
+  'Applicant Last or Legal Name' = 'personalInfo.lastOrLegalName',
+  'Applicant First Name' = 'personalInfo.firstName',
+  'Applicant Middle Name' = 'personalInfo.middleName',
+  'Applicant Suffix' = 'personalInfo.suffix',
+  'Applicant Date of Birth' = 'personalInfo.dateOfBirth',
+  'Applicant Address Type' = 'address.type',
+  'Applicant Address' = 'address.address',
+  'Applicant City' = 'address.city',
+  'Applicant Country/Jurisdiction' = 'address.countryOrJurisdiction',
+  'Applicant State' = 'address.state',
+  'Applicant Postal Code' = 'address.postalCode',
+  'Applicant Document Type' = 'identificationDetails.docType',
+  'Applicant Document Number' = 'identificationDetails.docNumber',
+  'Applicant Document Country/Jurisdiction' = 'identificationDetails.countryOrJurisdiction',
+  'Applicant Document State' = 'identificationDetails.state',
+  'Applicant Local or Tribal' = 'identificationDetails.localOrTribal',
+  'Applicant Other Local or Tribal Description' = 'identificationDetails.otherLocalOrTribalDesc',
+  'Applicant Document Image' = 'identificationDetails.docImg',
+}
+
+export enum OwnerData {
+  'Owner Is Parent or Guardian' = 'beneficialOwner.isParentOrGuard',
+  'Owner Is Exempt Entity' = 'exemptEntity.isExemptEntity',
+  'Owner FinCEN ID' = 'finCENID.finCENID',
+  'Owner Last or Legal Name' = 'personalInfo.lastOrLegalName',
+  'Owner First Name' = 'personalInfo.firstName',
+  'Owner Middle Name' = 'personalInfo.middleName',
+  'Owner Suffix' = 'personalInfo.suffix',
+  'Owner Date of Birth' = 'personalInfo.dateOfBirth',
+  'Owner Address' = 'address.address',
+  'Owner City' = 'address.city',
+  'Owner Country/Jurisdiction' = 'address.countryOrJurisdiction',
+  'Owner State' = 'address.state',
+  'Owner Postal Code' = 'address.postalCode',
+  'Owner Document Type' = 'identificationDetails.docType',
+  'Owner Document Number' = 'identificationDetails.docNumber',
+  'Owner Document Country/Jurisdiction' = 'identificationDetails.countryOrJurisdiction',
+  'Owner Document State' = 'identificationDetails.state',
+  'Owner Local or Tribal' = 'identificationDetails.localOrTribal',
+  'Owner Other Local or Tribal Description' = 'identificationDetails.otherLocalOrTribalDesc',
+  'Owner Document Image' = 'identificationDetails.docImg',
 }

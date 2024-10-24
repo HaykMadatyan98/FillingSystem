@@ -93,6 +93,10 @@ export class UserService {
       })
       .select('-companies.forms');
 
+    if (!user) {
+      throw new NotFoundException(userResponseMsgs.notFound);
+    }
+
     return await this.companyService.getCompaniesByIds(user.companies);
   }
 
