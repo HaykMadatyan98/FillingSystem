@@ -35,7 +35,7 @@ export async function sanitizeData(data: any): Promise<{
   const ownerKeys = Object.keys(OwnerData) as (keyof typeof OwnerData)[];
 
   function convertValue(key: string, value: string) {
-    if (key === 'taxIdNumber') {
+    if (key === 'taxIdNumber' || key === 'finCENID') {
       return Number(value);
     } else if (key === 'dateOfBirth') {
       return value ? new Date(value) : undefined;
@@ -115,7 +115,7 @@ export async function sanitizeData(data: any): Promise<{
 
   const errorData = await validateData(sanitized);
   const { reasons, companyDeleted } = await clearWrongFields(sanitized);
-  
+
   return {
     sanitized: companyDeleted ? null : sanitized,
     reasons,

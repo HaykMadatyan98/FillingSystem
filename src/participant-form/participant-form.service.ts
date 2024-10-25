@@ -73,7 +73,7 @@ export class ParticipantFormService {
       );
     }
 
-    return [isApplicant, participant.id as string, requiredFieldsCount];
+    return [isApplicant, participant.id as string, requiredFieldsCount]
   }
 
   async changeParticipantForm(

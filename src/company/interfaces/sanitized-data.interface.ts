@@ -39,7 +39,7 @@ interface IRepCompanyInfo {
 export interface IParticipantData {
   isApplicant: boolean;
   finCENID?: {
-    finCENID: string;
+    finCENID: number;
   };
   personalInfo?: IPersonalInfo;
   address?: IAddress;

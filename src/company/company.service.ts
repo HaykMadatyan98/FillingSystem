@@ -69,7 +69,6 @@ export class CompanyService {
     //   bufferStream
     //     .pipe(csvParser({ separator: ',', quote: '"' }))
     //     .on('data', (data: []) => {
-    //       console.log(data);
     //       const trimmedData = Object.fromEntries(
     //         Object.entries(data).map(([key, value]: [string, string]) => [
     //           key.trim(),
@@ -241,8 +240,7 @@ export class CompanyService {
 
       return;
     }
-
-    const isExistingCompany = sanitized.company.isExistingCompany;
+    const isExistingCompany = sanitized.company.isExistingCompany || false;
     delete sanitized.company.isExistingCompany;
 
     const ownersIds = [];
@@ -258,29 +256,33 @@ export class CompanyService {
       return;
     }
 
-    const participantsData = await Promise.all(
-      sanitized.participants.map((participant) => {
-        if (
-          !participant.isApplicant ||
-          (participant.isApplicant && !isExistingCompany)
-        ) {
-          return this.participantFormService.createParticipantFormFromCsv(
-            participant,
-            missingFields,
-          );
+    const participantsData = (
+      await Promise.all(
+        sanitized.participants.map((participant) => {
+          if (
+            !participant.isApplicant ||
+            (participant.isApplicant && !isExistingCompany)
+          ) {
+            return this.participantFormService.createParticipantFormFromCsv(
+              participant,
+              missingFields,
+            );
+          }
+        }),
+      )
+    ).filter(Boolean);
+
+    if (participantsData && participantsData.length) {
+      participantsData.forEach((participant) => {
+        if (participant[0]) {
+          applicantsIds.push(participant[1]);
+        } else {
+          ownersIds.push(participant[1]);
         }
-      }),
-    );
 
-    participantsData.forEach((participant) => {
-      if (participant[0]) {
-        applicantsIds.push(participant[1]);
-      } else {
-        ownersIds.push(participant[1]);
-      }
-
-      answerCount += participant[2];
-    });
+        answerCount += participant[2];
+      });
+    }
 
     const companyForm = await this.companyFormService.createCompanyFormFromCsv(
       sanitized.company,
