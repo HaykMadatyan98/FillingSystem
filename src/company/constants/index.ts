@@ -1,5 +1,10 @@
 export { companyResponseMsgs } from './company-responses';
-export { AllCountryEnum, ForeignCountryEnum } from './country.enum';
+export {
+  AllCountryEnum,
+  ForeignCountryEnum,
+  UNITED_STATES,
+  countriesWithStates,
+} from './country.enum';
 export {
   ApplicantData,
   CompanyData,

@@ -11,8 +11,7 @@ import { validateData } from './validator.util';
 
 export async function sanitizeData(
   data: ICompanyCSVRowData,
-): Promise<ISanitizedData> {
-  // console.log(data);
+): Promise<{ sanitized: ISanitizedData; resultMessage: string }> {
   const sanitized: ISanitizedData = {
     user: {} as ICsvUser,
     company: {} as ICompanyData,
@@ -158,5 +157,8 @@ export async function sanitizeData(
 
   await validateData(sanitized);
 
-  return sanitized;
+  return {
+    sanitized,
+    resultMessage: `${sanitized.company.names.legalName || 'Company'} data could not be added due to missing or incorrect information.`,
+  };
 }

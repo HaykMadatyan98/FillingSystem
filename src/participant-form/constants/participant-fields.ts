@@ -1,4 +1,4 @@
-export const ApplicantFields = {
+export const applicantFormFields = {
   finCENID: {
     finCENID: 'Applicant FinCEN ID',
   },
@@ -28,7 +28,7 @@ export const ApplicantFields = {
   },
 };
 
-export const OwnerFields = {
+export const ownerFormFields = {
   beneficialOwner: {
     isParentOrGuard: 'Owner Is Parent or Guardian',
   },

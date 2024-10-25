@@ -1,6 +1,10 @@
 import { IRequestUser } from '@/auth/interfaces/request.interface';
 import { CompanyService } from '@/company/company.service';
-import { requiredCompanyFields } from '@/company/constants';
+import {
+  countriesWithStates,
+  requiredCompanyFields,
+  UNITED_STATES,
+} from '@/company/constants';
 import { TRResponseMsg } from '@/participant-form/interfaces';
 import { calculateRequiredFieldsCount } from '@/utils/req-field.util';
 import {
@@ -40,9 +44,8 @@ export class CompanyFormService {
 
     companyData.answerCount = answerCount;
 
-    const missingFormData = await this.getCompanyFormMissingFields(companyData);
-
     await companyData.save();
+    const missingFormData = await this.getCompanyFormMissingFields(companyData);
     return {
       id: companyData._id,
       companyName: companyData.names.legalName,
@@ -117,7 +120,7 @@ export class CompanyFormService {
         await this.getCompanyFormMissingFields(companyData);
     }
 
-    console.log(missingCompanyForm);
+
     return {
       message: companyFormResponseMsgs.companyFormUpdated,
     };
@@ -179,20 +182,63 @@ export class CompanyFormService {
               companyForm[topLevelKey][lowLevelKey] === undefined ||
               companyForm[topLevelKey][lowLevelKey] === null
             ) {
-              if (
-                !(
-                  topLevelKey === 'taxInfo' &&
-                  lowLevelKey === 'countryOrJurisdiction' &&
-                  companyForm[topLevelKey]['taxIdType'] !== 'Foreign'
-                )
-              ) {
+              if (topLevelKey === 'taxInfo') {
+                if (lowLevelKey === 'countryOrJurisdiction') {
+                  if (companyForm[topLevelKey]['taxIdType'] === 'Foreign') {
+                    missingFields.push(
+                      companyFormFields[topLevelKey][lowLevelKey],
+                    );
+                  }
+                } else {
+                  missingFields.push(
+                    companyFormFields[topLevelKey][lowLevelKey],
+                  );
+                }
+              } else if (topLevelKey === 'formationJurisdiction') {
+                if (lowLevelKey === 'countryOrJurisdictionOfFormation') {
+                  missingFields.push(
+                    companyFormFields[topLevelKey][lowLevelKey],
+                  );
+                } else if (lowLevelKey === 'stateOfFormation') {
+                  if (
+                    countriesWithStates.includes(
+                      companyForm[topLevelKey][
+                        'countryOrJurisdictionOfFormation'
+                      ],
+                    ) &&
+                    companyForm[topLevelKey][
+                      'countryOrJurisdictionOfFormation'
+                    ] === UNITED_STATES
+                  ) {
+                    missingFields.push(
+                      companyFormFields[topLevelKey][lowLevelKey],
+                    );
+                  }
+                } else if (
+                  lowLevelKey === 'tribalJurisdiction' &&
+                  companyForm[topLevelKey][
+                    'countryOrJurisdictionOfFormation'
+                  ] === UNITED_STATES
+                ) {
+                  missingFields.push(
+                    companyFormFields[topLevelKey][lowLevelKey],
+                  );
+                } else if (
+                  lowLevelKey === 'nameOfOtherTribal' &&
+                  companyForm[topLevelKey]['tribalJurisdiction'] === 'Other'
+                ) {
+                  missingFields.push(
+                    companyFormFields[topLevelKey][lowLevelKey],
+                  );
+                }
+              } else {
                 missingFields.push(companyFormFields[topLevelKey][lowLevelKey]);
               }
             }
           });
+        } else {
+          missingFields.push(companyFormFields[topLevelKey]);
         }
-      } else {
-        missingFields.push(companyFormFields[topLevelKey]);
       }
     });
 

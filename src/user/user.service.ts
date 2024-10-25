@@ -147,6 +147,10 @@ export class UserService {
       user = await this.userModel.findById(userId);
     }
 
+    if (!email && !userId) {
+      return false;
+    }
+
     if (user) {
       user = await this.userModel.findOneAndUpdate(
         { _id: user._id },

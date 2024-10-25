@@ -11,12 +11,13 @@ import {
   ISanitizedData,
 } from '@/company/interfaces';
 import { ICsvUser } from '@/company/interfaces/sanitized-data.interface';
-import { BadRequestException } from '@nestjs/common';
 import { clearWrongFields, validateData } from './validator.util';
 
-export async function sanitizeData(
-  data: any,
-): Promise<{ sanitized: ISanitizedData; errorData: any; reasons: any }> {
+export async function sanitizeData(data: any): Promise<{
+  sanitized: ISanitizedData;
+  errorData: any;
+  reasons: any;
+}> {
   const sanitized: ISanitizedData = {
     user: {} as ICsvUser,
     company: {} as ICompanyData,
@@ -25,10 +26,6 @@ export async function sanitizeData(
       ? new Date(data['BOIR Submission Deadline'][0])
       : null,
   };
-
-  if (sanitized.BOIRExpTime && isNaN(sanitized.BOIRExpTime.getTime())) {
-    throw new BadRequestException('Invalid expiration time format.');
-  }
 
   const companyKeys = Object.keys(CompanyData) as (keyof typeof CompanyData)[];
   const userKeys = Object.keys(UserData) as (keyof typeof UserData)[];
@@ -86,7 +83,7 @@ export async function sanitizeData(
     }
   });
 
-  const applicantCount = data['Applicant First Name']?.length;
+  const applicantCount = data['Applicant Document Type']?.length;
   for (let i = 0; i < applicantCount; i++) {
     const participant: any = { isApplicant: true };
 
@@ -117,7 +114,11 @@ export async function sanitizeData(
   }
 
   const errorData = await validateData(sanitized);
-  const reasons = await clearWrongFields(sanitized);
-
-  return { sanitized, reasons, errorData };
+  const { reasons, companyDeleted } = await clearWrongFields(sanitized);
+  
+  return {
+    sanitized: companyDeleted ? null : sanitized,
+    reasons,
+    errorData,
+  };
 }

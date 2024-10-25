@@ -22,6 +22,9 @@ export interface ICompanyData {
   };
   formationJurisdiction?: {
     countryOrJurisdictionOfFormation: string;
+    stateOfFormation?: string;
+    tribalJurisdiction?: string;
+    nameOfOtherTribal?: string;
   };
   address?: IAddress;
   repCompanyInfo?: IRepCompanyInfo;

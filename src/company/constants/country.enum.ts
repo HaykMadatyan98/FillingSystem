@@ -490,3 +490,16 @@ export enum AllCountryEnum {
   ZM = 'Zambia',
   ZW = 'Zimbabwe',
 }
+
+export const UNITED_STATES = 'United States of America';
+
+export const countriesWithStates = [
+  'American Samoa',
+  'Guam',
+  'Marshall Islands',
+  'Micronesia, Federated States',
+  'Northern Mariana Islands',
+  'Palau',
+  'Puerto Rico',
+  'U.S. Virgin Islands',
+];

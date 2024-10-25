@@ -2,8 +2,10 @@ import { IRequestUser } from '@/auth/interfaces/request.interface';
 import { companyFormResponseMsgs } from '@/company-form/constants';
 import { CompanyService } from '@/company/company.service';
 import {
+  countriesWithStates,
   requiredApplicantFields,
   requiredOwnerFields,
+  UNITED_STATES,
 } from '@/company/constants';
 import { calculateRequiredFieldsCount } from '@/utils/req-field.util';
 import {
@@ -14,7 +16,11 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { participantFormResponseMsgs } from './constants';
+import {
+  applicantFormFields,
+  ownerFormFields,
+  participantFormResponseMsgs,
+} from './constants';
 import {
   TRCreateParticipantByCSV,
   TRResponseMsg,
@@ -39,6 +45,7 @@ export class ParticipantFormService {
 
   async createParticipantFormFromCsv(
     companyParticipantData: any,
+    missingFields: any,
   ): TRCreateParticipantByCSV {
     const isApplicant = companyParticipantData.isApplicant;
 
@@ -56,6 +63,16 @@ export class ParticipantFormService {
     participant.answerCount = requiredFieldsCount;
     await participant.save();
 
+    if (!missingFields[isApplicant ? 'applicants' : 'owners']) {
+      missingFields[isApplicant ? 'applicants' : 'owners'] = [
+        await this.getParticipantFormMissingFields(participant, isApplicant),
+      ];
+    } else {
+      missingFields[isApplicant ? 'applicants' : 'owners'].push(
+        await this.getParticipantFormMissingFields(participant, isApplicant),
+      );
+    }
+
     return [isApplicant, participant.id as string, requiredFieldsCount];
   }
 
@@ -64,9 +81,10 @@ export class ParticipantFormService {
     participantFormId: string,
     isApplicant: boolean,
     companyId: string,
-    user?: IRequestUser,
+    user?: IRequestUser | boolean,
+    missingFields?: any,
   ): Promise<any> {
-    if (user) {
+    if (user && typeof user !== 'boolean') {
       await this.companyService.checkUserCompanyPermission(
         user,
         participantFormId,
@@ -103,9 +121,22 @@ export class ParticipantFormService {
     );
 
     await participant.save();
+
+    if (missingFields) {
+      if (!missingFields[isApplicant ? 'applicants' : 'owners']) {
+        missingFields[isApplicant ? 'applicants' : 'owners'] = [
+          await this.getParticipantFormMissingFields(participant, isApplicant),
+        ];
+      } else {
+        missingFields[isApplicant ? 'applicants' : 'owners'].push(
+          await this.getParticipantFormMissingFields(participant, isApplicant),
+        );
+      }
+    }
+
     return {
       participant,
-      message: participantFormResponseMsgs.participantChanged,
+      message: participantFormResponseMsgs.changed,
     };
   }
 
@@ -185,7 +216,7 @@ export class ParticipantFormService {
 
     return {
       participantForm,
-      message: participantFormResponseMsgs.participantRetrieved,
+      message: participantFormResponseMsgs.retrieved,
     };
   }
 
@@ -207,12 +238,10 @@ export class ParticipantFormService {
       : await this.ownerFormModel.findByIdAndDelete(participantFormId);
 
     if (!participantForm) {
-      throw new NotFoundException(
-        participantFormResponseMsgs.participantFormNotFound,
-      );
+      throw new NotFoundException(participantFormResponseMsgs.formNotFound);
     }
 
-    return { message: participantFormResponseMsgs.participantDeleted };
+    return { message: participantFormResponseMsgs.deleted };
   }
 
   private async uploadAnImageToTheCloud(
@@ -245,7 +274,7 @@ export class ParticipantFormService {
       company['id'],
     );
 
-    return { message: participantFormResponseMsgs.participantChanged };
+    return { message: participantFormResponseMsgs.changed };
   }
 
   async uploadAnImageAndCreate(
@@ -279,7 +308,7 @@ export class ParticipantFormService {
     await company.save();
 
     return {
-      message: participantFormResponseMsgs.participantCreated,
+      message: participantFormResponseMsgs.created,
       participantId: createdParticipant['id'],
     };
   }
@@ -320,8 +349,64 @@ export class ParticipantFormService {
     );
 
     return {
-      message: participantFormResponseMsgs.participantsRetrieved,
+      message: participantFormResponseMsgs.retrieved,
       allParticipants,
     };
+  }
+
+  async getParticipantFormMissingFields(
+    participantForm: ApplicantFormDocument | OwnerFormDocument,
+    isApplicant: boolean,
+  ) {
+    const formFields = isApplicant ? applicantFormFields : ownerFormFields;
+    const topLevelKeys = Object.keys(formFields);
+    const missingFields: string[] = [];
+
+    topLevelKeys.forEach((topLevelKey) => {
+      if (participantForm[topLevelKey]) {
+        Object.keys(formFields[topLevelKey]).forEach((lowLevelKey) => {
+          if (
+            participantForm[topLevelKey][lowLevelKey] === '' ||
+            participantForm[topLevelKey][lowLevelKey] === undefined ||
+            participantForm[topLevelKey][lowLevelKey] === null
+          ) {
+            if (
+              topLevelKey === 'identificationDetails' &&
+              (lowLevelKey !== 'docImg' || 'docNumber' || 'docType')
+            ) {
+              if (
+                lowLevelKey === 'state' ||
+                lowLevelKey === 'localOrTribal' ||
+                (lowLevelKey === 'otherLocalOrTribalDesc' &&
+                  participantForm[topLevelKey]['countryOrJurisdiction'] ===
+                    UNITED_STATES)
+              ) {
+                if (
+                  (lowLevelKey === 'state' &&
+                    !participantForm[topLevelKey].localOrTribal) ||
+                  (lowLevelKey === 'localOrTribal' &&
+                    !participantForm[topLevelKey].state) ||
+                  (lowLevelKey === 'otherLocalOrTribalDesc' &&
+                    participantForm[topLevelKey].localOrTribal === 'Other')
+                ) {
+                  missingFields.push(formFields[topLevelKey][lowLevelKey]);
+                }
+              } else if (
+                lowLevelKey === 'state' &&
+                countriesWithStates.includes(
+                  participantForm[topLevelKey]['countryOrJurisdiction'],
+                )
+              ) {
+                missingFields.push(formFields[topLevelKey][lowLevelKey]);
+              }
+            } else {
+              missingFields.push(formFields[topLevelKey][lowLevelKey]);
+            }
+          }
+        });
+      }
+    });
+
+    return missingFields;
   }
 }

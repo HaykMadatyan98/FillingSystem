@@ -55,40 +55,40 @@ export class MailService {
     }
   }
 
-  async sendInvitationEmailToFormFillers(data: IUserInvitationEmail[]) {
-    const emailPromises = data.map(
-      async ({ email, companyName, fullName, isNewCompany }) => {
-        try {
-          const templatePath = path.join(
-            path.resolve(),
-            `/src/mail/templates/${isNewCompany ? 'invitation' : 'change-notification'}.hbs`,
-          );
+  async sendInvitationEmailToFormFiller(data: IUserInvitationEmail) {
+    const { email, companyName, fullName, isNewCompany } = data;
+    if (!email) {
+      return;
+    }
 
-          const template = fs.readFileSync(templatePath, 'utf-8');
-          const compiledFile = Handlebars.compile(template);
-          const htmlContent = compiledFile({ companyName, fullName });
-          const mail: SendGrid.MailDataRequired = {
-            to: email,
-            from: this.emailFrom,
-            subject: 'Mail for BOIR Filler',
-            html: htmlContent,
-          };
+    try {
+      const templatePath = path.join(
+        path.resolve(),
+        `/src/mail/templates/${isNewCompany ? 'invitation' : 'change-notification'}.hbs`,
+      );
 
-          await SendGrid.send(mail);
-        } catch (error) {
-          console.log(error);
-          throw new HttpException(
-            {
-              status: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-              error: error.message || 'An unexpected error occurred',
-            },
-            HttpStatus.INTERNAL_SERVER_ERROR,
-          );
-          // catch error and save data into db
-        }
-      },
-    );
-    await Promise.all(emailPromises);
+      const template = fs.readFileSync(templatePath, 'utf-8');
+      const compiledFile = Handlebars.compile(template);
+      const htmlContent = compiledFile({ companyName, fullName });
+      const mail: SendGrid.MailDataRequired = {
+        to: email,
+        from: this.emailFrom,
+        subject: 'Mail for BOIR Filler',
+        html: htmlContent,
+      };
+
+      await SendGrid.send(mail);
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        {
+          status: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+          error: error.message || 'An unexpected error occurred',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+      // catch error and save data into db
+    }
   }
 
   async sendInvitationEmail(email: string, userName: string): Promise<void> {

@@ -199,7 +199,7 @@ export class OwnerFormController {
     summary: 'Get all user companies applicant information',
   })
   @ApiOkResponse({
-    description: participantFormResponseMsgs.participantRetrieved,
+    description: participantFormResponseMsgs.retrieved,
   })
   @UseGuards(AccessTokenGuard)
   @ApiBearerAuth()

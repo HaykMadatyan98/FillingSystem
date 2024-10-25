@@ -16,6 +16,8 @@ export const companyFormFields = {
     countryOrJurisdictionOfFormation:
       'Company Country/Jurisdiction of Formation',
     stateOfFormation: 'Company State of Formation',
+    tribalJurisdiction: 'Company Tribal Jurisdiction of Formation',
+    nameOfOtherTribal: 'Company Name of Other Tribal',
   },
   address: {
     address: 'Company Address',

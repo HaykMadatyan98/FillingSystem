@@ -113,26 +113,48 @@ export class CompanyService {
 
     const allErrors = [];
     const allReasons = [];
-    const missingFields = [];
+    const allMissingFields = [];
+    const companiesResults = [];
     await Promise.all(
       resultData.map(async (row: ICompanyCSVRowData) => {
         const { sanitized, errorData, reasons } = await sanitizeData(row);
         allErrors.push(errorData);
         allReasons.push(reasons);
-        missingFields.push(await this.ParseCsvData(sanitized));
+        if (sanitized) {
+          const changedCompanyData = await this.ParseCsvData(
+            sanitized,
+            allReasons,
+          );
+          if (!changedCompanyData) {
+            companiesResults.push(
+              `${sanitized.company.names.legalName || 'Company'} data could not be added due to missing or incorrect information.`,
+            );
+            return;
+          }
+
+          companiesResults.push(
+            `${sanitized.company.names.legalName || 'Company'} created/changed`,
+          );
+          allMissingFields.push(changedCompanyData);
+        } else {
+          companiesResults.push(
+            `${sanitized.company.names.legalName || 'Company'} data could not be added due to missing or incorrect information.`,
+          );
+        }
       }),
     );
 
     return {
       message: companyResponseMsgs.csvUploadSuccessful,
       errors: allErrors,
-      reasons: allReasons,
-      missingFields,
+      problemReasons: allReasons,
+      currentMissingFields: allMissingFields,
+      companiesResultsMessage: companiesResults,
     };
   }
 
-  private async ParseCsvData(sanitized: ISanitizedData) {
-    const missingFields = {};
+  private async ParseCsvData(sanitized: ISanitizedData, errorReasons: any) {
+    const missingFields: any = {};
     const companyFormData =
       await this.companyFormService.getCompanyFormByTaxData(
         sanitized.company.taxInfo.taxIdNumber,
@@ -146,14 +168,24 @@ export class CompanyService {
         'forms.company': companyFormId,
       }));
 
-    const userEmailData: IUserInvitationEmail[] = [];
+    const userEmailData: IUserInvitationEmail = {
+      email: '',
+      fullName: '',
+      companyName: '',
+      isNewCompany: true,
+    };
 
     if (!company) {
       company = await this.createNewCompanyFromCsv(
         sanitized,
         userEmailData,
         missingFields,
+        errorReasons,
       );
+
+      if (!company) {
+        return;
+      }
     } else {
       await this.changeCompanyByCsv(
         company,
@@ -178,27 +210,36 @@ export class CompanyService {
       (company.user as unknown as string) || null,
     );
 
-    if (!company.user) {
+    if (!company.user && user) {
       company.user = user['id'];
     }
 
     await company.save();
-    await this.mailService.sendInvitationEmailToFormFillers(userEmailData);
-    console.log(missingFields, 'missingFields');
+
+    if (user) {
+      userEmailData.email = user.email;
+      userEmailData.fullName = `${user.firstName} ${user.lastName}`;
+      await this.mailService.sendInvitationEmailToFormFiller(userEmailData);
+    }
+
     return missingFields;
   }
 
   private async createNewCompanyFromCsv(
     sanitized: ISanitizedData,
-    userEmailData: any[],
+    userEmailData: IUserInvitationEmail,
     missingFields: any,
+    errorReasons: any,
   ) {
     let company = null;
 
     if (!sanitized.BOIRExpTime) {
-      throw new BadRequestException(
-        companyResponseMsgs.expirationTimeIsMissing,
-      );
+      errorReasons.push({
+        fields: 'BOIR Submission Deadline',
+        problemDesc: 'BOIR expiration time is required for company creating',
+      });
+
+      return;
     }
 
     const isExistingCompany = sanitized.company.isExistingCompany;
@@ -209,7 +250,12 @@ export class CompanyService {
     let answerCount = 0;
 
     if (!sanitized.company.names.legalName) {
-      throw new BadRequestException(companyResponseMsgs.companyNameMissing);
+      errorReasons.push({
+        fields: 'Company LegalName',
+        problemDesc: companyResponseMsgs.companyNameMissing,
+      });
+
+      return;
     }
 
     const participantsData = await Promise.all(
@@ -220,6 +266,7 @@ export class CompanyService {
         ) {
           return this.participantFormService.createParticipantFormFromCsv(
             participant,
+            missingFields,
           );
         }
       }),
@@ -253,12 +300,9 @@ export class CompanyService {
 
     company.answersCount = answerCount;
     company.reqFieldsCount = this.calculateReqFieldsCount(company);
-    userEmailData.push({
-      companyName: company.name,
-      email: sanitized.user.email,
-      fullName: `${sanitized.user.firstName} ${sanitized.user.lastName}`,
-      isNewCompany: true,
-    });
+
+    (userEmailData.companyName = company.name),
+      (userEmailData.isNewCompany = true);
 
     return company;
   }
@@ -267,7 +311,7 @@ export class CompanyService {
     company: CompanyDocument,
     companyFormId: string,
     sanitized: ISanitizedData,
-    userEmailData: IUserInvitationEmail[],
+    userEmailData: IUserInvitationEmail,
     missingFields: { company?: string[] },
   ) {
     await this.companyFormService.updateCompanyForm(
@@ -294,11 +338,14 @@ export class CompanyService {
             existParticipant['id'],
             participant['isApplicant'],
             company['id'],
+            false,
+            missingFields,
           );
         } else {
           const newParticipant =
             await this.participantFormService.createParticipantFormFromCsv(
               participant,
+              missingFields,
             );
           // eslint-disable-next-line @typescript-eslint/no-unused-expressions
           newParticipant[0]
@@ -314,12 +361,8 @@ export class CompanyService {
       company.user as unknown as string,
     );
 
-    userEmailData.push({
-      companyName: company.name,
-      email: user.email,
-      fullName: `${user.firstName} ${user.lastName}`,
-      isNewCompany: false,
-    });
+    userEmailData.companyName = company.name;
+    userEmailData.isNewCompany = false;
     company.isSubmitted = false;
     await Promise.all(participantPromises);
   }
@@ -331,28 +374,6 @@ export class CompanyService {
 
     return companies;
   }
-
-  // need some changes after admin part creating
-  // async createNewCompany(payload: any) {
-  //   const existCompanyForm =
-  //     await this.companyFormService.getCompanyFormByTaxData(
-  //       payload.taxIdNumber,
-  //       payload.taxIdType,
-  //     );
-
-  //   if (existCompanyForm) {
-  //     throw new ConflictException(companyResponseMsgs.companyWasCreated);
-  //   }
-
-  //   const newCompanyForm = await this.companyFormService.create(payload);
-  //   const newCompany = new this.companyModel();
-  //   newCompany['forms.company'] = newCompanyForm['id'];
-  //   newCompany['reqFieldsCount'] = 9;
-
-  //   await newCompany.save();
-
-  //   return { message: companyResponseMsgs.companyCreated };
-  // }
 
   async deleteCompanyById(companyId: string): Promise<{ message: string }> {
     const company = await this.companyModel.findById(companyId);
@@ -714,12 +735,25 @@ export class CompanyService {
     return true;
   }
 
-  async calculateCompanyFields(company: CompanyDocument) {
-    await company.populate({ path: 'forms.owners', model: 'OwnerForm' });
-    await company.populate({
-      path: 'forms.applicants',
-      model: 'ApplicantForm',
-    });
-    await company.populate({ path: 'forms.company', model: 'CompanyForm' });
-  }
+  // need some changes after admin part creating
+  // async createNewCompany(payload: any) {
+  //   const existCompanyForm =
+  //     await this.companyFormService.getCompanyFormByTaxData(
+  //       payload.taxIdNumber,
+  //       payload.taxIdType,
+  //     );
+
+  //   if (existCompanyForm) {
+  //     throw new ConflictException(companyResponseMsgs.companyWasCreated);
+  //   }
+
+  //   const newCompanyForm = await this.companyFormService.create(payload);
+  //   const newCompany = new this.companyModel();
+  //   newCompany['forms.company'] = newCompanyForm['id'];
+  //   newCompany['reqFieldsCount'] = 9;
+
+  //   await newCompany.save();
+
+  //   return { message: companyResponseMsgs.companyCreated };
+  // }
 }

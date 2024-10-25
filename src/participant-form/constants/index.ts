@@ -1,20 +1,20 @@
-export { ApplicantFields, OwnerFields } from './participant-fields';
+export { applicantFormFields, ownerFormFields } from './participant-fields';
 type ParticipantFormResponseKeys =
-  | 'participantFormNotFound'
-  | 'participantChanged'
-  | 'participantDeleted'
-  | 'participantCreated'
-  | 'participantRetrieved'
-  | 'participantsRetrieved';
+  | 'formNotFound'
+  | 'changed'
+  | 'deleted'
+  | 'created'
+  | 'allRetrieved'
+  | 'retrieved';
 
 export const participantFormResponseMsgs: Record<
   ParticipantFormResponseKeys,
   string
 > = {
-  participantFormNotFound: 'participant form not found',
-  participantChanged: 'participant data was changed',
-  participantDeleted: 'participant form successfully deleted',
-  participantCreated: 'participant form successfully created',
-  participantsRetrieved: 'Participants retrieved successfully',
-  participantRetrieved: 'Participant data retrieved successfully',
+  formNotFound: 'Form not found',
+  changed: 'Data was changed',
+  deleted: 'Form successfully deleted',
+  created: 'Form successfully created',
+  allRetrieved: 'All data retrieved successfully',
+  retrieved: 'Data retrieved successfully',
 };
