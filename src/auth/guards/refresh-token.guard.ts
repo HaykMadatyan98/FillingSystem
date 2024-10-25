@@ -18,7 +18,7 @@ export class RefreshTokenGuard implements CanActivate {
       const user = this.jwtService.verify(refreshToken, {
         secret: this.configService.get<string>('TOKEN.refreshSecret'),
       });
-      
+
       request.user = { ...user, refreshToken };
       return true;
     } catch (err) {

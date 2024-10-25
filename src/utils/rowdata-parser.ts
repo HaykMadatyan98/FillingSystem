@@ -51,7 +51,7 @@ export const filterApplicantAndOwnerRowData = (rowData: any) => {
     );
 
     if (hasNonEmptyApplicant) {
-      applicantDataKeys.forEach((key, index) => {
+      applicantDataKeys.forEach((key) => {
         rowData[key] = rowData[key].filter((val) => val !== '');
       });
     } else {
@@ -71,7 +71,7 @@ export const filterApplicantAndOwnerRowData = (rowData: any) => {
     );
 
     if (hasNonEmptyOwner) {
-      ownerDataKeys.forEach((key, index) => {
+      ownerDataKeys.forEach((key) => {
         rowData[key] = rowData[key].filter((val) => val !== '');
       });
     } else {

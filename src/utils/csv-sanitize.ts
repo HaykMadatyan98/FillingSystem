@@ -4,7 +4,7 @@ import {
   OwnerData,
   UserData,
 } from '@/company/constants';
-import { } from '@/company/constants/data-fields.enum';
+import {} from '@/company/constants/data-fields.enum';
 import {
   ICompanyData,
   IParticipantData,
@@ -14,7 +14,9 @@ import { ICsvUser } from '@/company/interfaces/sanitized-data.interface';
 import { BadRequestException } from '@nestjs/common';
 import { clearWrongFields, validateData } from './validator.util';
 
-export async function sanitizeData(data: any): Promise<{sanitized: ISanitizedData, errorData: any, reasons: any}> {
+export async function sanitizeData(
+  data: any,
+): Promise<{ sanitized: ISanitizedData; errorData: any; reasons: any }> {
   const sanitized: ISanitizedData = {
     user: {} as ICsvUser,
     company: {} as ICompanyData,
@@ -117,5 +119,5 @@ export async function sanitizeData(data: any): Promise<{sanitized: ISanitizedDat
   const errorData = await validateData(sanitized);
   const reasons = await clearWrongFields(sanitized);
 
-  return {sanitized, reasons, errorData};
+  return { sanitized, reasons, errorData };
 }
