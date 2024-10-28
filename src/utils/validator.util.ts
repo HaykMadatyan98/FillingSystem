@@ -43,7 +43,7 @@ export async function validateData(data: any) {
   const applicants = [];
 
   data.participants.forEach((participant) => {
-    if (participant.isaApplicant) {
+    if (participant.isApplicant) {
       applicants.push(participant);
     } else {
       owners.push(participant);

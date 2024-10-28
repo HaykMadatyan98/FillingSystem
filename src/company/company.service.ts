@@ -117,8 +117,8 @@ export class CompanyService {
     await Promise.all(
       resultData.map(async (row: ICompanyCSVRowData) => {
         const { sanitized, errorData, reasons } = await sanitizeData(row);
-        allErrors.push(errorData);
-        allReasons.push(reasons);
+        if (Object.keys(errorData).length) allErrors.push(errorData);
+        if (Object.keys(reasons).length) allReasons.push(reasons);
         if (sanitized) {
           const changedCompanyData = await this.ParseCsvData(
             sanitized,
@@ -431,7 +431,6 @@ export class CompanyService {
 
   async findExpiringCompanies(days?: number) {
     const now = moment.utc();
-    console.log('Current date:', now.toISOString());
 
     const expirationFilter = days
       ? days === 7

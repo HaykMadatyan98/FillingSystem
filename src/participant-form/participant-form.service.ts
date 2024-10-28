@@ -73,7 +73,7 @@ export class ParticipantFormService {
       );
     }
 
-    return [isApplicant, participant.id as string, requiredFieldsCount]
+    return [isApplicant, participant.id as string, requiredFieldsCount];
   }
 
   async changeParticipantForm(
@@ -387,7 +387,8 @@ export class ParticipantFormService {
                   (lowLevelKey === 'localOrTribal' &&
                     !participantForm[topLevelKey].state) ||
                   (lowLevelKey === 'otherLocalOrTribalDesc' &&
-                    participantForm[topLevelKey].localOrTribal === 'Other')
+                    participantForm[topLevelKey].localOrTribal === 'Other' &&
+                    !participantForm[topLevelKey]['otherLocalOrTribalDesc'])
                 ) {
                   missingFields.push(formFields[topLevelKey][lowLevelKey]);
                 }

@@ -157,7 +157,7 @@ export class MailService {
             html: htmlContent,
           };
 
-          console.log(await SendGrid.send(mail));
+          await SendGrid.send(mail);
         }),
       );
     } catch (error) {
