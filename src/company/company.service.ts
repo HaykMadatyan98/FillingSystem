@@ -303,8 +303,8 @@ export class CompanyService {
     company.answersCount = answerCount;
     company.reqFieldsCount = this.calculateReqFieldsCount(company);
 
-    (userEmailData.companyName = company.name),
-      (userEmailData.isNewCompany = true);
+    userEmailData.companyName = company.name;
+    userEmailData.isNewCompany = true;
 
     return company;
   }
@@ -359,9 +359,7 @@ export class CompanyService {
       },
     );
 
-    const user = await this.userService.getUserById(
-      company.user as unknown as string,
-    );
+    await this.userService.getUserById(company.user as unknown as string);
 
     userEmailData.companyName = company.name;
     userEmailData.isNewCompany = false;
@@ -432,16 +430,40 @@ export class CompanyService {
   }
 
   async findExpiringCompanies(days?: number) {
-    const now = new Date();
+    const now = moment.utc();
+    console.log('Current date:', now.toISOString());
 
-    return this.companyModel
-      .find({
-        expirationDate: {
-          $lt: days ? moment(now).add(days, 'days').toDate() : now,
+    const expirationFilter = days
+      ? days === 7
+        ? {
+            $lt: now.clone().add(7, 'days').endOf('day').toDate(),
+            $gt: now.clone().add(1, 'days').endOf('day').toDate(),
+          }
+        : {
+            $lt: now.clone().add(1, 'days').endOf('day').toDate(),
+          }
+      : {
+          $lt: now.toDate(),
+        };
+
+    const companies = await this.companyModel
+      .find(
+        {
+          expTime: expirationFilter,
+          isPaid: false,
         },
+        {
+          name: 1,
+          _id: 0,
+        },
+      )
+      .populate({
+        path: 'user',
+        select: 'firstName lastName email',
       })
-      .populate('user', 'email')
-      .select('name user');
+      .exec();
+
+    return companies;
   }
 
   async getByParticipantId(
@@ -735,6 +757,32 @@ export class CompanyService {
     await company.save();
 
     return true;
+  }
+
+  async resetCompaniesStatus(): Promise<void> {
+    const currentDate = new Date();
+    const oneYearLater = new Date(
+      currentDate.setFullYear(currentDate.getFullYear() + 1),
+    ).toISOString();
+
+    await this.companyModel.updateMany(
+      {},
+      {
+        $set: {
+          isPaid: false,
+          isSubmitted: false,
+          expTime: {
+            $cond: {
+              if: { $ne: ['$expTime', null] },
+              then: {
+                $dateAdd: { startDate: '$expTime', unit: 'year', amount: 1 },
+              },
+              else: oneYearLater,
+            },
+          },
+        },
+      },
+    );
   }
 
   // need some changes after admin part creating

@@ -10,10 +10,16 @@ import { IUserInvitationEmail } from './interfaces/mail.interface';
 @Injectable()
 export class MailService {
   emailFrom: string;
+  adminFullName: string;
+  adminEmail: string;
 
   constructor(private readonly configService: ConfigService) {
     SendGrid.setApiKey(configService.get<string>('SENDGRID.apiKey'));
     this.emailFrom = configService.get<string>('SENDGRID.emailFrom');
+    this.adminFullName = `${this.configService.get<string>('ADMIN.firstName')} ${this.configService.get<string>(
+      'ADMIN.lastName',
+    )}`;
+    this.adminEmail = this.configService.get<string>('ADMIN.email');
   }
 
   async sendOTPtoEmail(
@@ -43,7 +49,8 @@ export class MailService {
         html: htmlContent,
       };
 
-      await SendGrid.send(mail);
+      const sendgirdData = await SendGrid.send(mail);
+      console.log(sendgirdData);
     } catch (error) {
       throw new HttpException(
         {
@@ -119,12 +126,17 @@ export class MailService {
   }
 
   async alertUserOfExpiringCompany(
-    companies: { name: string; user: { name: string; email: string } }[],
+    companies: {
+      name: string;
+      user: { firstName: string; lastName: string; email: string };
+    }[],
+    remainingDay: number,
   ): Promise<void> {
     try {
+      console.log('in alert notification', companies, remainingDay);
       const templatePath = path.join(
         path.resolve(),
-        '/src/mail/templates/oneTimePass.hbs',
+        '/src/mail/templates/warning-notification.hbs',
       );
 
       const template = fs.readFileSync(templatePath, 'utf-8');
@@ -133,8 +145,9 @@ export class MailService {
       await Promise.all(
         companies.map(async (company) => {
           const htmlContent = compiledFile({
-            userName: company.user.name,
+            fillerFullName: `${company.user.firstName} ${company.user.lastName}`,
             companyName: company.name,
+            remainingDays: remainingDay,
           });
 
           const mail: SendGrid.MailDataRequired = {
@@ -144,7 +157,7 @@ export class MailService {
             html: htmlContent,
           };
 
-          await SendGrid.send(mail);
+          console.log(await SendGrid.send(mail));
         }),
       );
     } catch (error) {
@@ -154,10 +167,9 @@ export class MailService {
   }
 
   async notifyAdminAboutExpiredCompanies(
-    companies: { name: string; user: { name: string; email: string } }[],
-    adminEmail: string,
+    companies: { user: { name: string; email: string } }[],
   ) {
-    console.log(companies, adminEmail);
+    console.log(companies);
     // implement in future
   }
 }

@@ -35,14 +35,15 @@ export async function sanitizeData(data: any): Promise<{
   const ownerKeys = Object.keys(OwnerData) as (keyof typeof OwnerData)[];
 
   function convertValue(key: string, value: string) {
-    if (key === 'taxIdNumber' || key === 'finCENID') {
+    if (key === 'taxIdNumber') {
       return Number(value);
     } else if (key === 'dateOfBirth') {
       return value ? new Date(value) : undefined;
-    } else if (value.toLowerCase() === 'true') {
-      return true;
-    } else if (value.toLowerCase() === 'false') {
-      return false;
+    } else if (
+      value.toLowerCase() === 'true' ||
+      value.toLowerCase() === 'false'
+    ) {
+      return value.toLowerCase() === 'true';
     } else if (key === 'altName') {
       return value.trim().split(',');
     }

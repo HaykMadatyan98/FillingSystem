@@ -10,23 +10,21 @@ import {
   IsBoolean,
   IsDate,
   IsEnum,
-  IsNumber,
   IsOptional,
   IsString,
-  Max,
-  Min,
+  Length,
+  Matches,
   ValidateNested,
 } from 'class-validator';
 
 export class FinCENIDDto {
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsNumber()
-  @Min(100_000_000_000)
-  @Max(999_999_999_999)
-  finCENID?: number;
+  @IsString()
+  @Matches(/^\d+$/)
+  @Length(12, 12)
+  finCENID?: string;
 }
-
 export class PersonalInformationDto {
   @ApiProperty({ required: false })
   @IsOptional()

@@ -11,6 +11,7 @@ import { GovernmentModule } from './government/government.module';
 import { MailModule } from './mail/mail.module';
 import { ParticipantFormModule } from './participant-form/participant-form.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
+import { SchedulerService } from './scheduler/scheduler.service';
 import { SeederService } from './seeders/admin/admin-seeder.service';
 import { TransactionModule } from './transaction/transaction.module';
 import { UserModule } from './user/user.module';
@@ -36,7 +37,7 @@ import { UserModule } from './user/user.module';
     ParticipantFormModule,
     AuthModule,
     MailModule,
-    SchedulerModule,
+    SchedulerModule.forRoot(),
     ThrottlerModule.forRoot([
       {
         ttl: 20 * 60_000,
@@ -52,6 +53,7 @@ import { UserModule } from './user/user.module';
       useClass: ThrottlerGuard,
     },
     SeederService,
+    SchedulerService,
   ],
 })
 export class AppModule implements OnModuleInit {

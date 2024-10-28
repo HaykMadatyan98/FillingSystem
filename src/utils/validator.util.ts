@@ -43,9 +43,11 @@ export async function validateData(data: any) {
   const applicants = [];
 
   data.participants.forEach((participant) => {
-    participant.isApplicant
-      ? applicants.push(participant)
-      : owners.push(participant);
+    if (participant.isaApplicant) {
+      applicants.push(participant);
+    } else {
+      owners.push(participant);
+    }
   });
 
   await validateTheData(
