@@ -190,6 +190,46 @@ export class OwnerFormController {
     );
   }
 
+  @Post('uploadAndUpdate/:participantId')
+  @UseInterceptors(FileInterceptor('docImg'))
+  @ApiConsumes('multipart/form-data')
+  @ApiParam({
+    name: 'participantId',
+    required: true,
+    description: 'ID of applicant which doc image will send',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        docImg: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
+  async uploadAnImageToTheCloudAndUpdate(
+    @Param('participantId') participantId: string,
+    @UploadedFile(
+      new ParseFilePipe({
+        fileIsRequired: true,
+        validators: [new FileTypeValidator({ fileType: '.(jpeg|png|jpg)' })],
+      }),
+    )
+    docImg: Express.Multer.File,
+    @Req() req: RequestWithUser,
+  ) {
+    return await this.participantFormService.updateDocImageInParticipantForm(
+      participantId,
+      docImg,
+      req.user,
+      false,
+    );
+  }
+
   @Get('/company/:userId')
   @ApiParam({
     required: true,

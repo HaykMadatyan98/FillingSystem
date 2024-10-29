@@ -1,4 +1,5 @@
 import { IRequestUser } from '@/auth/interfaces/request.interface';
+import { AzureService } from '@/azure/azure.service';
 import { companyFormResponseMsgs } from '@/company-form/constants';
 import { CompanyService } from '@/company/company.service';
 import {
@@ -41,6 +42,7 @@ export class ParticipantFormService {
     private applicantFormModel: Model<ApplicantFormDocument>,
     @Inject(forwardRef(() => CompanyService))
     private readonly companyService: CompanyService,
+    private readonly azureService: AzureService,
   ) {}
 
   async createParticipantFormFromCsv(
@@ -96,10 +98,19 @@ export class ParticipantFormService {
       ? await this.applicantFormModel.findById(participantFormId)
       : await this.ownerFormModel.findById(participantFormId);
 
+    console.log(participant, 'in change function');
     const requiredFieldsCountBefore = await calculateRequiredFieldsCount(
       participant,
       isApplicant ? requiredApplicantFields : requiredOwnerFields,
     );
+
+    if (
+      participantData.identificationDetails &&
+      participantData.identificationDetails.docImg &&
+      participant.identificationDetails.docImg
+    ) {
+      await this.azureService.delete(participant.identificationDetails.docImg);
+    }
 
     const updateDataKeys = Object.keys(participantData);
     for (const i of updateDataKeys) {
@@ -234,27 +245,33 @@ export class ParticipantFormService {
     }
 
     const participantForm = isApplicant
-      ? await this.applicantFormModel.findByIdAndDelete(participantFormId)
-      : await this.ownerFormModel.findByIdAndDelete(participantFormId);
+      ? await this.applicantFormModel.findById(participantFormId)
+      : await this.ownerFormModel.findById(participantFormId);
+
+    console.log(participantForm);
 
     if (!participantForm) {
       throw new NotFoundException(participantFormResponseMsgs.formNotFound);
     }
 
-    return { message: participantFormResponseMsgs.deleted };
-  }
+    const imageName = participantForm.identificationDetails?.docImg;
 
-  private async uploadAnImageToTheCloud(
-    file: Express.Multer.File,
-  ): Promise<string> {
-    console.log(file);
-    return 'exampleUrt123qww21';
+    if (imageName) {
+      await this.azureService.delete(imageName);
+    }
+
+    isApplicant
+      ? await this.applicantFormModel.findByIdAndDelete(participantFormId)
+      : await this.ownerFormModel.findByIdAndDelete(participantFormId);
+
+    return { message: participantFormResponseMsgs.deleted };
   }
 
   async updateDocImageInParticipantForm(
     participantId: string,
     docImg: Express.Multer.File,
     user: any,
+    isApplicant: boolean,
   ) {
     await this.companyService.checkUserCompanyPermission(
       user,
@@ -262,13 +279,15 @@ export class ParticipantFormService {
       'participantForm',
     );
 
-    const [isApplicant, company] =
-      await this.companyService.getByParticipantId(participantId);
+    const company = await this.companyService.getByParticipantId(
+      participantId,
+      isApplicant,
+    );
 
-    const docImgUrl = await this.uploadAnImageToTheCloud(docImg);
+    const docImgName = await this.azureService.uploadImage(docImg);
 
     await this.changeParticipantForm(
-      { identificationDetails: { docImgUrl } },
+      { identificationDetails: { docImg: docImgName } },
       participantId,
       isApplicant,
       company['id'],
@@ -292,13 +311,13 @@ export class ParticipantFormService {
 
     const { docNum, docType } = payload;
     const company = await this.companyService.getCompanyById(companyId);
-    const docImgUrl = await this.uploadAnImageToTheCloud(docImg);
+    const docImgName = await this.azureService.uploadImage(docImg);
     const createdParticipant = isApplicant
       ? await this.applicantFormModel.create({
-          identificationDetails: { docNum, docType, docImg: docImgUrl },
+          identificationDetails: { docNum, docType, docImg: docImgName },
         })
       : await this.applicantFormModel.create({
-          identificationDetails: { docNum, docType, docImg: docImgUrl },
+          identificationDetails: { docNum, docType, docImg: docImgName },
         });
 
     company.forms[`${isApplicant ? 'applicants' : 'owners'}`].push(
@@ -378,7 +397,7 @@ export class ParticipantFormService {
                 lowLevelKey === 'state' ||
                 lowLevelKey === 'localOrTribal' ||
                 (lowLevelKey === 'otherLocalOrTribalDesc' &&
-                  participantForm[topLevelKey]['countryOrJurisdiction'] ===
+                  participantForm[topLevelKey].countryOrJurisdiction ===
                     UNITED_STATES)
               ) {
                 if (
@@ -388,14 +407,14 @@ export class ParticipantFormService {
                     !participantForm[topLevelKey].state) ||
                   (lowLevelKey === 'otherLocalOrTribalDesc' &&
                     participantForm[topLevelKey].localOrTribal === 'Other' &&
-                    !participantForm[topLevelKey]['otherLocalOrTribalDesc'])
+                    !participantForm[topLevelKey].otherLocalOrTribalDesc)
                 ) {
                   missingFields.push(formFields[topLevelKey][lowLevelKey]);
                 }
               } else if (
                 lowLevelKey === 'state' &&
                 countriesWithStates.includes(
-                  participantForm[topLevelKey]['countryOrJurisdiction'],
+                  participantForm[topLevelKey].countryOrJurisdiction,
                 )
               ) {
                 missingFields.push(formFields[topLevelKey][lowLevelKey]);

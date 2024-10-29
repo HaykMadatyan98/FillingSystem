@@ -25,6 +25,16 @@ interface IAdminConfig {
   lastName: string;
 }
 
+interface IAzureConfig {
+  connectionString: string;
+  containerName: string;
+}
+
+interface IBOIApi {
+  clientSecret: string;
+  clientId: string;
+}
+
 export interface ConfigProps {
   NODE_ENV: string;
   STRIPE: IStripeConfig;
@@ -36,6 +46,8 @@ export interface ConfigProps {
   ADMIN: IAdminConfig;
   HOST: string;
   CLIENT_PORT: string;
+  AZURE: IAzureConfig;
+  BOI_API: IBOIApi;
 }
 
 const getEnvVar = (key: string, fallback?: string): string => {
@@ -72,6 +84,14 @@ const configs = (): ConfigProps => ({
   },
   HOST: getEnvVar('HOST'),
   CLIENT_PORT: getEnvVar('CLIENT_PORT'),
+  AZURE: {
+    connectionString: getEnvVar('AZURE_CONNECTION_STRING'),
+    containerName: getEnvVar('AZURE_CONTAINER_NAME'),
+  },
+  BOI_API: {
+    clientId: getEnvVar('BOI_CLIENT_ID'),
+    clientSecret: getEnvVar('BOI_CLIENT_SECRET'),
+  },
 });
 
 export default configs;

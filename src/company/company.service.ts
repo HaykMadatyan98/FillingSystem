@@ -467,21 +467,18 @@ export class CompanyService {
 
   async getByParticipantId(
     participantId: string,
-  ): Promise<[boolean, CompanyDocument]> {
+    isApplicant: boolean,
+  ): Promise<CompanyDocument> {
+    const formType = isApplicant ? 'forms.applicants' : 'forms.owners';
     const company = await this.companyModel.findOne({
-      $or: [
-        { 'forms.applicants': participantId },
-        { 'forms.owners': participantId },
-      ],
+      [formType]: participantId,
     });
 
     if (!company) {
       throw new NotFoundException(companyResponseMsgs.companyNotFound);
     }
 
-    const isApplicant = company.forms.applicants.includes(participantId as any);
-
-    return [isApplicant, company];
+    return company;
   }
 
   async checkUserCompanyPermission(

@@ -142,6 +142,17 @@ export class ApplicantFormController {
     required: true,
     description: 'ID of applicant which doc image will send',
   })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        docImg: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
   @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
   async uploadAnImageToTheCloudAndUpdate(
@@ -159,6 +170,7 @@ export class ApplicantFormController {
       participantId,
       docImg,
       req.user,
+      true,
     );
   }
 

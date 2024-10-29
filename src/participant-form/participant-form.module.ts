@@ -10,6 +10,7 @@ import {
 import { ParticipantFormService } from './participant-form.service';
 import { OwnerFormController } from './owner-form.controller';
 import { CompanyModule } from '@/company/company.module';
+import { AzureModule } from '@/azure/azure.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { CompanyModule } from '@/company/company.module';
     MongooseModule.forFeature([
       { name: ApplicantForm.name, schema: ApplicantFormSchema },
     ]),
+    AzureModule,
     forwardRef(() => CompanyModule),
   ],
   providers: [ParticipantFormService],

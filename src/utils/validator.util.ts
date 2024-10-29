@@ -63,36 +63,6 @@ export async function validateData(data: any) {
   return errorData;
 }
 
-// function formatError(
-//   error: any,
-//   context: string,
-//   allowNesting: boolean,
-//   enumData?: any,
-// ): string {
-//   const { property, constraints, value, children } = error;
-//   let message = '';
-
-//   if (constraints) {
-//     const constraintMessages = Object.values(constraints).join(', ');
-//     const valueDisplay =
-//       typeof value === 'object' ? JSON.stringify(value) : value;
-//     message = `Property "${property}" with value "${valueDisplay}" in ${context} failed`;
-//   }
-
-//   if (allowNesting && children?.length > 0) {
-//     message += children
-//       .map((childError) => formatError(childError, context, allowNesting))
-//       .join('; ');
-//   }
-
-//   if (!constraints && !children?.length) {
-//     const valueDisplay =
-//       typeof value === 'object' ? JSON.stringify(value) : value;
-//     message = `Validation failed in ${context}: Property "${property}" with value "${valueDisplay}" failed due to unknown constraint.`;
-//   }
-
-//   return message;
-// }
 
 function getEnumKeyByValue(value: string, enumData: any): string {
   return Object.keys(enumData).find(
@@ -139,7 +109,6 @@ async function validateTheData(
     await Promise.all(
       data.map(async (participant: any) => {
         const participantDtoInstance = plainToInstance(dto, participant);
-        participantDtoInstance;
 
         const participantValidationResults = await validate(
           participantDtoInstance as object,

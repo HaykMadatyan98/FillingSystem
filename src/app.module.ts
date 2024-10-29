@@ -15,6 +15,8 @@ import { SchedulerService } from './scheduler/scheduler.service';
 import { SeederService } from './seeders/admin/admin-seeder.service';
 import { TransactionModule } from './transaction/transaction.module';
 import { UserModule } from './user/user.module';
+import { AzureController } from './azure/azure.controller';
+import { AzureModule } from './azure/azure.module';
 
 @Module({
   imports: [
@@ -46,6 +48,7 @@ import { UserModule } from './user/user.module';
     ]),
     GovernmentModule,
     TransactionModule,
+    AzureModule,
   ],
   providers: [
     {
@@ -55,6 +58,7 @@ import { UserModule } from './user/user.module';
     SeederService,
     SchedulerService,
   ],
+  controllers: [AzureController],
 })
 export class AppModule implements OnModuleInit {
   constructor(private readonly seederService: SeederService) {}
