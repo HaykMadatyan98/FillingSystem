@@ -1,6 +1,11 @@
 import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
 import { Body, Controller, Patch, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiNotFoundResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiNotFoundResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { transactionMessages } from './constants';
 import {
   CreatePaymentIntentDto,
@@ -8,6 +13,7 @@ import {
 } from './dtos/transaction.dto';
 import { TransactionService } from './transaction.service';
 
+@ApiTags('transaction')
 @Controller('transaction')
 export class TransactionController {
   constructor(private transactionService: TransactionService) {}

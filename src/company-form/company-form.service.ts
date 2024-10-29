@@ -116,10 +116,12 @@ export class CompanyFormService {
     );
 
     if (missingCompanyForm) {
-      missingCompanyForm.company =
+      const missingCompanyData =
         await this.getCompanyFormMissingFields(companyData);
+      if (missingCompanyData.length) {
+        missingCompanyForm.company = missingCompanyData;
+      }
     }
-
 
     return {
       message: companyFormResponseMsgs.companyFormUpdated,

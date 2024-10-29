@@ -98,7 +98,6 @@ export class ParticipantFormService {
       ? await this.applicantFormModel.findById(participantFormId)
       : await this.ownerFormModel.findById(participantFormId);
 
-    console.log(participant, 'in change function');
     const requiredFieldsCountBefore = await calculateRequiredFieldsCount(
       participant,
       isApplicant ? requiredApplicantFields : requiredOwnerFields,
@@ -248,7 +247,7 @@ export class ParticipantFormService {
       ? await this.applicantFormModel.findById(participantFormId)
       : await this.ownerFormModel.findById(participantFormId);
 
-    console.log(participantForm);
+
 
     if (!participantForm) {
       throw new NotFoundException(participantFormResponseMsgs.formNotFound);

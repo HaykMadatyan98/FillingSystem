@@ -151,7 +151,6 @@ export class MailService {
     }[],
     remainingDay: number,
   ): Promise<void> {
-    console.log('in alert notification', companies, remainingDay);
     const templatePath = path.join(
       path.resolve(),
       '/src/mail/templates/warning-notification.hbs',
@@ -277,7 +276,7 @@ export class MailService {
         message.messages.push(...data.messages);
       }
       if (data.errors) {
-        message.errors.push(...data.errors);
+        message.errorMessages.push(...data.errors);
       }
       await message.save();
     }

@@ -46,7 +46,7 @@ export class Mail {
   messages: EmailBody[];
 
   @Prop({ default: [] })
-  errors: ErrorBody[];
+  errorMessages: ErrorBody[];
 }
 
 export const MailSchema = SchemaFactory.createForClass(Mail);
