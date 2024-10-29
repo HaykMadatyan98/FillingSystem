@@ -1,13 +1,13 @@
 import { CompanyModule } from '@/company/company.module';
 import { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AzureService } from './azure.service';
 
 @Module({
+  imports: [forwardRef(() => CompanyModule)],
   providers: [
     AzureService,
-    CompanyModule,
     {
       provide: ContainerClient,
       useFactory: (configService: ConfigService) => {

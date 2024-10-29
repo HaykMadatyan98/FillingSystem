@@ -1,11 +1,16 @@
 import { userVerificationTime } from '@/auth/constants';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectModel } from '@nestjs/mongoose';
 import * as SendGrid from '@sendgrid/mail';
 import Handlebars from 'handlebars';
+import { Model } from 'mongoose';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { MessageTypeEnum, SendGridEventTypeEnum } from './constants';
+import { SendGridWebhookDto } from './dtos/mail.dto';
 import { IUserInvitationEmail } from './interfaces/mail.interface';
+import { Mail, MailDocument } from './schemas/mail.schema';
 
 @Injectable()
 export class MailService {
@@ -13,7 +18,10 @@ export class MailService {
   adminFullName: string;
   adminEmail: string;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    @InjectModel(Mail.name) private mailModel: Model<MailDocument>,
+  ) {
     SendGrid.setApiKey(configService.get<string>('SENDGRID.apiKey'));
     this.emailFrom = configService.get<string>('SENDGRID.emailFrom');
     this.adminFullName = `${this.configService.get<string>('ADMIN.firstName')} ${this.configService.get<string>(
@@ -49,9 +57,11 @@ export class MailService {
         html: htmlContent,
       };
 
-      const sendgirdData = await SendGrid.send(mail);
-      console.log(sendgirdData);
+      const sendgridData = await SendGrid.send(mail);
+      const messageId = sendgridData[0]?.headers['x-message-id'];
+      await this.createEmailData(MessageTypeEnum.OTP, messageId, email);
     } catch (error) {
+      await this.createErrorData(MessageTypeEnum.OTP, email, error.message);
       throw new HttpException(
         {
           status: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
@@ -84,9 +94,11 @@ export class MailService {
         html: htmlContent,
       };
 
-      await SendGrid.send(mail);
+      const sendgridData = await SendGrid.send(mail);
+      const messageId = sendgridData[0]?.headers['x-message-id'];
+      await this.createEmailData(MessageTypeEnum.OTP, messageId, email);
     } catch (error) {
-      console.log(error);
+      await this.createErrorData(MessageTypeEnum.OTP, email, error.message);
       throw new HttpException(
         {
           status: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
@@ -94,7 +106,6 @@ export class MailService {
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
-      // catch error and save data into db
     }
   }
 
@@ -118,10 +129,18 @@ export class MailService {
         html: htmlContent,
       };
 
-      await SendGrid.send(mail);
+      const sendgridData = await SendGrid.send(mail);
+      const messageId = sendgridData[0]?.headers['x-message-id'];
+      await this.createEmailData(MessageTypeEnum.OTP, messageId, email);
     } catch (error) {
-      console.log(error);
-      // write error exception and add in future the part where information will be saved in db
+      await this.createErrorData(MessageTypeEnum.OTP, email, error.message);
+      throw new HttpException(
+        {
+          status: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+          error: error.message || 'An unexpected error occurred',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -132,18 +151,18 @@ export class MailService {
     }[],
     remainingDay: number,
   ): Promise<void> {
-    try {
-      console.log('in alert notification', companies, remainingDay);
-      const templatePath = path.join(
-        path.resolve(),
-        '/src/mail/templates/warning-notification.hbs',
-      );
+    console.log('in alert notification', companies, remainingDay);
+    const templatePath = path.join(
+      path.resolve(),
+      '/src/mail/templates/warning-notification.hbs',
+    );
 
-      const template = fs.readFileSync(templatePath, 'utf-8');
-      const compiledFile = Handlebars.compile(template);
+    const template = fs.readFileSync(templatePath, 'utf-8');
+    const compiledFile = Handlebars.compile(template);
 
-      await Promise.all(
-        companies.map(async (company) => {
+    await Promise.all(
+      companies.map(async (company) => {
+        try {
           const htmlContent = compiledFile({
             fillerFullName: `${company.user.firstName} ${company.user.lastName}`,
             companyName: company.name,
@@ -157,13 +176,29 @@ export class MailService {
             html: htmlContent,
           };
 
-          await SendGrid.send(mail);
-        }),
-      );
-    } catch (error) {
-      console.log(error);
-      // write error exception and add in future the part where information will be saved in db
-    }
+          const sendgridData = await SendGrid.send(mail);
+          const messageId = sendgridData[0]?.headers['x-message-id'];
+          await this.createEmailData(
+            MessageTypeEnum.OTP,
+            messageId,
+            company.user.email,
+          );
+        } catch (error) {
+          await this.createErrorData(
+            MessageTypeEnum.OTP,
+            company.user.email,
+            error.message,
+          );
+          throw new HttpException(
+            {
+              status: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+              error: error.message || 'An unexpected error occurred',
+            },
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          );
+        }
+      }),
+    );
   }
 
   async notifyAdminAboutExpiredCompanies(
@@ -171,5 +206,80 @@ export class MailService {
   ) {
     console.log(companies);
     // implement in future
+  }
+
+  async createEmailData(
+    messageType: MessageTypeEnum,
+    message_id: string,
+    email: string,
+  ) {
+    const messageData = {
+      messages: [
+        {
+          messageType,
+          sendTime: new Date(),
+          status: SendGridEventTypeEnum.PENDING,
+          message_id,
+        },
+      ],
+    };
+
+    await this.upsertEmailData(email, messageData);
+  }
+
+  async updateEmailStatus(events: SendGridWebhookDto[]): Promise<void> {
+    for (const event of events) {
+      const { message_id, event: status, email, reason } = event;
+
+      await this.mailModel.updateOne(
+        { email, 'messages.message_id': message_id },
+        {
+          $set: {
+            'messages.$.status':
+              SendGridEventTypeEnum[status.toUpperCase()] ||
+              SendGridEventTypeEnum.UNKNOWN,
+            'messages.$.reason': reason || null,
+          },
+        },
+      );
+    }
+  }
+
+  async createErrorData(
+    messageType: MessageTypeEnum,
+    email: string,
+    reason?: string,
+  ) {
+    const errorData = {
+      errors: [
+        {
+          messageType,
+          receiveTime: new Date(),
+          reason,
+        },
+      ],
+    };
+
+    await this.upsertEmailData(email, errorData);
+  }
+
+  private async upsertEmailData(
+    email: string,
+    data: { messages?: any[]; errors?: any[] },
+  ): Promise<void> {
+    const message = await this.mailModel.findOne({ email });
+
+    if (!message) {
+      const newMessage = new this.mailModel({ email, ...data });
+      await newMessage.save();
+    } else {
+      if (data.messages) {
+        message.messages.push(...data.messages);
+      }
+      if (data.errors) {
+        message.errors.push(...data.errors);
+      }
+      await message.save();
+    }
   }
 }

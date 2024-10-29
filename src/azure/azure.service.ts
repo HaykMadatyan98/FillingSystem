@@ -1,7 +1,12 @@
 import { IRequestUser } from '@/auth/interfaces/request.interface';
 import { CompanyService } from '@/company/company.service';
 import { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -11,6 +16,7 @@ export class AzureService {
   constructor(
     private readonly configService: ConfigService,
     private containerClient: ContainerClient,
+    @Inject(forwardRef(() => CompanyService))
     private readonly companyService: CompanyService,
   ) {
     this.connectionString = this.configService.get<string>(
