@@ -5,8 +5,10 @@ import { MailController } from './mail.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Mail, MailSchema } from './schemas/mail.schema';
 @Module({
-  imports: [ConfigModule.forRoot(), 
-    MongooseModule.forFeature([{ name: Mail.name, schema: MailSchema }]),],
+  imports: [
+    ConfigModule.forRoot(),
+    MongooseModule.forFeature([{ name: Mail.name, schema: MailSchema }]),
+  ],
   providers: [MailService],
   exports: [MailService],
   controllers: [MailController],

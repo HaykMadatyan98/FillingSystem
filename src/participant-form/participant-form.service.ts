@@ -247,8 +247,6 @@ export class ParticipantFormService {
       ? await this.applicantFormModel.findById(participantFormId)
       : await this.ownerFormModel.findById(participantFormId);
 
-
-
     if (!participantForm) {
       throw new NotFoundException(participantFormResponseMsgs.formNotFound);
     }
@@ -259,9 +257,11 @@ export class ParticipantFormService {
       await this.azureService.delete(imageName);
     }
 
-    isApplicant
-      ? await this.applicantFormModel.findByIdAndDelete(participantFormId)
-      : await this.ownerFormModel.findByIdAndDelete(participantFormId);
+    if (isApplicant) {
+      await this.applicantFormModel.findByIdAndDelete(participantFormId);
+    } else {
+      await this.ownerFormModel.findByIdAndDelete(participantFormId);
+    }
 
     return { message: participantFormResponseMsgs.deleted };
   }

@@ -15,7 +15,8 @@ interface ISendgridConfig {
 }
 
 interface IGovernmentConfig {
-  apiKey: string;
+  clientSecret: string;
+  clientId: string;
 }
 
 interface IAdminConfig {
@@ -74,7 +75,8 @@ const configs = (): ConfigProps => ({
     apiKey: getEnvVar('SENDGRID_API_KEY'),
   },
   GOVERNMENT: {
-    apiKey: getEnvVar('GOVERNMENT_API_KEY'),
+    clientSecret: getEnvVar('GOVERNMENT_API_CLIENT_KEY'),
+    clientId: getEnvVar('GOVERNMENT_API_CLIENT_ID'),
   },
   ADMIN: {
     email: getEnvVar('ADMIN_EMAIL'),

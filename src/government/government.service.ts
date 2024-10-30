@@ -3,8 +3,17 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class GovernmentService {
-  private apiKey;
+  clientSecret: string;
+  clientId: string;
+
   constructor(private readonly configService: ConfigService) {
-    this.apiKey = this.configService.get<string>('GOVERNMENT_API_KEY');
+    this.clientSecret = this.configService.get<string>(
+      'GOVERNMENT.clientSecret',
+    );
+    this.clientId = this.configService.get<string>('GOVERNMENT.clientId');
+  }
+
+  async sentCompanyDataToGovernment() {
+    console.log();
   }
 }
