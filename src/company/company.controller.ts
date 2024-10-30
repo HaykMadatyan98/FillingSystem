@@ -95,7 +95,7 @@ export class CompanyController {
     @Req() req: RequestWithUser,
   ) {
     return {
-      company: await this.companyService.getFilteredData(companyId),
+      company: await this.companyService.getAllCompanyData(companyId, req.user),
       message: companyResponseMsgs.companyDataRetrieved,
     };
   }

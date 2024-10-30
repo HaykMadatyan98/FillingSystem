@@ -1,8 +1,7 @@
+import { CompanyService } from '@/company/company.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { create } from 'xmlbuilder2';
-import { fields } from './constants';
-import { CompanyService } from '@/company/company.service';
 
 @Injectable()
 export class GovernmentService {
@@ -41,7 +40,7 @@ export class GovernmentService {
   }
 
   private async generateXml(companyId: string) {
-    const companyData = await this.getCompanyData(companyId);
+    const companyData = await this.companyService.getFilteredData(companyId);
 
     const xml = create({ version: '1.0', encoding: 'UTF-8' }).ele(
       'fc2:EFilingSubmissionXML',
@@ -54,16 +53,16 @@ export class GovernmentService {
       },
     );
 
-    fields.forEach((field) => {
-      const data = companyData[field.dataName];
-      if (data !== undefined) {
-        this.setXMLInformation(xml, field.name, data, field.options);
-      } else {
-        this.logger.warn(
-          `Field ${field.name} not found in company information for company ID ${companyId}`,
-        );
-      }
-    });
+    // fields.forEach((field) => {
+    //   const data = companyData[field.dataName];
+    //   if (data !== undefined) {
+    //     this.setXMLInformation(xml, field.name, data, field.options);
+    //   } else {
+    //     this.logger.warn(
+    //       `Field ${field.name} not found in company information for company ID ${companyId}`,
+    //     );
+    //   }
+    // });
 
     return xml.end({ prettyPrint: true });
   }
@@ -75,12 +74,5 @@ export class GovernmentService {
     options: any = {},
   ) {
     xml.ele(`fc2:${field}`, options).txt(data);
-  }
-
-  private async getCompanyData(companyId: string) {
-    const companyInformation =
-      await this.companyService.getFilteredData(companyId);
-
-    return companyInformation;
   }
 }

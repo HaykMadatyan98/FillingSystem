@@ -786,33 +786,45 @@ export class CompanyService {
       .findById(companyId)
       .select('name forms -_id isExistingCompany')
       .populate({
+        path: 'user',
+        model: 'User',
+        select: 'firstName lastName email -_id',
+      })
+      .populate({
         path: 'forms.company',
         model: 'CompanyForm',
         select:
-          '-answerCount -_id -createdAt -updatedAt -__v -names.isVerified -formationJurisdiction.isVerified -taxInfo.isVerified -address.isVerified',
+          '-answerCount -_id -createdAt -updatedAt -__v -names.isVerified -formationJurisdiction.isVerified -taxInfo.isVerified -address.isVerified -repCompanyInfo.isVerified ',
       })
       .populate({
         path: 'forms.owners',
         model: 'OwnerForm',
         select:
-          '-answerCount -exemptEntity.isVerified -beneficialOwner.isVerified -address.isVerified -identificationDetails.isVerified -personalInfo.isVerified -_id -createdAt -updatedAt -__v',
+          '-answerCount -exemptEntity.isVerified -beneficialOwner.isVerified -address.isVerified -identificationDetails.isVerified -personalInfo.isVerified -_id -createdAt -updatedAt -__v -finCENID.isVerified',
       })
       .exec();
 
-    // Populate applicants only if isExistingCompany is false
-    if (!company.isExistingCompany) {
+    const cleanVerified = (item) => {
+      if (item?.finCENID) {
+        delete item.finCENID.isVerified;
+      }
+    };
+
+    company.forms.owners.forEach(cleanVerified);
+    if (!company.isExistingCompany && company.forms.applicants.length) {
       await company.populate({
         path: 'forms.applicants',
         model: 'ApplicantForm',
         select:
-          '-answerCount -_id -createdAt -updatedAt -__v -address.isVerified -identificationDetails.isVerified -personalInfo.isVerified',
+          '-answerCount -_id -createdAt -updatedAt -__v -address.isVerified -identificationDetails.isVerified -personalInfo.isVerified -finCENID.isVerified',
       });
-    }
-    // Apply the `removeIsVerifiedFields` function to remove all `isVerified` fields
-    const companyData = company.toObject(); // Convert to plain object to modify fields
-    this.removeIsVerifiedFields(companyData);
 
-    return companyData;
+      company.forms.applicants.forEach(cleanVerified);
+    }
+
+    const companyData = company.toObject();
+
+    return {companyData};
   }
 
   // need some changes after admin part creating
@@ -836,17 +848,4 @@ export class CompanyService {
 
   //   return { message: companyResponseMsgs.companyCreated };
   // }
-  removeIsVerifiedFields(obj: any) {
-    if (Array.isArray(obj)) {
-      obj.forEach(this.removeIsVerifiedFields);
-    } else if (typeof obj === 'object' && obj !== null) {
-      for (const key in obj) {
-        if (key === 'isVerified') {
-          delete obj[key];
-        } else {
-          this.removeIsVerifiedFields(obj[key]);
-        }
-      }
-    }
-  }
 }
