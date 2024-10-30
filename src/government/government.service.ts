@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { create } from 'xmlbuilder2';
 import { fields } from './constants';
@@ -6,8 +6,10 @@ import { CompanyService } from '@/company/company.service';
 
 @Injectable()
 export class GovernmentService {
-  clientSecret: string;
-  clientId: string;
+  private readonly clientSecret: string;
+  private readonly clientId: string;
+  private readonly logger = new Logger(GovernmentService.name);
+
   constructor(
     private readonly configService: ConfigService,
     private readonly companyService: CompanyService,
@@ -20,15 +22,27 @@ export class GovernmentService {
 
   async sendCompanyDataToGovernment(companies: string[]) {
     await Promise.all(
-      companies.map(async (company: string) => {
-        return this.generateXml(company);
+      companies.map(async (companyId) => {
+        try {
+          const xmlData = await this.generateXml(companyId);
+          // Logic to send XML data to government endpoint can go here
+          console.log(xmlData);
+          this.logger.log(
+            `Successfully generated XML for company ID: ${companyId}`,
+          );
+        } catch (error) {
+          this.logger.error(
+            `Failed to process company ID: ${companyId}`,
+            error.stack,
+          );
+        }
       }),
     );
   }
 
-  async generateXml(companyId: string) {
-    const reportData = await this.companyService.getCompanyById(companyId);
-    console.log(reportData);
+  private async generateXml(companyId: string) {
+    const companyData = await this.getCompanyData(companyId);
+
     const xml = create({ version: '1.0', encoding: 'UTF-8' }).ele(
       'fc2:EFilingSubmissionXML',
       {
@@ -40,19 +54,33 @@ export class GovernmentService {
       },
     );
 
-    fields.forEach((field: any) => {
-      this.setXMLInformation(
-        xml,
-        field.name,
-        reportData[field.dataName],
-        field.options,
-      );
+    fields.forEach((field) => {
+      const data = companyData[field.dataName];
+      if (data !== undefined) {
+        this.setXMLInformation(xml, field.name, data, field.options);
+      } else {
+        this.logger.warn(
+          `Field ${field.name} not found in company information for company ID ${companyId}`,
+        );
+      }
     });
 
     return xml.end({ prettyPrint: true });
   }
 
-  setXMLInformation(xml: any, field: string, data: any, options: any = {}) {
+  private setXMLInformation(
+    xml: any,
+    field: string,
+    data: any,
+    options: any = {},
+  ) {
     xml.ele(`fc2:${field}`, options).txt(data);
+  }
+
+  private async getCompanyData(companyId: string) {
+    const companyInformation =
+      await this.companyService.getFilteredData(companyId);
+
+    return companyInformation;
   }
 }

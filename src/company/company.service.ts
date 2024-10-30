@@ -781,6 +781,40 @@ export class CompanyService {
     );
   }
 
+  async getFilteredData(companyId: string) {
+    const company = await this.companyModel
+      .findById(companyId)
+      .select('name forms -_id isExistingCompany')
+      .populate({
+        path: 'forms.company',
+        model: 'CompanyForm',
+        select:
+          '-answerCount -_id -createdAt -updatedAt -__v -names.isVerified -formationJurisdiction.isVerified -taxInfo.isVerified -address.isVerified',
+      })
+      .populate({
+        path: 'forms.owners',
+        model: 'OwnerForm',
+        select:
+          '-answerCount -exemptEntity.isVerified -beneficialOwner.isVerified -address.isVerified -identificationDetails.isVerified -personalInfo.isVerified -_id -createdAt -updatedAt -__v',
+      })
+      .exec();
+
+    // Populate applicants only if isExistingCompany is false
+    if (!company.isExistingCompany) {
+      await company.populate({
+        path: 'forms.applicants',
+        model: 'ApplicantForm',
+        select:
+          '-answerCount -_id -createdAt -updatedAt -__v -address.isVerified -identificationDetails.isVerified -personalInfo.isVerified',
+      });
+    }
+    // Apply the `removeIsVerifiedFields` function to remove all `isVerified` fields
+    const companyData = company.toObject(); // Convert to plain object to modify fields
+    this.removeIsVerifiedFields(companyData);
+
+    return companyData;
+  }
+
   // need some changes after admin part creating
   // async createNewCompany(payload: any) {
   //   const existCompanyForm =
@@ -802,4 +836,17 @@ export class CompanyService {
 
   //   return { message: companyResponseMsgs.companyCreated };
   // }
+  removeIsVerifiedFields(obj: any) {
+    if (Array.isArray(obj)) {
+      obj.forEach(this.removeIsVerifiedFields);
+    } else if (typeof obj === 'object' && obj !== null) {
+      for (const key in obj) {
+        if (key === 'isVerified') {
+          delete obj[key];
+        } else {
+          this.removeIsVerifiedFields(obj[key]);
+        }
+      }
+    }
+  }
 }
