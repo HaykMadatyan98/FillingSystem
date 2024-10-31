@@ -41,7 +41,7 @@ export class GovernmentService {
 
   private async generateXml(companyId: string) {
     const companyData = await this.companyService.getFilteredData(companyId);
-
+    console.log(companyData);
     const xml = create({ version: '1.0', encoding: 'UTF-8' }).ele(
       'fc2:EFilingSubmissionXML',
       {

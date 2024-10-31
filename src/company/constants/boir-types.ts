@@ -11,15 +11,15 @@ export const BOIRCompanyForm = {
     requestToReceiveFID: 'RequestFinCENIDIndicator',
   },
   names: {
-    legalName: 'PartyName', //item5 
+    legalName: 'PartyName', //item5
     altName: 'PartyName', // item6
   },
 };
 
 export const BOIRUser = {
-    user: {
-        firstName: 'SubmitterIndivdualFirstName',
-        lastName: 'SubmitterEntityIndivdualLastName',
-        email: 'SubmitterElectronicAddressText'
-    }
-}
+  user: {
+    firstName: 'SubmitterIndivdualFirstName',
+    lastName: 'SubmitterEntityIndivdualLastName',
+    email: 'SubmitterElectronicAddressText',
+  },
+};

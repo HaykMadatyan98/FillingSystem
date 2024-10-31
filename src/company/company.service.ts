@@ -824,7 +824,7 @@ export class CompanyService {
 
     const companyData = company.toObject();
 
-    return {companyData};
+    return { companyData };
   }
 
   // need some changes after admin part creating
