@@ -6,6 +6,7 @@ import {
   Delete,
   FileTypeValidator,
   Get,
+  MaxFileSizeValidator,
   Param,
   ParseFilePipe,
   Patch,
@@ -160,7 +161,11 @@ export class ApplicantFormController {
     @UploadedFile(
       new ParseFilePipe({
         fileIsRequired: true,
-        validators: [new FileTypeValidator({ fileType: '.(jpeg|png|jpg)' })],
+
+        validators: [
+          new FileTypeValidator({ fileType: '.(jpeg|png|jpg)' }),
+          new MaxFileSizeValidator({ maxSize: 4 * 1024 * 1024 }),
+        ],
       }),
     )
     docImg: Express.Multer.File,
@@ -203,7 +208,10 @@ export class ApplicantFormController {
     @UploadedFile(
       new ParseFilePipe({
         fileIsRequired: true,
-        validators: [new FileTypeValidator({ fileType: '.(jpeg|png|jpg)' })],
+        validators: [
+          new FileTypeValidator({ fileType: '.(jpeg|png|jpg)' }),
+          new MaxFileSizeValidator({ maxSize: 4 * 1024 * 1024 }),
+        ],
       }),
     )
     docImg: Express.Multer.File,

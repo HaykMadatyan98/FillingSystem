@@ -4,7 +4,6 @@ import {
   OwnerData,
   UserData,
 } from '@/company/constants';
-import {} from '@/company/constants/data-fields.enum';
 import {
   ICompanyData,
   IParticipantData,
@@ -17,6 +16,7 @@ export async function sanitizeData(data: any): Promise<{
   sanitized: ISanitizedData;
   errorData: any;
   reasons: any;
+  companyDeleted: boolean;
 }> {
   const sanitized: ISanitizedData = {
     user: {} as ICsvUser,
@@ -84,22 +84,37 @@ export async function sanitizeData(data: any): Promise<{
     }
   });
 
-  const applicantCount = data['Applicant Document Type']?.length;
-  for (let i = 0; i < applicantCount; i++) {
-    const participant: any = { isApplicant: true };
+  if (
+    !(
+      sanitized.company.isExistingCompany ||
+      (sanitized.company.repCompanyInfo &&
+        sanitized.company.repCompanyInfo.foreignPooled)
+    )
+  ) {
+    const applicantCount =
+      data['Applicant Document Type']?.length ||
+      data['Applicant FinCEN ID']?.length;
+    for (let i = 0; i < applicantCount; i++) {
+      const participant: any = { isApplicant: true };
 
-    applicantKeys.forEach((key) => {
-      const mappedField = ApplicantData[key];
-      const value = data[key][i];
-      if (value !== undefined && value !== '') {
-        mapFieldToObject(mappedField, value, participant);
-      }
-    });
+      applicantKeys.forEach((key) => {
+        const mappedField = ApplicantData[key];
+        const value = data[key][i];
+        if (value !== undefined && value !== '') {
+          mapFieldToObject(mappedField, value, participant);
+        }
+      });
 
-    sanitized.participants.push(participant);
+      sanitized.participants.push(participant);
+    }
   }
 
-  const ownerCount = data['Owner First Name']?.length;
+  const ownerCountBySanitizedData =
+    data['Owner Document Type']?.length || data['Owner FinCEN ID']?.length;
+  const ownerCount = sanitized.company.repCompanyInfo.foreignPooled
+    ? 1
+    : ownerCountBySanitizedData;
+
   for (let i = 0; i < ownerCount; i++) {
     const participant: any = { isApplicant: false };
 
@@ -117,9 +132,23 @@ export async function sanitizeData(data: any): Promise<{
   const errorData = await validateData(sanitized);
   const { reasons, companyDeleted } = await clearWrongFields(sanitized);
 
+  if (
+    ownerCountBySanitizedData !== ownerCount &&
+    ownerCountBySanitizedData > ownerCount
+  ) {
+    reasons.push({
+      fields: ['Mi ban'],
+      problemDesc: 'Foreign pooled company need only one owner data',
+      affectedData: [
+        `Other ${ownerCountBySanitizedData - ownerCount} Owners Data`,
+      ],
+    });
+  }
+
   return {
-    sanitized: companyDeleted ? null : sanitized,
+    sanitized,
     reasons,
     errorData,
+    companyDeleted,
   };
 }

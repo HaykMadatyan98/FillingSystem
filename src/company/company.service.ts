@@ -116,10 +116,11 @@ export class CompanyService {
     const companiesResults = [];
     await Promise.all(
       resultData.map(async (row: ICompanyCSVRowData) => {
-        const { sanitized, errorData, reasons } = await sanitizeData(row);
+        const { sanitized, errorData, reasons, companyDeleted } =
+          await sanitizeData(row);
         if (Object.keys(errorData).length) allErrors.push(errorData);
         if (Object.keys(reasons).length) allReasons.push(reasons);
-        if (sanitized) {
+        if (!companyDeleted) {
           const changedCompanyData = await this.ParseCsvData(
             sanitized,
             allReasons,
@@ -240,7 +241,10 @@ export class CompanyService {
 
       return;
     }
-    const isExistingCompany = sanitized.company.isExistingCompany || false;
+    const applicantIsNotRequired =
+      sanitized.company.isExistingCompany ||
+      sanitized.company.repCompanyInfo.foreignPooled ||
+      false;
     delete sanitized.company.isExistingCompany;
 
     const ownersIds = [];
@@ -261,7 +265,7 @@ export class CompanyService {
         sanitized.participants.map((participant) => {
           if (
             !participant.isApplicant ||
-            (participant.isApplicant && !isExistingCompany)
+            (participant.isApplicant && !applicantIsNotRequired)
           ) {
             return this.participantFormService.createParticipantFormFromCsv(
               participant,
@@ -289,7 +293,6 @@ export class CompanyService {
     );
 
     missingFields.company = companyForm.missingFormData;
-
     answerCount += companyForm.answerCount;
 
     company = new this.companyModel({
@@ -297,7 +300,9 @@ export class CompanyService {
       name: companyForm.companyName,
       expTime: sanitized.BOIRExpTime,
       ['forms.owners']: ownersIds,
-      ...(isExistingCompany ? {} : { ['forms.applicants']: applicantsIds }),
+      ...(applicantIsNotRequired
+        ? {}
+        : { ['forms.applicants']: applicantsIds }),
     });
 
     company.answersCount = answerCount;
@@ -316,23 +321,37 @@ export class CompanyService {
     userEmailData: IUserInvitationEmail,
     missingFields: { company?: string[] },
   ) {
+    const foreignPooled = { isForeignPooled: false };
+
     await this.companyFormService.updateCompanyForm(
       sanitized.company,
       companyFormId,
       company['id'],
       false,
       missingFields,
+      foreignPooled,
     );
+
+    // if (foreignPooled.isForeignPooled) {
+    //   await this.participantFormService.changeForForeignPooled(
+    //     company,
+    //     sanitized.participants.find((participant) => !participant.isApplicant),
+    //   );
+    // }
 
     const participantPromises = sanitized.participants.map(
       async (participant) => {
-        const existParticipant =
-          await this.participantFormService.findParticipantFormByDocDataAndIds(
-            participant.identificationDetails.docNumber,
-            participant.identificationDetails.docType,
-            [...company.forms.owners, ...company.forms.applicants],
-            participant.isApplicant,
-          );
+        const existParticipant = participant.finCENID
+          ? await this.participantFormService.getByFinCENId(
+              participant.finCENID.finCENID,
+              participant.isApplicant,
+            )
+          : await this.participantFormService.findParticipantFormByDocDataAndIds(
+              participant.identificationDetails.docNumber,
+              participant.identificationDetails.docType,
+              [...company.forms.owners, ...company.forms.applicants],
+              participant.isApplicant,
+            );
 
         if (existParticipant) {
           await this.participantFormService.changeParticipantForm(
@@ -536,8 +555,10 @@ export class CompanyService {
       company.forms.applicants &&
       company.forms.applicants.length
     ) {
-      const isExisted = company.isExistingCompany;
-      company.reqFieldsCount = isExisted
+      const applicantIsNotRequired =
+        company.isExistingCompany ||
+        company.forms.company.repCompanyInfo.foreignPooled;
+      company.reqFieldsCount = applicantIsNotRequired
         ? 9 + company.forms.owners.length * 8
         : this.calculateReqFieldsCount(company);
 
@@ -558,7 +579,7 @@ export class CompanyService {
 
       let totalCount = 0;
 
-      if (!isExisted) {
+      if (!applicantIsNotRequired) {
         company.forms.applicants.forEach(
           (applicant) => (totalCount += applicant.answerCount),
         );
@@ -615,6 +636,7 @@ export class CompanyService {
     companiesAndTheirAmount: { name: string; amount: number }[];
     totalAmount: number;
   }> {
+    console.log(companyIds);
     const companies = await this.companyModel.find({
       _id: { $in: companyIds },
       isSubmitted: true,
@@ -811,7 +833,11 @@ export class CompanyService {
     };
 
     company.forms.owners.forEach(cleanVerified);
-    if (!company.isExistingCompany && company.forms.applicants.length) {
+    if (
+      (!company.isExistingCompany ||
+        !company.forms.company.repCompanyInfo.foreignPooled) &&
+      company.forms.applicants.length
+    ) {
       await company.populate({
         path: 'forms.applicants',
         model: 'ApplicantForm',

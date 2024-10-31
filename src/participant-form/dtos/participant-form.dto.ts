@@ -21,7 +21,7 @@ export class FinCENIDDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  @Matches(/^\d+$/)
+  @Matches(/^[0-13-9]\d{11}$/)
   @Length(12, 12)
   finCENID?: string;
 }
@@ -124,7 +124,8 @@ class IdentificationAndJurisdictionBaseDto {
   otherLocalOrTribalDesc?: string;
 
   @ApiProperty({ required: true })
-  @IsString()
+  @IsEnum(DocumentTypeEnum)
+  @Transform(({ value }) => DocumentTypeEnum[value] || value)
   docType: string;
 
   @ApiProperty({ required: true })

@@ -117,6 +117,7 @@ export class TransactionService {
     const paymentIntent = await this.stripe.paymentIntents.create({
       amount: totalAmount * 100,
       currency: CurrencyEnum.USD,
+      payment_method_types: ['card', 'paypal'],
       metadata: { companyNames: companyNames.join(',') },
       automatic_payment_methods: {
         enabled: true,

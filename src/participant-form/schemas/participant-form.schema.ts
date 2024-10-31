@@ -161,12 +161,21 @@ export class OwnerForm {
 }
 
 export const OwnerFormSchema = SchemaFactory.createForClass(OwnerForm);
-OwnerFormSchema.index({
-  'identificationDetails.docType': 1,
-  'identificationDetails.docNumber': 1,
-});
+OwnerFormSchema.index(
+  { 'finCENID.finCENID': 1 },
+  { partialFilterExpression: { 'finCENID.finCENID': { $exists: true } } },
+);
+OwnerFormSchema.index(
+  { 'identificationDetails.docType': 1, 'identificationDetails.docNumber': 1 },
+  { partialFilterExpression: { 'finCENID.finCENID': { $exists: false } } },
+);
+
 export const ApplicantFormSchema = SchemaFactory.createForClass(ApplicantForm);
-ApplicantFormSchema.index({
-  'identificationDetails.docType': 1,
-  'identificationDetails.docNumber': 1,
-});
+ApplicantFormSchema.index(
+  { 'finCENID.finCENID': 1 },
+  { partialFilterExpression: { 'finCENID.finCENID': { $exists: true } } },
+);
+ApplicantFormSchema.index(
+  { 'identificationDetails.docType': 1, 'identificationDetails.docNumber': 1 },
+  { partialFilterExpression: { 'finCENID.finCENID': { $exists: false } } },
+);

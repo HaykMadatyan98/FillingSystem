@@ -8,6 +8,7 @@ import {
   requiredOwnerFields,
   UNITED_STATES,
 } from '@/company/constants';
+import { CompanyDocument } from '@/company/schemas/company.schema';
 import { calculateRequiredFieldsCount } from '@/utils/req-field.util';
 import {
   forwardRef,
@@ -243,6 +244,8 @@ export class ParticipantFormService {
       );
     }
 
+    console.log(participantFormId, 'delete part');
+
     const participantForm = isApplicant
       ? await this.applicantFormModel.findById(participantFormId)
       : await this.ownerFormModel.findById(participantFormId);
@@ -388,44 +391,107 @@ export class ParticipantFormService {
             participantForm[topLevelKey][lowLevelKey] === undefined ||
             participantForm[topLevelKey][lowLevelKey] === null
           ) {
-            if (
-              topLevelKey === 'identificationDetails' &&
-              (lowLevelKey !== 'docImg' || 'docNumber' || 'docType')
-            ) {
+            if (!participantForm['finCENID']) {
               if (
-                lowLevelKey === 'state' ||
-                lowLevelKey === 'localOrTribal' ||
-                (lowLevelKey === 'otherLocalOrTribalDesc' &&
-                  participantForm[topLevelKey].countryOrJurisdiction ===
-                    UNITED_STATES)
+                topLevelKey === 'identificationDetails' &&
+                (lowLevelKey !== 'docImg' || 'docNumber' || 'docType')
               ) {
                 if (
-                  (lowLevelKey === 'state' &&
-                    !participantForm[topLevelKey].localOrTribal) ||
-                  (lowLevelKey === 'localOrTribal' &&
-                    !participantForm[topLevelKey].state) ||
+                  lowLevelKey === 'state' ||
+                  lowLevelKey === 'localOrTribal' ||
                   (lowLevelKey === 'otherLocalOrTribalDesc' &&
-                    participantForm[topLevelKey].localOrTribal === 'Other' &&
-                    !participantForm[topLevelKey].otherLocalOrTribalDesc)
+                    participantForm[topLevelKey].countryOrJurisdiction ===
+                      UNITED_STATES)
+                ) {
+                  if (
+                    (lowLevelKey === 'state' &&
+                      !participantForm[topLevelKey].localOrTribal) ||
+                    (lowLevelKey === 'localOrTribal' &&
+                      !participantForm[topLevelKey].state) ||
+                    (lowLevelKey === 'otherLocalOrTribalDesc' &&
+                      participantForm[topLevelKey].localOrTribal === 'Other' &&
+                      !participantForm[topLevelKey].otherLocalOrTribalDesc)
+                  ) {
+                    missingFields.push(formFields[topLevelKey][lowLevelKey]);
+                  }
+                } else if (
+                  lowLevelKey === 'state' &&
+                  countriesWithStates.includes(
+                    participantForm[topLevelKey].countryOrJurisdiction,
+                  )
                 ) {
                   missingFields.push(formFields[topLevelKey][lowLevelKey]);
                 }
-              } else if (
-                lowLevelKey === 'state' &&
-                countriesWithStates.includes(
-                  participantForm[topLevelKey].countryOrJurisdiction,
-                )
-              ) {
+              } else {
                 missingFields.push(formFields[topLevelKey][lowLevelKey]);
               }
-            } else {
-              missingFields.push(formFields[topLevelKey][lowLevelKey]);
             }
+          } else if (
+            !isApplicant &&
+            topLevelKey === 'beneficialOwner' &&
+            lowLevelKey === 'isParentOrGuard'
+          ) {
+            missingFields.push(formFields[topLevelKey][lowLevelKey]);
           }
         });
       }
     });
 
     return missingFields;
+  }
+
+  async changeForForeignPooled(company: CompanyDocument, ownerData: any) {
+    let currentCompanyOwners = company.forms.owners;
+    company.populate({ path: 'forms.owners', model: 'OwnerForm' });
+    const currentCompanyOwnersCount = currentCompanyOwners.length;
+
+    console.log(company, ownerData, 'logger');
+    if (!ownerData || !currentCompanyOwnersCount) {
+      return;
+    }
+
+    let isExistingOwner: OwnerForm | undefined;
+
+    for (const owner of currentCompanyOwners) {
+      if (ownerData.finCENID) {
+        if (owner.finCENID.finCENID === ownerData.finCENID.finCENID) {
+          isExistingOwner = owner;
+          break;
+        }
+      } else if (
+        owner.identificationDetails.docNumber ===
+          ownerData.identificationDetails.docNumber &&
+        owner.identificationDetails.docType ===
+          ownerData.identificationDetails.docType
+      ) {
+        isExistingOwner = owner;
+        break;
+      }
+    }
+
+    console.log(currentCompanyOwners);
+    if (!isExistingOwner) {
+      while (company.forms.owners.length !== 0) {
+        const owner = currentCompanyOwners.pop();
+        console.log('in while', owner['_id']);
+        await this.deleteParticipantFormById(owner['_id'], false);
+      }
+    } else {
+      for (const owner of currentCompanyOwners) {
+        if (owner['_id'] !== isExistingOwner['_id']) {
+          console.log(owner['_id'], 'in else');
+          await this.deleteParticipantFormById(owner['_id'], false);
+        }
+      }
+    }
+  }
+
+  async getByFinCENId(finCENId: string, isApplicant) {
+    const participant = isApplicant
+      ? await this.applicantFormModel.findOne({
+          ['finCENID.finCENID']: finCENId,
+        })
+      : await this.ownerFormModel.findOne({ ['finCENID.finCENID']: finCENId });
+    return participant;
   }
 }

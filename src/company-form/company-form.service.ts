@@ -51,6 +51,7 @@ export class CompanyFormService {
       companyName: companyData.names.legalName,
       answerCount,
       missingFormData,
+      isForeignPooled: companyData.repCompanyInfo.foreignPooled,
     };
   }
 
@@ -60,6 +61,7 @@ export class CompanyFormService {
     companyId: string,
     user?: IRequestUser | boolean,
     missingCompanyForm?: any,
+    companyForeignPooled?: { isForeignPooled: boolean },
   ): TRResponseMsg {
     if (user && typeof user !== 'boolean') {
       await this.companyService.checkUserCompanyPermission(
@@ -121,6 +123,11 @@ export class CompanyFormService {
       if (missingCompanyData.length) {
         missingCompanyForm.company = missingCompanyData;
       }
+    }
+
+    if (companyForeignPooled) {
+      companyForeignPooled.isForeignPooled =
+        companyData.repCompanyInfo.foreignPooled;
     }
 
     return {

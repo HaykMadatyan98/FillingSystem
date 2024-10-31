@@ -309,7 +309,7 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
       reasons.push(reasonData);
     }
   }
-
+  // start
   if (sanitized.participants && sanitized.participants.length) {
     const participants = sanitized.participants;
     for (let i = participants.length - 1; i >= 0; i--) {
@@ -317,8 +317,9 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
         ? applicantFormFields
         : ownerFormFields;
       if (
-        !participants[i].identificationDetails.docType ||
-        !participants[i].identificationDetails.docNumber
+        (!participants[i].identificationDetails?.docType ||
+          !participants[i].identificationDetails?.docNumber) &&
+        !participants[i].finCENID.finCENID
       ) {
         const reason = {
           fields: [
@@ -337,66 +338,106 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
         companyDeleted = true;
       }
 
-      const identificationDetails = participants[i].identificationDetails;
+      if (!participants[i].finCENID.finCENID) {
+        const identificationDetails = participants[i].identificationDetails;
 
-      if (identificationDetails) {
-        if (identificationDetails.countryOrJurisdiction === UNITED_STATES) {
-          if (
-            identificationDetails.state &&
-            identificationDetails.localOrTribal
+        if (identificationDetails) {
+          if (identificationDetails.countryOrJurisdiction === UNITED_STATES) {
+            if (
+              identificationDetails.state &&
+              identificationDetails.localOrTribal
+            ) {
+              const reasonData = {
+                fields: [
+                  formFields.identificationDetails.state,
+                  formFields.identificationDetails.localOrTribal,
+                ],
+                problemDesc:
+                  'Only one of "state" or "local/tribal" may be specified for United States entries',
+                affectedData: [],
+              };
+
+              reasonData.affectedData.push(
+                identificationDetails.state,
+                identificationDetails.localOrTribal,
+              );
+
+              if (identificationDetails.otherLocalOrTribalDesc) {
+                reasonData.affectedData.push(
+                  identificationDetails.otherLocalOrTribalDesc,
+                );
+              }
+
+              companyDeleted = true;
+              reasons.push(reasonData);
+            }
+          } else if (
+            countriesWithStates.includes(
+              identificationDetails.countryOrJurisdiction,
+            )
           ) {
             const reasonData = {
-              fields: [
-                formFields.identificationDetails.state,
-                formFields.identificationDetails.localOrTribal,
-              ],
-              problemDesc:
-                'Only one of "state" or "local/tribal" may be specified for United States entries',
+              fields: [],
+              problemDesc: '',
               affectedData: [],
             };
 
-            reasonData.affectedData.push(
-              identificationDetails.state,
-              identificationDetails.localOrTribal,
-            );
-
-            if (identificationDetails.otherLocalOrTribalDesc) {
-              reasonData.affectedData.push(
-                identificationDetails.otherLocalOrTribalDesc,
-              );
+            if (
+              identificationDetails.state !==
+              identificationDetails.countryOrJurisdiction
+            ) {
+              reasonData.fields.push(formFields.identificationDetails.state);
+              reasonData.affectedData.push(identificationDetails.state);
+              reasonData.problemDesc =
+                'The specified state does not match the country.';
             }
 
-            companyDeleted = true;
-            reasons.push(reasonData);
-          }
-        } else if (
-          countriesWithStates.includes(
-            identificationDetails.countryOrJurisdiction,
-          )
-        ) {
-          const reasonData = {
-            fields: [],
-            problemDesc: '',
-            affectedData: [],
-          };
+            if (identificationDetails.localOrTribal) {
+              reasonData.fields.push(
+                formFields.identificationDetails.localOrTribal,
+              );
+              reasonData.affectedData.push(identificationDetails.localOrTribal);
+              reasonData.problemDesc =
+                'The selected country does not support local or tribal data.';
 
-          if (
-            identificationDetails.state !==
-            identificationDetails.countryOrJurisdiction
+              if (identificationDetails.otherLocalOrTribalDesc) {
+                reasonData.fields.push(
+                  formFields.identificationDetails.otherLocalOrTribalDesc,
+                );
+                reasonData.affectedData.push(
+                  identificationDetails.otherLocalOrTribalDesc,
+                );
+                reasonData.problemDesc =
+                  'The selected country does not support other local or tribal descriptions.';
+              }
+
+              companyDeleted = true;
+              reasons.push(reasonData);
+            }
+          } else if (
+            identificationDetails.state ||
+            identificationDetails.localOrTribal ||
+            identificationDetails.otherLocalOrTribalDesc
           ) {
-            reasonData.fields.push(formFields.identificationDetails.state);
-            reasonData.affectedData.push(identificationDetails.state);
-            reasonData.problemDesc =
-              'The specified state does not match the country.';
-          }
+            const reasonData = {
+              fields: [],
+              problemDesc: identificationDetails.countryOrJurisdiction
+                ? 'The selected country does not support state, local, or tribal data.'
+                : 'Identification details include state, local, or tribal data without a specified country or jurisdiction.',
+              affectedData: [],
+            };
 
-          if (identificationDetails.localOrTribal) {
-            reasonData.fields.push(
-              formFields.identificationDetails.localOrTribal,
-            );
-            reasonData.affectedData.push(identificationDetails.localOrTribal);
-            reasonData.problemDesc =
-              'The selected country does not support local or tribal data.';
+            if (identificationDetails.state) {
+              reasonData.fields.push(formFields.identificationDetails.state);
+              reasonData.affectedData.push(identificationDetails.state);
+            }
+
+            if (identificationDetails.localOrTribal) {
+              reasonData.fields.push(
+                formFields.identificationDetails.localOrTribal,
+              );
+              reasonData.affectedData.push(identificationDetails.localOrTribal);
+            }
 
             if (identificationDetails.otherLocalOrTribalDesc) {
               reasonData.fields.push(
@@ -405,49 +446,11 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
               reasonData.affectedData.push(
                 identificationDetails.otherLocalOrTribalDesc,
               );
-              reasonData.problemDesc =
-                'The selected country does not support other local or tribal descriptions.';
             }
 
             companyDeleted = true;
             reasons.push(reasonData);
           }
-        } else if (
-          identificationDetails.state ||
-          identificationDetails.localOrTribal ||
-          identificationDetails.otherLocalOrTribalDesc
-        ) {
-          const reasonData = {
-            fields: [],
-            problemDesc: identificationDetails.countryOrJurisdiction
-              ? 'The selected country does not support state, local, or tribal data.'
-              : 'Identification details include state, local, or tribal data without a specified country or jurisdiction.',
-            affectedData: [],
-          };
-
-          if (identificationDetails.state) {
-            reasonData.fields.push(formFields.identificationDetails.state);
-            reasonData.affectedData.push(identificationDetails.state);
-          }
-
-          if (identificationDetails.localOrTribal) {
-            reasonData.fields.push(
-              formFields.identificationDetails.localOrTribal,
-            );
-            reasonData.affectedData.push(identificationDetails.localOrTribal);
-          }
-
-          if (identificationDetails.otherLocalOrTribalDesc) {
-            reasonData.fields.push(
-              formFields.identificationDetails.otherLocalOrTribalDesc,
-            );
-            reasonData.affectedData.push(
-              identificationDetails.otherLocalOrTribalDesc,
-            );
-          }
-
-          companyDeleted = true;
-          reasons.push(reasonData);
         }
       }
     }

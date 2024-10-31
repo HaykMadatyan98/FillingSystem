@@ -87,7 +87,14 @@ export async function sanitizeData(
     if (hasMultipleParticipants) {
       const firstNames = data[`${prefix} First Name`].split(',');
       firstNames.forEach((_, index) => {
-        if (!(sanitized.company.isExistingCompany && isApplicant)) {
+        if (
+          !(
+            (sanitized.company.isExistingCompany ||
+              (sanitized.company.repCompanyInfo &&
+                sanitized.company.repCompanyInfo.foreignPooled)) &&
+            isApplicant
+          )
+        ) {
           const participant: any = { isApplicant };
           participantKeys.forEach((key) => {
             const value = data[`${prefix} ${key}`];
@@ -116,7 +123,16 @@ export async function sanitizeData(
         }
       });
     } else {
-      if (!(sanitized.company.isExistingCompany && isApplicant)) {
+      if (
+        !(
+          sanitized.company.isExistingCompany ||
+          (!(
+            sanitized.company.repCompanyInfo &&
+            sanitized.company.repCompanyInfo.foreignPooled
+          ) &&
+            isApplicant)
+        )
+      ) {
         const participant: any = { isApplicant };
         participantKeys.forEach((key) => {
           const value = data[`${prefix} ${key}`];

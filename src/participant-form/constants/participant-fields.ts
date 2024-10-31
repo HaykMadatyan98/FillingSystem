@@ -5,8 +5,6 @@ export const applicantFormFields = {
   personalInfo: {
     lastOrLegalName: 'Applicant Last or Legal Name',
     firstName: 'Applicant First Name',
-    middleName: 'Applicant Middle Name',
-    suffix: 'Applicant Suffix',
     dateOfBirth: 'Applicant Date of Birth',
   },
   address: {
