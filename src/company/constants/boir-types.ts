@@ -25,7 +25,6 @@ export const BOIRCompanyForm = {
   address: {
 
   }
-  
 };
 
 export const BOIRUser = {

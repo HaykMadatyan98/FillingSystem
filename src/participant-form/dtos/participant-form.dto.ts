@@ -14,6 +14,8 @@ import {
   IsString,
   Length,
   Matches,
+  MaxLength,
+  MinLength,
   ValidateNested,
 } from 'class-validator';
 
@@ -90,6 +92,8 @@ class OwnerAddressDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @MinLength(5)
+  @MaxLength(9)
   postalCode?: string;
 }
 

@@ -309,7 +309,6 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
       reasons.push(reasonData);
     }
   }
-  // start
   if (sanitized.participants && sanitized.participants.length) {
     const participants = sanitized.participants;
     for (let i = participants.length - 1; i >= 0; i--) {
@@ -319,7 +318,7 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
       if (
         (!participants[i].identificationDetails?.docType ||
           !participants[i].identificationDetails?.docNumber) &&
-        !participants[i].finCENID.finCENID
+        !participants[i].finCENID?.finCENID
       ) {
         const reason = {
           fields: [
@@ -338,7 +337,7 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
         companyDeleted = true;
       }
 
-      if (!participants[i].finCENID.finCENID) {
+      if (!(participants[i].finCENID && participants[i].finCENID.finCENID)) {
         const identificationDetails = participants[i].identificationDetails;
 
         if (identificationDetails) {

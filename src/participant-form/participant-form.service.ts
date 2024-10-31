@@ -58,12 +58,17 @@ export class ParticipantFormService {
       ? new this.applicantFormModel(companyParticipantData)
       : new this.ownerFormModel(companyParticipantData);
 
-    const requiredFieldsCount = await calculateRequiredFieldsCount(
-      participant,
-      isApplicant ? requiredApplicantFields : requiredOwnerFields,
-    );
-
+    const requiredFieldsCount =
+      participant.finCENID && participant.finCENID.finCENID
+        ? isApplicant
+          ? requiredApplicantFields.length
+          : requiredOwnerFields.length
+        : await calculateRequiredFieldsCount(
+            participant,
+            isApplicant ? requiredApplicantFields : requiredOwnerFields,
+          );
     participant.answerCount = requiredFieldsCount;
+
     await participant.save();
 
     if (!missingFields[isApplicant ? 'applicants' : 'owners']) {
@@ -99,10 +104,15 @@ export class ParticipantFormService {
       ? await this.applicantFormModel.findById(participantFormId)
       : await this.ownerFormModel.findById(participantFormId);
 
-    const requiredFieldsCountBefore = await calculateRequiredFieldsCount(
-      participant,
-      isApplicant ? requiredApplicantFields : requiredOwnerFields,
-    );
+    const requiredFieldsCountBefore =
+      participant.finCENID && participant.finCENID.finCENID
+        ? isApplicant
+          ? requiredApplicantFields.length
+          : requiredOwnerFields.length
+        : await calculateRequiredFieldsCount(
+            participant,
+            isApplicant ? requiredApplicantFields : requiredOwnerFields,
+          );
 
     if (
       participantData.identificationDetails &&
@@ -112,15 +122,32 @@ export class ParticipantFormService {
       await this.azureService.delete(participant.identificationDetails.docImg);
     }
 
-    const updateDataKeys = Object.keys(participantData);
-    for (const i of updateDataKeys) {
-      participant[i] = { ...participant[i], ...participantData[i] };
+    if (participantData.finCENID && participantData.finCENID.finCENID) {
+      const currentParticipantKeys = Object.keys(
+        isApplicant ? applicantFormFields : ownerFormFields,
+      );
+
+      currentParticipantKeys.forEach((key) => {
+        if (key !== 'beneficialOwner') participant[key] = undefined;
+      });
+      participant.finCENID = participant.finCENID || {};
+      participant.finCENID.finCENID = participantData.finCENID.finCENID;
+    } else {
+      const updateDataKeys = Object.keys(participantData);
+      for (const i of updateDataKeys) {
+        participant[i] = { ...participant[i], ...participantData[i] };
+      }
     }
 
-    const requiredFieldsCountAfter = await calculateRequiredFieldsCount(
-      participant,
-      isApplicant ? requiredApplicantFields : requiredOwnerFields,
-    );
+    const requiredFieldsCountAfter =
+      participant.finCENID && participant.finCENID.finCENID
+        ? isApplicant
+          ? requiredApplicantFields.length
+          : requiredOwnerFields.length
+        : await calculateRequiredFieldsCount(
+            participant,
+            isApplicant ? requiredApplicantFields : requiredOwnerFields,
+          );
 
     const countDifference =
       requiredFieldsCountBefore - requiredFieldsCountAfter;
@@ -195,10 +222,15 @@ export class ParticipantFormService {
       createdParticipant['id'],
     );
 
-    const answerCount = await calculateRequiredFieldsCount(
-      createdParticipant,
-      isApplicant ? requiredApplicantFields : requiredOwnerFields,
-    );
+    const answerCount =
+      createdParticipant.finCENID && createdParticipant.finCENID.finCENID
+        ? isApplicant
+          ? requiredApplicantFields.length
+          : requiredOwnerFields.length
+        : await calculateRequiredFieldsCount(
+            createdParticipant,
+            isApplicant ? requiredApplicantFields : requiredOwnerFields,
+          );
 
     createdParticipant.answerCount = answerCount;
 
@@ -243,8 +275,6 @@ export class ParticipantFormService {
         'participantForm',
       );
     }
-
-    console.log(participantFormId, 'delete part');
 
     const participantForm = isApplicant
       ? await this.applicantFormModel.findById(participantFormId)
@@ -440,46 +470,37 @@ export class ParticipantFormService {
     return missingFields;
   }
 
-  async changeForForeignPooled(company: CompanyDocument, ownerData: any) {
+  async changeForForeignPooled(company: CompanyDocument, ownerData?: any) {
     let currentCompanyOwners = company.forms.owners;
     company.populate({ path: 'forms.owners', model: 'OwnerForm' });
     const currentCompanyOwnersCount = currentCompanyOwners.length;
 
-    console.log(company, ownerData, 'logger');
-    if (!ownerData || !currentCompanyOwnersCount) {
+    if (!currentCompanyOwnersCount) {
       return;
     }
 
-    let isExistingOwner: OwnerForm | undefined;
-
-    for (const owner of currentCompanyOwners) {
-      if (ownerData.finCENID) {
-        if (owner.finCENID.finCENID === ownerData.finCENID.finCENID) {
-          isExistingOwner = owner;
-          break;
-        }
-      } else if (
-        owner.identificationDetails.docNumber ===
-          ownerData.identificationDetails.docNumber &&
-        owner.identificationDetails.docType ===
-          ownerData.identificationDetails.docType
-      ) {
-        isExistingOwner = owner;
-        break;
-      }
+    let isExistingOwner = null;
+    if (ownerData) {
+      isExistingOwner = ownerData.finCENID
+        ? await this.ownerFormModel.findOne({
+            ['finCENID.finCENID']: ownerData.finCENID.finCENID,
+          })
+        : await this.ownerFormModel.findOne({
+            ['identificationDetails.docNumber']:
+              ownerData.identificationDetails.docNumber,
+            ['identificationDetails.docType']:
+              ownerData.identificationDetails.docType,
+          });
     }
 
-    console.log(currentCompanyOwners);
     if (!isExistingOwner) {
       while (company.forms.owners.length !== 0) {
         const owner = currentCompanyOwners.pop();
-        console.log('in while', owner['_id']);
         await this.deleteParticipantFormById(owner['_id'], false);
       }
     } else {
       for (const owner of currentCompanyOwners) {
         if (owner['_id'] !== isExistingOwner['_id']) {
-          console.log(owner['_id'], 'in else');
           await this.deleteParticipantFormById(owner['_id'], false);
         }
       }

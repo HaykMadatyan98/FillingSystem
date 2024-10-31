@@ -332,12 +332,12 @@ export class CompanyService {
       foreignPooled,
     );
 
-    // if (foreignPooled.isForeignPooled) {
-    //   await this.participantFormService.changeForForeignPooled(
-    //     company,
-    //     sanitized.participants.find((participant) => !participant.isApplicant),
-    //   );
-    // }
+    if (foreignPooled.isForeignPooled) {
+      await this.participantFormService.changeForForeignPooled(
+        company,
+        sanitized.participants.find((participant) => !participant.isApplicant),
+      );
+    }
 
     const participantPromises = sanitized.participants.map(
       async (participant) => {
@@ -636,7 +636,6 @@ export class CompanyService {
     companiesAndTheirAmount: { name: string; amount: number }[];
     totalAmount: number;
   }> {
-    console.log(companyIds);
     const companies = await this.companyModel.find({
       _id: { $in: companyIds },
       isSubmitted: true,

@@ -6,6 +6,7 @@ import {
   UNITED_STATES,
 } from '@/company/constants';
 import { TRResponseMsg } from '@/participant-form/interfaces';
+import { ParticipantFormService } from '@/participant-form/participant-form.service';
 import { calculateRequiredFieldsCount } from '@/utils/req-field.util';
 import {
   ConflictException,
@@ -33,6 +34,8 @@ export class CompanyFormService {
     private companyFormModel: Model<CompanyFormDocument>,
     @Inject(forwardRef(() => CompanyService))
     private readonly companyService: CompanyService,
+    @Inject(forwardRef(() => ParticipantFormService))
+    private readonly participantService: ParticipantFormService,
   ) {}
 
   async createCompanyFormFromCsv(companyFormData: ICompanyForm) {
@@ -72,6 +75,7 @@ export class CompanyFormService {
     }
 
     const companyData = await this.companyFormModel.findById(companyFormDataId);
+    let foreignPooledBefore = companyData.repCompanyInfo.foreignPooled;
 
     if (companyFormData.taxInfo) {
       if (
@@ -110,11 +114,20 @@ export class CompanyFormService {
 
     const countDiff = answerCountBefore - answerCountAfter;
     companyData.answerCount += countDiff;
+    const foreignStatusChange =
+      foreignPooledBefore === companyData.repCompanyInfo.foreignPooled;
+
+    if (foreignStatusChange) {
+      await this.participantService.changeForForeignPooled(
+        await this.companyService.getCompanyById(companyId),
+      );
+    }
+
     await companyData.save();
     await this.companyService.changeCompanyReqFieldsCount(
       companyId,
       countDiff,
-      existingStatusChanged,
+      existingStatusChanged || foreignStatusChange,
     );
 
     if (missingCompanyForm) {
