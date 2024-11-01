@@ -104,8 +104,12 @@ export class ParticipantFormService {
       ? await this.applicantFormModel.findById(participantFormId)
       : await this.ownerFormModel.findById(participantFormId);
 
+    if (!participant) {
+      throw new NotFoundException('Form Not Found');
+    }
+
     const requiredFieldsCountBefore =
-      participant.finCENID && participant.finCENID.finCENID
+      participant?.finCENID && participant.finCENID?.finCENID
         ? isApplicant
           ? requiredApplicantFields.length
           : requiredOwnerFields.length
@@ -115,14 +119,14 @@ export class ParticipantFormService {
           );
 
     if (
-      participantData.identificationDetails &&
-      participantData.identificationDetails.docImg &&
+      participantData?.identificationDetails &&
+      participantData?.identificationDetails.docImg &&
       participant.identificationDetails.docImg
     ) {
       await this.azureService.delete(participant.identificationDetails.docImg);
     }
 
-    if (participantData.finCENID && participantData.finCENID.finCENID) {
+    if (participantData?.finCENID && participantData.finCENID.finCENID) {
       const currentParticipantKeys = Object.keys(
         isApplicant ? applicantFormFields : ownerFormFields,
       );
@@ -140,7 +144,7 @@ export class ParticipantFormService {
     }
 
     const requiredFieldsCountAfter =
-      participant.finCENID && participant.finCENID.finCENID
+      participant?.finCENID && participant.finCENID.finCENID
         ? isApplicant
           ? requiredApplicantFields.length
           : requiredOwnerFields.length
@@ -470,7 +474,11 @@ export class ParticipantFormService {
     return missingFields;
   }
 
-  async changeForForeignPooled(company: CompanyDocument, ownerData?: any, isUploadedData?: boolean) {
+  async changeForForeignPooled(
+    company: CompanyDocument,
+    ownerData?: any,
+    isUploadedData?: boolean,
+  ) {
     let currentCompanyOwners = company.forms.owners;
     company.populate({ path: 'forms.owners', model: 'OwnerForm' });
     const currentCompanyOwnersCount = currentCompanyOwners.length;

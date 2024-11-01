@@ -324,9 +324,9 @@ export class CompanyService {
     userEmailData: IUserInvitationEmail,
     missingFields: { company?: string[] },
   ) {
-    const foreignPooled = { isForeignPooled: false };
-
     try {
+      const foreignPooled = { isForeignPooled: false };
+
       await this.companyFormService.updateCompanyForm(
         sanitized.company,
         companyFormId,
@@ -335,65 +335,67 @@ export class CompanyService {
         missingFields,
         foreignPooled,
       );
+
+      if (foreignPooled.isForeignPooled) {
+        await this.participantFormService.changeForForeignPooled(
+          company,
+          sanitized.participants.find(
+            (participant) => !participant.isApplicant,
+          ),
+          true,
+        );
+      }
+
+      const participantPromises = sanitized.participants.map(
+        async (participant) => {
+          const existParticipant = participant.finCENID
+            ? await this.participantFormService.getByFinCENId(
+                participant.finCENID.finCENID,
+                participant.isApplicant,
+              )
+            : await this.participantFormService.findParticipantFormByDocDataAndIds(
+                participant.identificationDetails.docNumber,
+                participant.identificationDetails.docType,
+                [...company.forms.owners, ...company.forms.applicants],
+                participant.isApplicant,
+              );
+
+          if (existParticipant) {
+            await this.participantFormService.changeParticipantForm(
+              participant,
+              existParticipant['id'],
+              participant['isApplicant'],
+              company['id'],
+              false,
+              missingFields,
+            );
+          } else {
+            const newParticipant =
+              await this.participantFormService.createParticipantFormFromCsv(
+                participant,
+                missingFields,
+              );
+            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+            newParticipant[0]
+              ? company.forms.applicants.push(newParticipant[1])
+              : company.forms.owners.push(newParticipant[1]);
+
+            company.answersCount += newParticipant[2];
+          }
+        },
+      );
+
+      await this.userService.getUserById(company.user as unknown as string);
+
+      userEmailData.companyName = company.name;
+      userEmailData.isNewCompany = false;
+      company.isSubmitted = false;
+      await Promise.all(participantPromises);
+
+      return true;
     } catch (error) {
       return false;
     }
-
-    if (foreignPooled.isForeignPooled) {
-      await this.participantFormService.changeForForeignPooled(
-        company,
-        sanitized.participants.find((participant) => !participant.isApplicant),
-        true
-      );
-    }
-
-    const participantPromises = sanitized.participants.map(
-      async (participant) => {
-        const existParticipant = participant.finCENID
-          ? await this.participantFormService.getByFinCENId(
-              participant.finCENID.finCENID,
-              participant.isApplicant,
-            )
-          : await this.participantFormService.findParticipantFormByDocDataAndIds(
-              participant.identificationDetails.docNumber,
-              participant.identificationDetails.docType,
-              [...company.forms.owners, ...company.forms.applicants],
-              participant.isApplicant,
-            );
-
-        if (existParticipant) {
-          await this.participantFormService.changeParticipantForm(
-            participant,
-            existParticipant['id'],
-            participant['isApplicant'],
-            company['id'],
-            false,
-            missingFields,
-          );
-        } else {
-          const newParticipant =
-            await this.participantFormService.createParticipantFormFromCsv(
-              participant,
-              missingFields,
-            );
-          // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-          newParticipant[0]
-            ? company.forms.applicants.push(newParticipant[1])
-            : company.forms.owners.push(newParticipant[1]);
-
-          company.answersCount += newParticipant[2];
-        }
-      },
-    );
-
-    await this.userService.getUserById(company.user as unknown as string);
-
-    userEmailData.companyName = company.name;
-    userEmailData.isNewCompany = false;
-    company.isSubmitted = false;
-    await Promise.all(participantPromises);
-
-    return true;
   }
 
   async getCompaniesByIds(companyIds: string[]) {
