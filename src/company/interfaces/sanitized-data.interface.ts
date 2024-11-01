@@ -53,7 +53,7 @@ interface IPersonalInfo {
   firstName?: string;
   middleName?: string;
   suffix?: string;
-  dateOfBirth?: Date;
+  dateOfBirth?: string;
 }
 
 interface IAddress {

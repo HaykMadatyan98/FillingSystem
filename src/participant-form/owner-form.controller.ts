@@ -94,13 +94,13 @@ export class OwnerFormController {
       },
     },
   })
-  @ApiCreatedResponse({ type: ApplicantFormDto })
+  @ApiCreatedResponse({ type: OwnerFormDto })
   @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
   async changeParticipantForm(
     @Param('formId') formId: string,
     @Param('companyId') companyId: string,
-    @Body() payload: ApplicantFormDto,
+    @Body() payload: OwnerFormDto,
     @Req() req: RequestWithUser,
   ) {
     return this.participantFormService.changeParticipantForm(
