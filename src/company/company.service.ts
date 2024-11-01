@@ -326,7 +326,6 @@ export class CompanyService {
   ) {
     try {
       const foreignPooled = { isForeignPooled: false };
-
       await this.companyFormService.updateCompanyForm(
         sanitized.company,
         companyFormId,
@@ -334,6 +333,8 @@ export class CompanyService {
         false,
         missingFields,
         foreignPooled,
+        true,
+        company,
       );
 
       if (foreignPooled.isForeignPooled) {
@@ -862,6 +863,20 @@ export class CompanyService {
     const companyData = company.toObject();
 
     return { companyData };
+  }
+
+  async changeCompanyName(
+    companyId: string,
+    companyName: string,
+  ): Promise<void> {
+    const company = await this.companyModel.findById(companyId);
+
+    if (!company) {
+      throw new NotFoundException(companyResponseMsgs.companyNotFound);
+    }
+
+    company.name = companyName;
+    await company.save();
   }
 
   // need some changes after admin part creating

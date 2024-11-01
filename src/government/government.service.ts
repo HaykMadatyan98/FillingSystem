@@ -24,7 +24,6 @@ export class GovernmentService {
       companies.map(async (companyId) => {
         try {
           const xmlData = await this.generateXml(companyId);
-          console.log(xmlData);
           this.logger.log(
             `Successfully generated XML for company ID: ${companyId}`,
           );

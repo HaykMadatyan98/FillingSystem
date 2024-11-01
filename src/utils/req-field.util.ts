@@ -3,7 +3,6 @@ export async function calculateRequiredFieldsCount(
   requiredFields: string[],
 ): Promise<number> {
   let enteredFieldsCount = 0;
-  console.log(data);
   requiredFields.forEach((fieldPath) => {
     const [start, end] = fieldPath.split('.');
 

@@ -65,6 +65,8 @@ export class CompanyFormService {
     user?: IRequestUser | boolean,
     missingCompanyForm?: any,
     companyForeignPooled?: { isForeignPooled: boolean },
+    isForCsv?: boolean,
+    company?: any,
   ): TRResponseMsg {
     if (user && typeof user !== 'boolean') {
       await this.companyService.checkUserCompanyPermission(
@@ -81,6 +83,7 @@ export class CompanyFormService {
     }
 
     let foreignPooledBefore = companyData.repCompanyInfo?.foreignPooled;
+    let companyNameBefore = companyData.names.legalName;
 
     if (companyFormData.taxInfo) {
       if (
@@ -126,6 +129,17 @@ export class CompanyFormService {
       await this.participantService.changeForForeignPooled(
         await this.companyService.getCompanyById(companyId),
       );
+    }
+
+    if (!isForCsv && companyNameBefore !== companyData.names.legalName) {
+      await this.companyService.changeCompanyName(
+        companyId,
+        companyData.names.legalName,
+      );
+    } else {
+      if (company) {
+        company.name = companyData.names.legalName;
+      }
     }
 
     await companyData.save();

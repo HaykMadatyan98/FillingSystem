@@ -1,5 +1,6 @@
 import { getEnumKeyByValue } from '@/utils/validator.util';
 import { AllCountryEnum, ForeignCountryEnum } from './country.enum';
+import { TribalDataEnum } from './localOrTribal';
 import { StatesEnum } from './territory-states.enum';
 
 export const BOIRCompanyFormParseData = {
@@ -22,7 +23,10 @@ export const BOIRCompanyFormParseData = {
             ),
           }),
           tribalJurisdiction: (value: string) => ({
-            FirstRegistrationLocalTribalCodeText: value,
+            FirstRegistrationLocalTribalCodeText: getEnumKeyByValue(
+              value,
+              TribalDataEnum,
+            ),
           }),
           nameOfOtherTribal: (value: string) => ({
             OtherFirstRegistrationLocalTribalText: value,
@@ -36,7 +40,10 @@ export const BOIRCompanyFormParseData = {
             FormationCountryCodeText: getEnumKeyByValue(value, AllCountryEnum),
           }),
           tribalJurisdiction: (value: string) => ({
-            FormationLocalTribalCodeText: value,
+            FormationLocalTribalCodeText: getEnumKeyByValue(
+              value,
+              TribalDataEnum,
+            ),
           }),
           nameOfOtherTribal: (value: string) => ({
             OtherFormationLocalTribalText: value,

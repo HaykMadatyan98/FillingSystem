@@ -44,7 +44,7 @@ export enum TribalDataEnum {
   'Campo Band of Diegueno Mission Indians of the Campo Indian Reservation, California' = 'Campo Band of Diegueno Mission Indians of the Campo Indian Reservation, California',
   'Capitan Grande Band of Diegueno Mission Indians of California (Barona Group of Capitan Grande Band of Mission Indians of the Barona Reservation, California)' = 'Capitan Grande Band of Diegueno Mission Indians of California (Barona Group of Capitan Grande Band of Mission Indians of the Barona Reservation, California)',
   'Capitan Grande Band of Diegueno Mission Indians of California' = 'Capitan Grande Band of Diegueno Mission Indians of California',
-  'Capitan Grande Band of Diegueno Mission Indians of California= Viejas (Baron Long) Group of Capitan Grande Band of Mission Indians of the Viejas Reservation, California' = 'Capitan Grande Band of Diegueno Mission Indians of California= Viejas (Baron Long) Group of Capitan Grande Band of Mission Indians of the Viejas Reservation, California',
+  'Capitan Grande Band of Diegueno Mission Indians of California Viejas (Baron Long) Group of Capitan Grande Band of Mission Indians of the Viejas Reservation, California' = 'Capitan Grande Band of Diegueno Mission Indians of California Viejas (Baron Long) Group of Capitan Grande Band of Mission Indians of the Viejas Reservation, California',
   'Catawba Indian Nation (aka Catawba Indian Tribe of South Carolina)' = 'Catawba Indian Nation (aka Catawba Indian Tribe of South Carolina)',
   'Cayuga Nation' = 'Cayuga Nation',
   'Cedarville Rancheria, California' = 'Cedarville Rancheria, California',
