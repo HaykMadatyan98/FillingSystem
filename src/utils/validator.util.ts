@@ -63,7 +63,7 @@ export async function validateData(data: any) {
   return errorData;
 }
 
-function getEnumKeyByValue(value: string, enumData: any): string {
+export function getEnumKeyByValue(value: string, enumData: any): string {
   return Object.keys(enumData).find(
     (key) => enumData[key as keyof typeof enumData] === value,
   );

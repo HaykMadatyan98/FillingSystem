@@ -1,19 +1,46 @@
-export const BOIRCompanyForm = {
-  ['activityPartyCode']: 'ActivityPartyTypeCode', // code 62
-  isExistingCompany: 'ExistingReportingCompanyIndicator',
+import { getEnumKeyByValue } from '@/utils/validator.util';
+import { AllCountryEnum, ForeignCountryEnum } from './country.enum';
+import { StatesEnum } from './territory-states.enum';
+
+export const BOIRCompanyFormParseData = {
+  isExistingCompany: (value: boolean) => ({
+    ExistingReportingCompanyIndicator: value ? 'Y' : 'F',
+  }),
   formationJurisdiction: (isForeign: boolean) =>
     isForeign
       ? {
-          ['stateOfFormation']: 'FirstRegistrationStateCodeText',
-          ['countryOrJurisdictionOfFormation']: 'FormationCountryCodeText',
-          ['tribalJurisdiction']: 'FirstRegistrationLocalTribalCodeText',
-          ['nameOfOtherTribal']: 'OtherFirstRegistrationLocalTribalText',
+          stateOfFormation: (value: string) => ({
+            FirstRegistrationStateCodeText: getEnumKeyByValue(
+              value,
+              StatesEnum,
+            ),
+          }),
+          countryOrJurisdictionOfFormation: (value: string) => ({
+            FormationCountryCodeText: getEnumKeyByValue(
+              value,
+              ForeignCountryEnum,
+            ),
+          }),
+          tribalJurisdiction: (value: string) => ({
+            FirstRegistrationLocalTribalCodeText: value,
+          }),
+          nameOfOtherTribal: (value: string) => ({
+            OtherFirstRegistrationLocalTribalText: value,
+          }),
         }
       : {
-          ['stateOfFormation']: 'FormationStateCodeText',
-          ['countryOrJurisdictionOfFormation']: 'FormationCountryCodeText',
-          ['tribalJurisdiction']: 'FormationLocalTribalCodeText',
-          ['nameOfOtherTribal']: 'OtherFormationLocalTribalText',
+          stateOfFormation: (value: string) => ({
+            FormationStateCodeText: getEnumKeyByValue(value, StatesEnum),
+          }),
+          countryOrJurisdictionOfFormation: (value: string) => ({
+            FormationCountryCodeText: getEnumKeyByValue(value, AllCountryEnum),
+          }),
+          tribalJurisdiction: (value: string) => ({
+            FormationLocalTribalCodeText: value,
+          }),
+          nameOfOtherTribal: (value: string) => ({
+            OtherFormationLocalTribalText: value,
+          }),
         },
   repCompanyInfo: {
     requestToReceiveFID: 'RequestFinCENIDIndicator',
@@ -23,11 +50,22 @@ export const BOIRCompanyForm = {
     altName: 'PartyName',
   },
   address: {
-
-  }
+    // Address
+    address: 'RawStreetAddress1Text',
+    city: 'RawCityText',
+    usOrUsTerritory: 'RawCountryCodeText',
+    state: 'RawStateCodeText',
+    zipCode: 'RawZIPCode',
+  },
+  taxInfo: {
+    // PartyIdentification
+    taxIdType: 'PartyIdentificationTypeCode',
+    taxIdNumber: 'PartyIdentificationNumberText',
+    countryOrJurisdiction: 'OtherIssuerCountryText',
+  },
 };
 
-export const BOIRUser = {
+export const BOIRUseParseData = {
   user: {
     firstName: 'SubmitterIndivdualFirstName',
     lastName: 'SubmitterEntityIndivdualLastName',

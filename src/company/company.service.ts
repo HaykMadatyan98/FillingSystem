@@ -187,13 +187,16 @@ export class CompanyService {
         return;
       }
     } else {
-      await this.changeCompanyByCsv(
+      const updatedCompany = await this.changeCompanyByCsv(
         company,
         companyFormId,
         sanitized,
         userEmailData,
         missingFields,
       );
+      if (!updatedCompany) {
+        return;
+      }
     }
 
     if (sanitized.BOIRExpTime) {
@@ -323,19 +326,24 @@ export class CompanyService {
   ) {
     const foreignPooled = { isForeignPooled: false };
 
-    await this.companyFormService.updateCompanyForm(
-      sanitized.company,
-      companyFormId,
-      company['id'],
-      false,
-      missingFields,
-      foreignPooled,
-    );
+    try {
+      await this.companyFormService.updateCompanyForm(
+        sanitized.company,
+        companyFormId,
+        company['id'],
+        false,
+        missingFields,
+        foreignPooled,
+      );
+    } catch (error) {
+      return false;
+    }
 
     if (foreignPooled.isForeignPooled) {
       await this.participantFormService.changeForForeignPooled(
         company,
         sanitized.participants.find((participant) => !participant.isApplicant),
+        true
       );
     }
 
@@ -384,6 +392,8 @@ export class CompanyService {
     userEmailData.isNewCompany = false;
     company.isSubmitted = false;
     await Promise.all(participantPromises);
+
+    return true;
   }
 
   async getCompaniesByIds(companyIds: string[]) {
@@ -557,7 +567,7 @@ export class CompanyService {
     ) {
       const applicantIsNotRequired =
         company.isExistingCompany ||
-        company.forms.company.repCompanyInfo.foreignPooled;
+        company.forms.company.repCompanyInfo?.foreignPooled;
       company.reqFieldsCount = applicantIsNotRequired
         ? 9 + company.forms.owners.length * 8
         : this.calculateReqFieldsCount(company);

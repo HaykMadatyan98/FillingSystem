@@ -118,11 +118,7 @@ export class TransactionService {
       amount: totalAmount * 100,
       currency: CurrencyEnum.USD,
       payment_method_types: ['card'],
-      // payment_method_data: {paypal: },
-      metadata: { companyNames: companyNames.join(',') },
-      // automatic_payment_methods: {
-      //   enabled: false,
-      // },
+      metadata: { companyNames: companyNames.join(','), locale: 'en' },
     });
 
     await this.createOrChangeTransaction(paymentIntent, companyIds);
@@ -167,9 +163,7 @@ export class TransactionService {
     return result;
   }
 
-  async updateTransactionStatus(payload: any) {
-    const { paymentIntent } = payload;
-
+  async updateTransactionStatus(paymentIntent: any) {
     const transaction = await this.getTransactionByTId(paymentIntent.id);
 
     transaction.status = paymentIntent.status;

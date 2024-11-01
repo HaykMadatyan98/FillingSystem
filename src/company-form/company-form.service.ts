@@ -54,7 +54,7 @@ export class CompanyFormService {
       companyName: companyData.names.legalName,
       answerCount,
       missingFormData,
-      isForeignPooled: companyData.repCompanyInfo.foreignPooled,
+      isForeignPooled: companyData.repCompanyInfo?.foreignPooled,
     };
   }
 
@@ -75,7 +75,12 @@ export class CompanyFormService {
     }
 
     const companyData = await this.companyFormModel.findById(companyFormDataId);
-    let foreignPooledBefore = companyData.repCompanyInfo.foreignPooled;
+
+    if (!companyData) {
+      throw new NotFoundException('Company Form not Found');
+    }
+
+    let foreignPooledBefore = companyData.repCompanyInfo?.foreignPooled;
 
     if (companyFormData.taxInfo) {
       if (
@@ -115,7 +120,7 @@ export class CompanyFormService {
     const countDiff = answerCountBefore - answerCountAfter;
     companyData.answerCount += countDiff;
     const foreignStatusChange =
-      foreignPooledBefore === companyData.repCompanyInfo.foreignPooled;
+      foreignPooledBefore !== companyData.repCompanyInfo.foreignPooled;
 
     if (foreignStatusChange) {
       await this.participantService.changeForForeignPooled(

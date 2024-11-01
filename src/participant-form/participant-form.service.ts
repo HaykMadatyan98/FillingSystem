@@ -277,8 +277,8 @@ export class ParticipantFormService {
     }
 
     const participantForm = isApplicant
-      ? await this.applicantFormModel.findById(participantFormId)
-      : await this.ownerFormModel.findById(participantFormId);
+      ? await this.applicantFormModel.findOne({ _id: participantFormId })
+      : await this.ownerFormModel.findOne({ _id: participantFormId });
 
     if (!participantForm) {
       throw new NotFoundException(participantFormResponseMsgs.formNotFound);
@@ -470,7 +470,7 @@ export class ParticipantFormService {
     return missingFields;
   }
 
-  async changeForForeignPooled(company: CompanyDocument, ownerData?: any) {
+  async changeForForeignPooled(company: CompanyDocument, ownerData?: any, isUploadedData?: boolean) {
     let currentCompanyOwners = company.forms.owners;
     company.populate({ path: 'forms.owners', model: 'OwnerForm' });
     const currentCompanyOwnersCount = currentCompanyOwners.length;
@@ -494,7 +494,7 @@ export class ParticipantFormService {
     }
 
     if (!isExistingOwner) {
-      while (company.forms.owners.length !== 0) {
+      while (company.forms.owners.length !== 1) {
         const owner = currentCompanyOwners.pop();
         await this.deleteParticipantFormById(owner['_id'], false);
       }
@@ -504,6 +504,10 @@ export class ParticipantFormService {
           await this.deleteParticipantFormById(owner['_id'], false);
         }
       }
+    }
+
+    if (!isUploadedData) {
+      await company.save();
     }
   }
 

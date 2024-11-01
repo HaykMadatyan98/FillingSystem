@@ -24,7 +24,6 @@ export class GovernmentService {
       companies.map(async (companyId) => {
         try {
           const xmlData = await this.generateXml(companyId);
-          // Logic to send XML data to government endpoint can go here
           console.log(xmlData);
           this.logger.log(
             `Successfully generated XML for company ID: ${companyId}`,
@@ -41,7 +40,7 @@ export class GovernmentService {
 
   private async generateXml(companyId: string) {
     const companyData = await this.companyService.getFilteredData(companyId);
-    console.log(companyData);
+
     const xml = create({ version: '1.0', encoding: 'UTF-8' }).ele(
       'fc2:EFilingSubmissionXML',
       {
