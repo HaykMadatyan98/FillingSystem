@@ -473,7 +473,7 @@ export class ParticipantFormService {
     ownerData?: any,
     isUploadedData?: boolean,
   ) {
-    let currentCompanyOwners = company.forms.owners;
+    const currentCompanyOwners = company.forms.owners;
     company.populate({ path: 'forms.owners', model: 'OwnerForm' });
     const currentCompanyOwnersCount = currentCompanyOwners.length;
 
@@ -543,18 +543,15 @@ export class ParticipantFormService {
     }
 
     if (!participant.identificationDetails.docImg) {
-       throw new BadRequestException('current participant dont have an image')
+      throw new BadRequestException('current participant dont have an image');
     }
 
     await this.azureService.delete(participant.identificationDetails.docImg);
-   
+
     if (!participant.finCENID?.finCENID) {
-      await this.companyService.changeCompanyReqFieldsCount(
-        companyId,
-        1,
-      )
+      await this.companyService.changeCompanyReqFieldsCount(companyId, 1);
     }
-    
-    return { message: 'image deleted' }
+
+    return { message: 'image deleted' };
   }
 }

@@ -278,10 +278,11 @@ export class OwnerFormController {
     @Param('companyId') companyId: string,
     @Req() req: RequestWithUser,
   ) {
+    console.log(participantId, companyId);
     return this.participantFormService.removeParticipantDocumentImage(
       participantId,
       req.user,
-      true,
+      false,
       companyId,
     );
   }

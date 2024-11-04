@@ -397,6 +397,7 @@ export class CompanyService {
 
       return true;
     } catch (error) {
+      console.error(error);
       return false;
     }
   }
