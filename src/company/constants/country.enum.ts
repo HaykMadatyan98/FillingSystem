@@ -492,7 +492,8 @@ export enum AllCountryEnum {
 }
 
 export const UNITED_STATES = 'United States of America';
-
+export const MEXICO = 'Mexico';
+export const CANADA = 'Canada';
 export const countriesWithStates = [
   'American Samoa',
   'Guam',

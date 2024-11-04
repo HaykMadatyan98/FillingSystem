@@ -246,4 +246,34 @@ export class ApplicantFormController {
       userId,
     );
   }
+
+  @Delete('/docImg/:companyId/:participantId')
+  @ApiParam({
+    required: true,
+    name: 'participantId',
+  })
+  @ApiParam({
+    required: true,
+    name: 'companyId',
+  })
+  @ApiOperation({
+    summary: 'Remove applicant document image',
+  })
+  @ApiOkResponse({
+    description: 'image deleted',
+  })
+  @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth()
+  async deleteDocumentImage(
+    @Param('participantId') participantId: string,
+    @Param('companyId') companyId: string,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.participantFormService.removeParticipantDocumentImage(
+      participantId,
+      req.user,
+      true,
+      companyId,
+    );
+  }
 }

@@ -10,7 +10,7 @@ export interface ILegalAndAltNames {
 
 export interface ITaxInformation {
   taxIdType: string;
-  taxIdNumber: number;
+  taxIdNumber: string;
   countryOrJurisdiction?: string;
 }
 

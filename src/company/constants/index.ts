@@ -1,7 +1,9 @@
 export { companyResponseMsgs } from './company-responses';
 export {
   AllCountryEnum,
+  CANADA,
   ForeignCountryEnum,
+  MEXICO,
   UNITED_STATES,
   countriesWithStates,
 } from './country.enum';

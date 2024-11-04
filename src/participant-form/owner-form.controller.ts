@@ -29,7 +29,6 @@ import {
 } from '@nestjs/swagger';
 import { participantFormResponseMsgs } from './constants';
 import {
-  ApplicantFormDto,
   CreateParticipantDocDto,
   OwnerFormDto,
 } from './dtos/participant-form.dto';
@@ -254,6 +253,36 @@ export class OwnerFormController {
     return this.participantFormService.getAllCompaniesParticipants(
       false,
       userId,
+    );
+  }
+
+  @Delete('/docImg/:companyId/:participantId')
+  @ApiParam({
+    required: true,
+    name: 'participantId',
+  })
+  @ApiParam({
+    required: true,
+    name: 'companyId',
+  })
+  @ApiOperation({
+    summary: 'Remove applicant document image',
+  })
+  @ApiOkResponse({
+    description: 'image deleted',
+  })
+  @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth()
+  async deleteDocumentImage(
+    @Param('participantId') participantId: string,
+    @Param('companyId') companyId: string,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.participantFormService.removeParticipantDocumentImage(
+      participantId,
+      req.user,
+      true,
+      companyId,
     );
   }
 }

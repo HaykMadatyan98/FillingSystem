@@ -83,15 +83,7 @@ export class AzureService {
     return blobsData;
   }
 
-  async delete(fileName: string, participantId?: string, user?: IRequestUser) {
-    if (user) {
-      await this.companyService.checkUserCompanyPermission(
-        user,
-        participantId,
-        'participantForm',
-      );
-    }
-
+  async delete(fileName: string) {
     const blockBlobClient = this.getBlockBlobClient(fileName);
     await blockBlobClient.deleteIfExists();
   }

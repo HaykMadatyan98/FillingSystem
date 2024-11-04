@@ -3,7 +3,9 @@ import { AzureService } from '@/azure/azure.service';
 import { companyFormResponseMsgs } from '@/company-form/constants';
 import { CompanyService } from '@/company/company.service';
 import {
+  CANADA,
   countriesWithStates,
+  MEXICO,
   requiredApplicantFields,
   requiredOwnerFields,
   UNITED_STATES,
@@ -11,6 +13,7 @@ import {
 import { CompanyDocument } from '@/company/schemas/company.schema';
 import { calculateRequiredFieldsCount } from '@/utils/req-field.util';
 import {
+  BadRequestException,
   forwardRef,
   Inject,
   Injectable,
@@ -126,21 +129,9 @@ export class ParticipantFormService {
       await this.azureService.delete(participant.identificationDetails.docImg);
     }
 
-    if (participantData?.finCENID && participantData.finCENID.finCENID) {
-      const currentParticipantKeys = Object.keys(
-        isApplicant ? applicantFormFields : ownerFormFields,
-      );
-
-      currentParticipantKeys.forEach((key) => {
-        if (key !== 'beneficialOwner') participant[key] = undefined;
-      });
-      participant.finCENID = participant.finCENID || {};
-      participant.finCENID.finCENID = participantData.finCENID.finCENID;
-    } else {
-      const updateDataKeys = Object.keys(participantData);
-      for (const i of updateDataKeys) {
-        participant[i] = { ...participant[i], ...participantData[i] };
-      }
+    const updateDataKeys = Object.keys(participantData);
+    for (const i of updateDataKeys) {
+      participant[i] = { ...participant[i], ...participantData[i] };
     }
 
     const requiredFieldsCountAfter =
@@ -435,7 +426,10 @@ export class ParticipantFormService {
                   lowLevelKey === 'localOrTribal' ||
                   (lowLevelKey === 'otherLocalOrTribalDesc' &&
                     participantForm[topLevelKey].countryOrJurisdiction ===
-                      UNITED_STATES)
+                      UNITED_STATES) ||
+                  participantForm[topLevelKey].countryOrJurisdiction ===
+                    MEXICO ||
+                  participantForm[topLevelKey].countryOrJurisdiction === CANADA
                 ) {
                   if (
                     (lowLevelKey === 'state' &&
@@ -526,5 +520,41 @@ export class ParticipantFormService {
         })
       : await this.ownerFormModel.findOne({ ['finCENID.finCENID']: finCENId });
     return participant;
+  }
+
+  async removeParticipantDocumentImage(
+    participantId: string,
+    user: IRequestUser,
+    isApplicant: boolean,
+    companyId: string,
+  ) {
+    await this.companyService.checkUserCompanyPermission(
+      user,
+      participantId,
+      'participantForm',
+    );
+
+    const participant = isApplicant
+      ? await this.applicantFormModel.findById(participantId)
+      : await this.ownerFormModel.findById(participantId);
+
+    if (!participant) {
+      throw new NotFoundException(participantFormResponseMsgs.formNotFound);
+    }
+
+    if (!participant.identificationDetails.docImg) {
+       throw new BadRequestException('current participant dont have an image')
+    }
+
+    await this.azureService.delete(participant.identificationDetails.docImg);
+   
+    if (!participant.finCENID?.finCENID) {
+      await this.companyService.changeCompanyReqFieldsCount(
+        companyId,
+        1,
+      )
+    }
+    
+    return { message: 'image deleted' }
   }
 }

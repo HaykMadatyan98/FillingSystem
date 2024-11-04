@@ -1,7 +1,9 @@
 import { IRequestUser } from '@/auth/interfaces/request.interface';
 import { CompanyService } from '@/company/company.service';
 import {
+  CANADA,
   countriesWithStates,
+  MEXICO,
   requiredCompanyFields,
   UNITED_STATES,
 } from '@/company/constants';
@@ -198,7 +200,7 @@ export class CompanyFormService {
   }
 
   async getCompanyFormByTaxData(
-    taxNumber: number,
+    taxNumber: string,
     taxType: string,
   ): Promise<CompanyFormDocument> | null {
     return this.companyFormModel.findOne({
@@ -242,24 +244,36 @@ export class CompanyFormService {
                   );
                 } else if (lowLevelKey === 'stateOfFormation') {
                   if (
-                    countriesWithStates.includes(
+                    (countriesWithStates.includes(
                       companyForm[topLevelKey][
                         'countryOrJurisdictionOfFormation'
                       ],
                     ) &&
+                      companyForm[topLevelKey][
+                        'countryOrJurisdictionOfFormation'
+                      ] === UNITED_STATES) ||
                     companyForm[topLevelKey][
                       'countryOrJurisdictionOfFormation'
-                    ] === UNITED_STATES
+                    ] === CANADA ||
+                    companyForm[topLevelKey][
+                      'countryOrJurisdictionOfFormation'
+                    ] === MEXICO
                   ) {
                     missingFields.push(
                       companyFormFields[topLevelKey][lowLevelKey],
                     );
                   }
                 } else if (
-                  lowLevelKey === 'tribalJurisdiction' &&
+                  (lowLevelKey === 'tribalJurisdiction' &&
+                    companyForm[topLevelKey][
+                      'countryOrJurisdictionOfFormation'
+                    ] === UNITED_STATES) ||
                   companyForm[topLevelKey][
                     'countryOrJurisdictionOfFormation'
-                  ] === UNITED_STATES
+                  ] === CANADA ||
+                  companyForm[topLevelKey][
+                    'countryOrJurisdictionOfFormation'
+                  ] === MEXICO
                 ) {
                   missingFields.push(
                     companyFormFields[topLevelKey][lowLevelKey],

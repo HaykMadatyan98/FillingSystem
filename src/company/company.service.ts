@@ -241,9 +241,10 @@ export class CompanyService {
         fields: 'BOIR Submission Deadline',
         problemDesc: 'BOIR expiration time is required for company creating',
       });
-
       return;
     }
+
+    const isExistingCompany = sanitized.company.isExistingCompany;
     const applicantIsNotRequired =
       sanitized.company.isExistingCompany ||
       sanitized.company.repCompanyInfo.foreignPooled ||
@@ -299,6 +300,7 @@ export class CompanyService {
     answerCount += companyForm.answerCount;
 
     company = new this.companyModel({
+      isExistingCompany,
       ['forms.company']: companyForm.id,
       name: companyForm.companyName,
       expTime: sanitized.BOIRExpTime,
@@ -546,7 +548,9 @@ export class CompanyService {
 
   private calculateReqFieldsCount(company: CompanyDocument): number {
     return (
-      company.forms.applicants.length * 12 + company.forms.owners.length * 8 + 9
+      company.forms.applicants.length * 12 +
+      company.forms.owners.length * 11 +
+      9
     );
   }
 
@@ -572,7 +576,7 @@ export class CompanyService {
         company.isExistingCompany ||
         company.forms.company.repCompanyInfo?.foreignPooled;
       company.reqFieldsCount = applicantIsNotRequired
-        ? 9 + company.forms.owners.length * 8
+        ? 9 + company.forms.owners.length * 11
         : this.calculateReqFieldsCount(company);
 
       await company.populate({

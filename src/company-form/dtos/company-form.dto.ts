@@ -3,12 +3,11 @@ import {
   IsArray,
   IsBoolean,
   IsEnum,
-  IsNumber,
   IsOptional,
   IsString,
-  Max,
+  Length,
+  Matches,
   MaxLength,
-  Min,
   MinLength,
   ValidateNested,
 } from 'class-validator';
@@ -111,7 +110,7 @@ class CompanyAddressDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  @MinLength(5)
+  @MinLength(3)
   @MaxLength(9)
   zipCode?: string;
 
@@ -140,10 +139,10 @@ class TaxInformation {
   taxIdType: IdentificationTypesEnum;
 
   @ApiProperty({ required: true })
-  @IsNumber()
-  @Min(100_000_000)
-  @Max(999_999_999)
-  taxIdNumber: number;
+  @IsString()
+  @Matches(/^(0|^(?!000000000)\d{9})$/)
+  @Length(9, 9)
+  taxIdNumber: string;
 
   @ApiProperty({ required: false })
   @IsOptional()

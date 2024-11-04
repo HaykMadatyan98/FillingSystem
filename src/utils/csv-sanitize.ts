@@ -35,9 +35,7 @@ export async function sanitizeData(data: any): Promise<{
   const ownerKeys = Object.keys(OwnerData) as (keyof typeof OwnerData)[];
 
   function convertValue(key: string, value: string) {
-    if (key === 'taxIdNumber') {
-      return Number(value);
-    } else if (key === 'dateOfBirth') {
+    if (key === 'dateOfBirth') {
       return value ? new Date(value) : undefined;
     } else if (
       value.toLowerCase() === 'true' ||
@@ -137,7 +135,7 @@ export async function sanitizeData(data: any): Promise<{
     ownerCountBySanitizedData > ownerCount
   ) {
     reasons.push({
-      fields: ['Mi ban'],
+      fields: ['Company Foreign Pooled'],
       problemDesc: 'Foreign pooled company need only one owner data',
       affectedData: [
         `Other ${ownerCountBySanitizedData - ownerCount} Owners Data`,

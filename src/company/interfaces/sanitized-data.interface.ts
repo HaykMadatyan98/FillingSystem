@@ -17,7 +17,7 @@ export interface ICompanyData {
   };
   taxInfo: {
     taxIdType: string;
-    taxIdNumber: number;
+    taxIdNumber: string;
     countryOrJurisdiction?: string;
   };
   formationJurisdiction?: {

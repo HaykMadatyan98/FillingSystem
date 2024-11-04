@@ -62,20 +62,11 @@ export class AzureController {
     type: String,
     description: 'Name of the image file to delete',
   })
-  @ApiParam({
-    name: 'participantId',
-    required: true,
-    description: 'participant Id',
-  })
   @ApiResponse({ status: 200, description: 'Deletes the specified image' })
   @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
-  async delete(
-    @Query('name') name,
-    @Req() req: RequestWithUser,
-    @Param('participantId') participantId: string,
-  ) {
-    const data = await this.azureService.delete(name, participantId, req.user);
+  async delete(@Query('name') name) {
+    const data = await this.azureService.delete(name);
     return data;
   }
 
@@ -91,7 +82,6 @@ export class AzureController {
   @ApiBearerAuth()
   async readAll() {
     const data = await this.azureService.readAll();
-    console.log(data, 'data');
-    return null;
+    return data.map((data) => data.name);
   }
 }

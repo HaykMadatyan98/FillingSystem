@@ -8,6 +8,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
+  IsDate,
   IsEnum,
   IsOptional,
   IsString,
@@ -49,7 +50,7 @@ export class PersonalInformationDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsString()
+  @IsDate()
   dateOfBirth?: Date;
 }
 
@@ -91,7 +92,7 @@ class OwnerAddressDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  @MinLength(5)
+  @MinLength(3)
   @MaxLength(9)
   postalCode?: string;
 }

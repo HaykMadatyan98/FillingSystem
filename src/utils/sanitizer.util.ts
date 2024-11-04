@@ -28,9 +28,7 @@ export async function sanitizeData(
   const userKeys = Object.keys(UserData) as (keyof typeof UserData)[];
 
   function convertValue(key: string, value: string) {
-    if (key === 'taxIdNumber') {
-      return Number(value);
-    } else if (key === 'dateOfBirth') {
+    if (key === 'dateOfBirth') {
       return value ? new Date(value) : undefined;
     } else if (value.toLowerCase() === 'true') {
       return true;
