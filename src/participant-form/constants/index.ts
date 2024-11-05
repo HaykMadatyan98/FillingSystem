@@ -5,7 +5,8 @@ type ParticipantFormResponseKeys =
   | 'deleted'
   | 'created'
   | 'allRetrieved'
-  | 'retrieved';
+  | 'retrieved'
+  | 'failed';
 
 export const participantFormResponseMsgs: Record<
   ParticipantFormResponseKeys,
@@ -17,4 +18,5 @@ export const participantFormResponseMsgs: Record<
   created: 'Form successfully created',
   allRetrieved: 'All data retrieved successfully',
   retrieved: 'Data retrieved successfully',
+  failed: 'Data update failed',
 };

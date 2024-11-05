@@ -884,6 +884,17 @@ export class CompanyService {
     await company.save();
   }
 
+  async setProcessId(companyId: string, processId: string): Promise<void> {
+    const company = await this.companyModel.findById(companyId);
+
+    if (!company) {
+      throw new NotFoundException(companyResponseMsgs.companyNotFound);
+    }
+
+    company.processId = processId;
+    await company.save();
+  }
+
   // need some changes after admin part creating
   // async createNewCompany(payload: any) {
   //   const existCompanyForm =

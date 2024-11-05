@@ -216,6 +216,7 @@ export class OwnerFormController {
   @UseGuards(AccessTokenGuard)
   async uploadAnImageToTheCloudAndUpdate(
     @Param('participantId') participantId: string,
+    @Param('companyId') companyId: string,
     @UploadedFile(
       new ParseFilePipe({
         fileIsRequired: true,
@@ -233,6 +234,7 @@ export class OwnerFormController {
       docImg,
       req.user,
       false,
+      companyId,
     );
   }
 

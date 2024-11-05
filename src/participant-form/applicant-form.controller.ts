@@ -158,6 +158,7 @@ export class ApplicantFormController {
   @UseGuards(AccessTokenGuard)
   async uploadAnImageToTheCloudAndUpdate(
     @Param('participantId') participantId: string,
+    @Param('companyId') companyId: string,
     @UploadedFile(
       new ParseFilePipe({
         fileIsRequired: true,
@@ -176,6 +177,7 @@ export class ApplicantFormController {
       docImg,
       req.user,
       true,
+      companyId,
     );
   }
 

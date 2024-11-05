@@ -17,6 +17,9 @@ interface ISendgridConfig {
 interface IGovernmentConfig {
   clientSecret: string;
   clientId: string;
+  sandboxURL: string;
+  mainURL: string;
+  tokenURL: string;
 }
 
 interface IAdminConfig {
@@ -71,6 +74,9 @@ const configs = (): ConfigProps => ({
   GOVERNMENT: {
     clientSecret: getEnvVar('GOVERNMENT_API_CLIENT_KEY'),
     clientId: getEnvVar('GOVERNMENT_API_CLIENT_ID'),
+    sandboxURL: getEnvVar('GOVERNMENT_API_SANDBOX_API_URL'),
+    mainURL: getEnvVar('GOVERNMENT_API_URL'),
+    tokenURL: getEnvVar('GOVERNMENT_API_TOKEN_URL'),
   },
   ADMIN: {
     email: getEnvVar('ADMIN_EMAIL'),

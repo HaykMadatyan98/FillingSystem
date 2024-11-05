@@ -1,3 +1,4 @@
+import { GovernmentService } from '@/government/government.service';
 import { IRequestUser } from '@/auth/interfaces/request.interface';
 import { AzureService } from '@/azure/azure.service';
 import { companyFormResponseMsgs } from '@/company-form/constants';
@@ -46,6 +47,7 @@ export class ParticipantFormService {
     private applicantFormModel: Model<ApplicantFormDocument>,
     @Inject(forwardRef(() => CompanyService))
     private readonly companyService: CompanyService,
+    private readonly governmentService: GovernmentService,
     private readonly azureService: AzureService,
   ) {}
 
@@ -299,6 +301,7 @@ export class ParticipantFormService {
     docImg: Express.Multer.File,
     user: any,
     isApplicant: boolean,
+    companyId: string,
   ) {
     await this.companyService.checkUserCompanyPermission(
       user,
@@ -312,13 +315,21 @@ export class ParticipantFormService {
     );
 
     const docImgName = await this.azureService.uploadImage(docImg);
-
-    await this.changeParticipantForm(
-      { identificationDetails: { docImg: docImgName } },
+    const uploadInfo = await this.governmentService.sendAttachment(
+      companyId,
       participantId,
-      isApplicant,
-      company['id'],
+      docImg,
     );
+    if (uploadInfo.status === 'upload_success') {
+      await this.changeParticipantForm(
+        { identificationDetails: { docImg: docImgName } },
+        participantId,
+        isApplicant,
+        company['id'],
+      );
+    } else {
+      return { message: participantFormResponseMsgs.failed };
+    }
 
     return { message: participantFormResponseMsgs.changed };
   }

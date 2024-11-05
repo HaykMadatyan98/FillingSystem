@@ -10,6 +10,7 @@ import {
 import { ParticipantFormService } from './participant-form.service';
 import { OwnerFormController } from './owner-form.controller';
 import { CompanyModule } from '@/company/company.module';
+import { GovernmentModule } from '@/government/government.module';
 import { AzureModule } from '@/azure/azure.module';
 
 @Module({
@@ -22,6 +23,7 @@ import { AzureModule } from '@/azure/azure.module';
     ]),
     AzureModule,
     forwardRef(() => CompanyModule),
+    forwardRef(() => GovernmentModule),
   ],
   providers: [ParticipantFormService],
   controllers: [OwnerFormController, ApplicantFormController],

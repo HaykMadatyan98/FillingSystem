@@ -8,7 +8,7 @@ export enum TribalDataEnum {
   'Alabama-Coushatta' = 'Alabama-Coushatta Tribe of Texas',
   'Alabama-Quassarte Tribal Town' = 'Alabama-Quassarte Tribal Town',
   'Alatna' = 'Alatna Village',
-  "Algaaciq" = "Algaaciq Native Village (St. Mary's)",
+  'Algaaciq' = "Algaaciq Native Village (St. Mary's)",
   'Allakaket' = 'Allakaket Village',
   'Alturas' = 'Alturas Indian Rancheria, California',
   'Alutiiq Tribe of Old Harbor' = 'Alutiiq Tribe of Old Harbor',

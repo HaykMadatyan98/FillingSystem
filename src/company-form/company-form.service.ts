@@ -84,8 +84,8 @@ export class CompanyFormService {
       throw new NotFoundException('Company Form not Found');
     }
 
-    let foreignPooledBefore = companyData.repCompanyInfo?.foreignPooled;
-    let companyNameBefore = companyData.names.legalName;
+    const foreignPooledBefore = companyData.repCompanyInfo?.foreignPooled;
+    const companyNameBefore = companyData.names.legalName;
 
     if (companyFormData.taxInfo) {
       if (
