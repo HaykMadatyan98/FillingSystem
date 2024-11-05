@@ -1,74 +1,17 @@
-import { getEnumKeyByValue } from '@/utils/validator.util';
-import { AllCountryEnum, ForeignCountryEnum } from './country.enum';
-import { TribalDataEnum } from './localOrTribal';
-import { StatesEnum } from './territory-states.enum';
-
-export const BOIRCompanyFormParseData = {
-  isExistingCompany: (value: boolean) => ({
-    ExistingReportingCompanyIndicator: value ? 'Y' : 'F',
-  }),
-  formationJurisdiction: (isForeign: boolean) =>
-    isForeign
-      ? {
-          stateOfFormation: (value: string) => ({
-            FirstRegistrationStateCodeText: getEnumKeyByValue(
-              value,
-              StatesEnum,
-            ),
-          }),
-          countryOrJurisdictionOfFormation: (value: string) => ({
-            FormationCountryCodeText: getEnumKeyByValue(
-              value,
-              ForeignCountryEnum,
-            ),
-          }),
-          tribalJurisdiction: (value: string) => ({
-            FirstRegistrationLocalTribalCodeText: getEnumKeyByValue(
-              value,
-              TribalDataEnum,
-            ),
-          }),
-          nameOfOtherTribal: (value: string) => ({
-            OtherFirstRegistrationLocalTribalText: value,
-          }),
-        }
-      : {
-          stateOfFormation: (value: string) => ({
-            FormationStateCodeText: getEnumKeyByValue(value, StatesEnum),
-          }),
-          countryOrJurisdictionOfFormation: (value: string) => ({
-            FormationCountryCodeText: getEnumKeyByValue(value, AllCountryEnum),
-          }),
-          tribalJurisdiction: (value: string) => ({
-            FormationLocalTribalCodeText: getEnumKeyByValue(
-              value,
-              TribalDataEnum,
-            ),
-          }),
-          nameOfOtherTribal: (value: string) => ({
-            OtherFormationLocalTribalText: value,
-          }),
-        },
-  repCompanyInfo: {
-    requestToReceiveFID: 'RequestFinCENIDIndicator',
-  },
-  names: {
-    legalName: 'PartyName',
-    altName: 'PartyName',
-  },
-  address: {
-    // Address
-    address: 'RawStreetAddress1Text',
-    city: 'RawCityText',
-    usOrUsTerritory: 'RawCountryCodeText',
-    state: 'RawStateCodeText',
-    zipCode: 'RawZIPCode',
-  },
+export const BOIRCompanyFormParser = {
+  isExistingCompany: (value: boolean) => (value ? 'Y' : 'F'),
+  repCompanyInfo: { requestToReceive: (value: boolean) => (value ? 'Y' : 'F') },
   taxInfo: {
-    // PartyIdentification
-    taxIdType: 'PartyIdentificationTypeCode',
-    taxIdNumber: 'PartyIdentificationNumberText',
-    countryOrJurisdiction: 'OtherIssuerCountryText',
+    taxIdType: (value: string) => {
+      switch (value) {
+        case 'EIN':
+          return '2';
+        case 'Foreign':
+          return '9';
+        case 'SSN/ITIN':
+          return '1';
+      }
+    },
   },
 };
 
@@ -78,4 +21,12 @@ export const BOIRUseParseData = {
     lastName: 'SubmitterEntityIndivdualLastName',
     email: 'SubmitterElectronicAddressText',
   },
+};
+
+export const BOIRDateParser = (date) => {
+  const year = date.getFullYear().toString();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-based in JavaScript
+  const day = date.getDate().toString().padStart(2, '0');
+
+  return `${year}${month}${day}`;
 };

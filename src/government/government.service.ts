@@ -1,8 +1,14 @@
 import { CompanyService } from '@/company/company.service';
-import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { createCompanyXml } from '@/utils/xml-creator.util';
 import { HttpService } from '@nestjs/axios';
-import { create } from 'xmlbuilder2';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AxiosResponse } from 'axios';
 import { firstValueFrom } from 'rxjs';
 import { IAttachmentResponse } from './interfaces';
@@ -97,33 +103,33 @@ export class GovernmentService {
   }
 
   async getProcessId(companyId: string): Promise<string> {
-    if (companyId) {
-      const company = await this.companyService.getCompanyById(companyId);
-
-      if (company.processId) return company.processId;
-      const accessToken = await this.getAccessToken();
-
-      try {
-        const response: AxiosResponse = await firstValueFrom(
-          this.httpService.get(`${this.sandboxURL}/attachment`, {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              'Content-Type': 'application/json',
-            },
-          }),
-        );
-
-        await this.companyService.setProcessId(
-          companyId,
-          response.data.processId,
-        );
-
-        return response.data.processId;
-      } catch (error) {
-        throw new Error(`Failed to obtain processId: ${error.message}`);
-      }
-    } else {
+    if (!companyId) {
       throw new Error(`Provide company Id`);
+    }
+
+    const company = await this.companyService.getCompanyById(companyId);
+
+    if (company.processId) return company.processId;
+    const accessToken = await this.getAccessToken();
+
+    try {
+      const response: AxiosResponse = await firstValueFrom(
+        this.httpService.get(`${this.sandboxURL}/attachment`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        }),
+      );
+
+      await this.companyService.setProcessId(
+        companyId,
+        response.data.processId,
+      );
+
+      return response.data.processId;
+    } catch (error) {
+      throw new Error(`Failed to obtain processId: ${error.message}`);
     }
   }
 
@@ -172,40 +178,11 @@ export class GovernmentService {
     }
   }
 
-  private async generateXml(companyId: string) {
+  async generateXml(companyId: string) {
     const companyData = await this.companyService.getFilteredData(companyId);
     console.log(companyData);
-    const xml = create({ version: '1.0', encoding: 'UTF-8' }).ele(
-      'fc2:EFilingSubmissionXML',
-      {
-        'xmlns:fc2': 'www.fincen.gov/base',
-        'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-        'xsi:schemaLocation':
-          'www.fincen.gov/base https://www.fincen.gov/sites/default/files/schema/base/BOIRSchema.xsd',
-        SeqNum: '1',
-      },
-    );
-
-    // fields.forEach((field) => {
-    //   const data = companyData[field.dataName];
-    //   if (data !== undefined) {
-    //     this.setXMLInformation(xml, field.name, data, field.options);
-    //   } else {
-    //     this.logger.warn(
-    //       `Field ${field.name} not found in company information for company ID ${companyId}`,
-    //     );
-    //   }
-    // });
-
-    return xml.end({ prettyPrint: true });
-  }
-
-  private setXMLInformation(
-    xml: any,
-    field: string,
-    data: any,
-    options: any = {},
-  ) {
-    xml.ele(`fc2:${field}`, options).txt(data);
+    if (!companyData.user) throw new BadRequestException('user is not exist');
+    const { email, firstName, lastName } = companyData.user;
+    return createCompanyXml(companyData, companyData.user);
   }
 }

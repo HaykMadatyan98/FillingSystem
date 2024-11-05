@@ -1,3 +1,4 @@
+export { BOIRCompanyFormParser } from './boir-types';
 export { companyResponseMsgs } from './company-responses';
 export {
   AllCountryEnum,

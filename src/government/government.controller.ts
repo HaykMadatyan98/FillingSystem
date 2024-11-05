@@ -3,10 +3,10 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
-  Get,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { GovernmentService } from './government.service';
 
 @Controller('government')
@@ -24,5 +24,14 @@ export class GovernmentController {
   @HttpCode(HttpStatus.OK)
   async handleGetProcessId(@Body() companyId: string): Promise<void> {
     await this.governmentService.getProcessId(companyId);
+  }
+
+  @Post('generate-xml/:companyId')
+  @ApiParam({
+    name: 'companyId',
+    required: true,
+  })
+  async generateXMLForDev(@Param('companyId') companyId: string) {
+    return this.governmentService.generateXml(companyId);
   }
 }

@@ -388,7 +388,21 @@ export class CompanyService {
         },
       );
 
-      await this.userService.getUserById(company.user as unknown as string);
+      const companyUser = await this.userService.getUserById(
+        company.user as unknown as string,
+      );
+
+      if (companyUser.email !== sanitized.user.email) {
+        try {
+          await this.userService.removeCompanyFromUser(
+            company.user as unknown as string,
+            company['id'],
+          );
+          company.user = undefined;
+        } catch (error) {
+          console.error(error);
+        }
+      }
 
       userEmailData.companyName = company.name;
       userEmailData.isNewCompany = false;
@@ -867,7 +881,7 @@ export class CompanyService {
 
     const companyData = company.toObject();
 
-    return { companyData };
+    return companyData;
   }
 
   async changeCompanyName(
