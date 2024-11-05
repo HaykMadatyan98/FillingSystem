@@ -315,21 +315,21 @@ export class ParticipantFormService {
     );
 
     const docImgName = await this.azureService.uploadImage(docImg);
-    const uploadInfo = await this.governmentService.sendAttachment(
-      companyId,
+    // const uploadInfo = await this.governmentService.sendAttachment(
+    //   companyId,
+    //   participantId,
+    //   docImg,
+    // );
+    // if (uploadInfo.status === 'upload_success') {
+    await this.changeParticipantForm(
+      { identificationDetails: { docImg: docImgName } },
       participantId,
-      docImg,
+      isApplicant,
+      company['id'],
     );
-    if (uploadInfo.status === 'upload_success') {
-      await this.changeParticipantForm(
-        { identificationDetails: { docImg: docImgName } },
-        participantId,
-        isApplicant,
-        company['id'],
-      );
-    } else {
-      return { message: participantFormResponseMsgs.failed };
-    }
+    // } else {
+    // return { message: participantFormResponseMsgs.failed };
+    // }
 
     return { message: participantFormResponseMsgs.changed };
   }

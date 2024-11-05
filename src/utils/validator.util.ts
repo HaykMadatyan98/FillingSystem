@@ -321,9 +321,11 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
         ? applicantFormFields
         : ownerFormFields;
       if (
-        !participants[i].identificationDetails?.docType ||
-        !participants[i].identificationDetails?.docNumber ||
-        !participants[i].finCENID?.finCENID
+        !(
+          participants[i].finCENID?.finCENID ||
+          (participants[i].identificationDetails?.docType &&
+            participants[i].identificationDetails?.docNumber)
+        )
       ) {
         const reason = {
           fields: [
