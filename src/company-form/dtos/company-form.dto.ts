@@ -58,7 +58,6 @@ class LegalAndAltNamesDto {
   isVerified?: boolean;
 }
 
-console.log(AllCountryEnum);
 class JurisdictionOfFormationDto {
   @ApiProperty({ required: false })
   @IsOptional()

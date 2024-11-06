@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Param,
@@ -26,12 +27,12 @@ export class GovernmentController {
     await this.governmentService.getProcessId(companyId);
   }
 
-  @Post('generate-xml/:companyId')
+  @Get('checkStatus/:companyId')
   @ApiParam({
     name: 'companyId',
     required: true,
   })
-  async generateXMLForDev(@Param('companyId') companyId: string) {
-    return this.governmentService.generateXml(companyId);
+  async checkCompanyStatus(@Param('companyId') companyId: string) {
+    return this.governmentService.checkGovernmentStatus(companyId);
   }
 }

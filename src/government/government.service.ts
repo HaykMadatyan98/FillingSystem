@@ -1,15 +1,11 @@
 import { CompanyService } from '@/company/company.service';
 import { createCompanyXml } from '@/utils/xml-creator.util';
 import { HttpService } from '@nestjs/axios';
-import {
-  BadRequestException,
-  forwardRef,
-  Inject,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AxiosResponse } from 'axios';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { firstValueFrom } from 'rxjs';
 import { IAttachmentResponse } from './interfaces';
 
@@ -44,13 +40,23 @@ export class GovernmentService {
     await Promise.all(
       companies.map(async (companyId) => {
         try {
-          const xmlData = await this.generateXml(companyId);
-          const processId = this.getProcessId(companyId);
+          const companyData =
+            await this.companyService.getFilteredData(companyId);
+          const xmlData = await createCompanyXml(companyData, companyData.user);
+          const processId = await this.getProcessId(companyId);
+
+          fs.writeFile(
+            path.join(path.resolve(), `${companyId}.xml`),
+            xmlData,
+            (err) => {
+              console.error(err);
+            },
+          );
 
           const response: AxiosResponse = await firstValueFrom(
             this.httpService.post(
-              `${this.tokenURL}/upload/BOIR/${processId}/${companyId}`,
-              xmlData,
+              `${this.sandboxURL}/upload/BOIR/${processId}/${companyId}.xml`,
+              { xmlData },
               {
                 headers: {
                   Authorization: `Bearer ${this.accessToken}`,
@@ -59,7 +65,7 @@ export class GovernmentService {
               },
             ),
           );
-
+          console.log(response.data);
           return response.data;
         } catch (error) {
           this.logger.error(
@@ -94,7 +100,6 @@ export class GovernmentService {
         }),
       );
 
-      console.log(response.data);
       this.accessToken = response.data.access_token;
       return this.accessToken;
     } catch (error) {
@@ -109,12 +114,12 @@ export class GovernmentService {
 
     const company = await this.companyService.getCompanyById(companyId);
 
-    if (company.processId) return company.processId;
     const accessToken = await this.getAccessToken();
+    if (company.processId) return company.processId;
 
     try {
       const response: AxiosResponse = await firstValueFrom(
-        this.httpService.get(`${this.sandboxURL}/attachment`, {
+        this.httpService.get(`${this.sandboxURL}/processId`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
@@ -161,7 +166,8 @@ export class GovernmentService {
   }
 
   async checkGovernmentStatus(companyId: string) {
-    const processId = this.getProcessId(companyId);
+    const processId = await this.getProcessId(companyId);
+    console.log(processId);
     try {
       const response: AxiosResponse = await firstValueFrom(
         this.httpService.get(`${this.sandboxURL}/transcript/${processId}`, {
@@ -176,14 +182,5 @@ export class GovernmentService {
     } catch (error) {
       throw new Error(`Failed to check submission status: ${error.message}`);
     }
-  }
-
-  async generateXml(companyId: string) {
-    const companyData = await this.companyService.getFilteredData(companyId);
-    console.log(companyData);
-    if (!companyData.user) throw new BadRequestException('user is not exist');
-    const { email, firstName, lastName } = companyData.user;
-    console.log(email, firstName, lastName);
-    return createCompanyXml(companyData, companyData.user);
   }
 }

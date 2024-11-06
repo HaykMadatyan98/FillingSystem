@@ -118,6 +118,7 @@ export class CompanyService {
       resultData.map(async (row: ICompanyCSVRowData) => {
         const { sanitized, errorData, reasons, companyDeleted } =
           await sanitizeData(row);
+        console.log('companyDeleted', companyDeleted);
         if (Object.keys(errorData).length) allErrors.push(errorData);
         if (Object.keys(reasons).length) allReasons.push(reasons);
         if (!companyDeleted) {

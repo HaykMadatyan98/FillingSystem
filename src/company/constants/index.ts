@@ -1,4 +1,4 @@
-export { BOIRCompanyFormParser } from './boir-types';
+export { BOIRTaxIdTypeParser, BOIRDateParser, BOIRBooleanTypeParser, BOIRParticipantDocTypeParser} from './boir-types';
 export { companyResponseMsgs } from './company-responses';
 export {
   AllCountryEnum,

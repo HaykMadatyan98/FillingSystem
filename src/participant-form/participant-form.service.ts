@@ -315,7 +315,6 @@ export class ParticipantFormService {
     );
 
     const docImgName = await this.azureService.uploadImage(docImg);
-    console.log(companyId);
     // const uploadInfo = await this.governmentService.sendAttachment(
     //   companyId,
     //   participantId,

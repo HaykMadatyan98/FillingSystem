@@ -127,7 +127,7 @@ export async function sanitizeData(data: any): Promise<{
     sanitized.participants.push(participant);
   }
 
-  const errorData = await validateData(sanitized);
+  const { isDeletedCompany, errorData } = await validateData(sanitized);
   const { reasons, companyDeleted } = await clearWrongFields(sanitized);
 
   if (
@@ -143,10 +143,17 @@ export async function sanitizeData(data: any): Promise<{
     });
   }
 
+  if (isDeletedCompany) {
+    reasons.push({
+      fields:[ 'All Company Fields'],
+      problemDesc: 'Company could not be created because one or more required fields contain incorrect or missing information.'
+    })
+  }
+
   return {
     sanitized,
     reasons,
     errorData,
-    companyDeleted,
+    companyDeleted: companyDeleted || isDeletedCompany,
   };
 }

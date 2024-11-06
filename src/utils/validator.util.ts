@@ -7,6 +7,9 @@ import {
   countriesWithStates,
   MEXICO,
   OwnerData,
+  requiredApplicantFields,
+  requiredCompanyFields,
+  requiredOwnerFields,
   UNITED_STATES,
   UserData,
 } from '@/company/constants';
@@ -31,12 +34,13 @@ export async function validateData(data: any) {
     applicant?: { fieldName: string; value: string }[];
     company?: { fieldName: string; value: string }[];
   } = {};
+  const finalStatus = { isDeletedCompany: false, errorData };
 
-  await validateTheData(CSVUserDto, data.user, errorData, 'user', UserData);
+  await validateTheData(CSVUserDto, data.user, finalStatus, 'user', UserData);
   await validateTheData(
     CSVCompanyFormDto,
     data.company,
-    errorData,
+    finalStatus,
     'company',
     CompanyData,
   );
@@ -55,14 +59,20 @@ export async function validateData(data: any) {
   await validateTheData(
     CSVApplicantFormDto,
     applicants,
-    errorData,
+    finalStatus,
     'applicant',
     ApplicantData,
   );
 
-  await validateTheData(CSVOwnerFormDto, owners, errorData, 'owner', OwnerData);
+  await validateTheData(
+    CSVOwnerFormDto,
+    owners,
+    finalStatus,
+    'owner',
+    OwnerData,
+  );
 
-  return errorData;
+  return finalStatus;
 }
 
 export function getEnumKeyByValue(value: string, enumData: any): string {
@@ -74,7 +84,7 @@ export function getEnumKeyByValue(value: string, enumData: any): string {
 async function validateTheData(
   dto: any,
   data: any,
-  errorData: any,
+  finalStatus: any,
   type: 'user' | 'company' | 'applicant' | 'owner',
   typeData: any,
 ) {
@@ -87,8 +97,8 @@ async function validateTheData(
     });
 
     if (validationResults.length) {
-      if (!errorData[type]) {
-        errorData[type] = [];
+      if (!finalStatus.errorData[type]) {
+        finalStatus.errorData[type] = [];
       }
 
       const errorMessageData = validationResults[0];
@@ -100,10 +110,13 @@ async function validateTheData(
           '.' +
           validationResults[0].children[i]?.property;
 
-        errorData[type].push({
+        finalStatus.errorData[type].push({
           fieldName: getEnumKeyByValue(fieldInDb, typeData),
           value: validationResults[0].children[i].value,
         });
+        if (type === 'company' && requiredCompanyFields.includes(fieldInDb)) {
+          finalStatus.isDeletedCompany = true;
+        }
       }
     }
   } else if (type === 'applicant' || type === 'owner') {
@@ -121,8 +134,8 @@ async function validateTheData(
         );
 
         if (participantValidationResults.length) {
-          if (!errorData[type]) {
-            errorData[type] = [];
+          if (!finalStatus.errorData[type]) {
+            finalStatus.errorData[type] = [];
           }
 
           const errorMessageData = participantValidationResults[0];
@@ -134,10 +147,18 @@ async function validateTheData(
               '.' +
               participantValidationResults[0].children[i]?.property;
 
-            errorData[type].push({
+            finalStatus.errorData[type].push({
               fieldName: getEnumKeyByValue(fieldInDb, typeData),
               value: participantValidationResults[0].children[i].value,
             });
+
+            if (
+              (type === 'applicant' &&
+                requiredApplicantFields.includes(fieldInDb)) ||
+              (type === 'owner' && requiredOwnerFields.includes(fieldInDb))
+            ) {
+              finalStatus.isDeletedCompany = true;
+            }
 
             if (
               data[participantValidationResults[0].property] &&
