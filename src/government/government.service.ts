@@ -183,6 +183,7 @@ export class GovernmentService {
     console.log(companyData);
     if (!companyData.user) throw new BadRequestException('user is not exist');
     const { email, firstName, lastName } = companyData.user;
+    console.log(email, firstName, lastName);
     return createCompanyXml(companyData, companyData.user);
   }
 }

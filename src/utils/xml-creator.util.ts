@@ -96,15 +96,16 @@ function applicantFormParty(
   const applicantFormParty = activity.ele('fc2:Party', {
     SeqNum: '10',
   });
-
+  console.log(companyData);
   addDataElement(applicantFormParty, 'ActivityPartyTypeCode', '63');
 
-  applicantForm.finCENID &&
+  if (applicantForm.finCENID) {
     addDataElement(
       applicantFormParty,
       'FinCENID',
       applicantForm.finCENID.finCENID,
     );
+  }
 
   addDataElement(
     applicantFormParty,
@@ -127,18 +128,22 @@ function applicantFormParty(
     'RawIndividualFirstName',
     applicantForm.personalInfo.firstName,
   );
-  applicantForm.personalInfo.middleName &&
+
+  if (applicantForm.personalInfo.middleName) {
     addDataElement(
       applicantPartyName,
       'RawIndividualMiddleName',
       applicantForm.personalInfo.middleName,
     );
-  applicantForm.personalInfo.suffix &&
+  }
+
+  if (applicantForm.personalInfo.suffix) {
     addDataElement(
       applicantPartyName,
       'RawIndividualNameSuffixText',
       applicantForm.personalInfo.suffix,
     );
+  }
 
   const applicantAddress = activity.ele('fc2:Address', {
     SeqNum: '13',
@@ -151,12 +156,14 @@ function applicantFormParty(
   }
 
   addDataElement(applicantAddress, 'RawCityText', applicantForm.address.city);
-  applicantForm.address.state &&
+  if (applicantForm.address.state) {
     addDataElement(
       applicantAddress,
       'RawCountryCodeText',
       getEnumKeyByValue(applicantForm.address.state, StatesEnum),
     );
+  }
+
   addDataElement(
     applicantAddress,
     'RawCountryCodeText',
@@ -181,7 +188,7 @@ function applicantFormParty(
   const applicantPartyIdentification = activity.ele('fc2:PartyIdentification', {
     SeqNum: '14',
   });
-
+  console.log(applicantPartyIdentification);
   //   addDataElement(applicantPartyIdentification,'IssuerLocalTribalCodeText', )
 }
 
@@ -205,7 +212,7 @@ function reportCompanyParty(activity: any, companyForm: any, companyData: any) {
         ForeignCountryEnum,
       ),
     );
-    companyForm.formationJurisdiction.stateOfFormation &&
+    if (companyForm.formationJurisdiction.stateOfFormation) {
       addDataElement(
         reportCompanyParty,
         'FirstRegistrationStateCodeText',
@@ -214,7 +221,9 @@ function reportCompanyParty(activity: any, companyForm: any, companyData: any) {
           StatesEnum,
         ),
       );
-    companyForm.formationJurisdiction.tribalJurisdiction &&
+    }
+
+    if (companyForm.formationJurisdiction.tribalJurisdiction) {
       addDataElement(
         reportCompanyParty,
         'FirstRegistrationLocalTribalCodeText',
@@ -223,12 +232,15 @@ function reportCompanyParty(activity: any, companyForm: any, companyData: any) {
           TribalDataEnum,
         ),
       );
-    companyForm.formationJurisdiction.nameOfOtherTribal &&
+    }
+
+    if (companyForm.formationJurisdiction.nameOfOtherTribal) {
       addDataElement(
         reportCompanyParty,
         'OtherFirstRegistrationLocalTribalText',
         companyForm.formationJurisdiction.nameOfOtherTribal,
       );
+    }
   } else {
     addDataElement(
       reportCompanyParty,
@@ -238,7 +250,8 @@ function reportCompanyParty(activity: any, companyForm: any, companyData: any) {
         AllCountryEnum,
       ),
     );
-    companyForm.formationJurisdiction.stateOfFormation &&
+
+    if (companyForm.formationJurisdiction.stateOfFormation) {
       addDataElement(
         reportCompanyParty,
         'FormationStateCodeText',
@@ -247,7 +260,9 @@ function reportCompanyParty(activity: any, companyForm: any, companyData: any) {
           StatesEnum,
         ),
       );
-    companyForm.formationJurisdiction.tribalJurisdiction &&
+    }
+
+    if (companyForm.formationJurisdiction.tribalJurisdiction) {
       addDataElement(
         reportCompanyParty,
         'FormationLocalTribalCodeText',
@@ -256,12 +271,15 @@ function reportCompanyParty(activity: any, companyForm: any, companyData: any) {
           TribalDataEnum,
         ),
       );
-    companyForm.formationJurisdiction.nameOfOtherTribal &&
+    }
+
+    if (companyForm.formationJurisdiction.nameOfOtherTribal) {
       addDataElement(
         reportCompanyParty,
         'OtherFormationLocalTribalText',
         companyForm.formationJurisdiction.nameOfOtherTribal,
       );
+    }
   }
 
   addDataElement(
