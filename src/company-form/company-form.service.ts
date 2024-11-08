@@ -115,9 +115,6 @@ export class CompanyFormService {
     const updateDataKeys = Object.keys(companyFormData);
     for (const i of updateDataKeys) {
       companyData[i] = { ...companyData[i], ...companyFormData[i] };
-      if (isForCsv) {
-        companyData[i].isVerified = false;
-      }
     }
 
     const answerCountAfter = await calculateRequiredFieldsCount(

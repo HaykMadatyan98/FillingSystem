@@ -72,6 +72,7 @@ class JurisdictionOfFormationDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsEnum(StatesEnum)
+  @Transform(({ value }) => StatesEnum[value] || value)
   stateOfFormation: StatesEnum;
 
   @ApiProperty({ required: false })
@@ -104,7 +105,7 @@ class CompanyAddressDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsEnum(StatesEnum)
-  @Transform(({ value }) => StatesEnum[value])
+  @Transform(({ value }) => StatesEnum[value] || value)
   state?: StatesEnum;
 
   @ApiProperty({ required: false })

@@ -199,7 +199,7 @@ export class OwnerFormController {
   @ApiParam({
     name: 'participantId',
     required: true,
-    description: 'ID of applicant which doc image will send',
+    description: 'ID of owner which doc image will send',
   })
   @ApiBody({
     schema: {
@@ -234,7 +234,6 @@ export class OwnerFormController {
       docImg,
       req.user,
       false,
-      companyId,
     );
   }
 
@@ -280,7 +279,6 @@ export class OwnerFormController {
     @Param('companyId') companyId: string,
     @Req() req: RequestWithUser,
   ) {
-
     return this.participantFormService.removeParticipantDocumentImage(
       participantId,
       req.user,

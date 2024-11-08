@@ -8,7 +8,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
-  IsDate,
+  IsDateString,
   IsEnum,
   IsOptional,
   IsString,
@@ -50,7 +50,7 @@ export class PersonalInformationDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsDate()
+  @IsDateString()
   dateOfBirth?: Date;
 }
 

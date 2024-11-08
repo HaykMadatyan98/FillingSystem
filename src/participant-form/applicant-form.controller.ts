@@ -162,7 +162,6 @@ export class ApplicantFormController {
     @UploadedFile(
       new ParseFilePipe({
         fileIsRequired: true,
-
         validators: [
           new FileTypeValidator({ fileType: '.(jpeg|png|jpg)' }),
           new MaxFileSizeValidator({ maxSize: 4 * 1024 * 1024 }),
@@ -177,7 +176,6 @@ export class ApplicantFormController {
       docImg,
       req.user,
       true,
-      companyId,
     );
   }
 

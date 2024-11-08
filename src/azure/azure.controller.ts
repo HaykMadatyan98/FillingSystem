@@ -26,7 +26,7 @@ import { AzureService } from './azure.service';
 export class AzureController {
   constructor(private readonly azureService: AzureService) {}
   @Get('image/:participantId')
-  @Header('Content-Type', 'image/webp')
+  @Header('Content-Type', 'image/png')
   @ApiOperation({ summary: 'Get image from Azure by name' })
   @ApiQuery({
     name: 'name',
@@ -52,6 +52,7 @@ export class AzureController {
       participantId,
       req.user,
     );
+    res.setHeader('Content-Disposition', `inline; filename="${name}"`);
     return data.pipe(res);
   }
 

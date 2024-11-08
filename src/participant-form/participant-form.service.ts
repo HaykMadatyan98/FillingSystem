@@ -254,10 +254,7 @@ export class ParticipantFormService {
       throw new NotFoundException(companyFormResponseMsgs.companyFormNotFound);
     }
 
-    return {
-      participantForm,
-      message: participantFormResponseMsgs.retrieved,
-    };
+    return participantForm;
   }
 
   async deleteParticipantFormById(
@@ -301,14 +298,12 @@ export class ParticipantFormService {
     docImg: Express.Multer.File,
     user: any,
     isApplicant: boolean,
-    companyId: string,
   ) {
     await this.companyService.checkUserCompanyPermission(
       user,
       participantId,
       'participantForm',
     );
-
     const company = await this.companyService.getByParticipantId(
       participantId,
       isApplicant,
@@ -327,6 +322,15 @@ export class ParticipantFormService {
       isApplicant,
       company['id'],
     );
+    // } else {
+    //   return { message: participantFormResponseMsgs.failed };
+    // }
+    // const uploadInfo = await this.governmentService.sendAttachment(
+    //   companyId,
+    //   participantId,
+    //   docImg,
+    // );
+    // if (uploadInfo.status === 'upload_success') {
     // } else {
     // return { message: participantFormResponseMsgs.failed };
     // }
@@ -354,7 +358,7 @@ export class ParticipantFormService {
       ? await this.applicantFormModel.create({
           identificationDetails: { docNum, docType, docImg: docImgName },
         })
-      : await this.applicantFormModel.create({
+      : await this.ownerFormModel.create({
           identificationDetails: { docNum, docType, docImg: docImgName },
         });
 
