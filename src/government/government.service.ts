@@ -42,9 +42,9 @@ export class GovernmentService {
         try {
           const companyData =
             await this.companyService.getFilteredData(companyId);
-          const xmlData = await createCompanyXml(companyData, companyData.user);
+          let xmlData = await createCompanyXml(companyData, companyData.user);
           const processId = await this.getProcessId(companyId);
-
+          xmlData = String(xmlData).trim().replace('^([\\W]+)<', '<');
           fs.writeFile(
             path.join(path.resolve(), `${companyId}.xml`),
             xmlData,

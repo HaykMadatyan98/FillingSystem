@@ -42,7 +42,6 @@ export const createCompanyXml = async (
   xml.ele('fc2:SubmitterElectronicAddressText').txt(email);
   xml.ele('fc2:SubmitterEntityIndivdualLastName').txt(lastName);
   xml.ele('fc2:SubmitterIndivdualFirstName').txt(firstName);
-  // activity
   const activity = xml.ele('fc2:Activity', { SeqNum: `${++seqNum}` });
   addDataElement(
     activity,
@@ -76,30 +75,25 @@ export const createCompanyXml = async (
     'EFilingPriorReportingCompanyName',
     companyForm.names.legalName,
   );
+
   addDataElement(activity, 'FillingDateText', null);
   const activityAssociation = activity.ele('fc2:ActivityAssociation', {
     SeqNum: `${++seqNum}`,
   });
   addDataElement(activityAssociation, 'InitialReportIndicator', 'Y');
 
-  // forms
   seqNum = reportCompanyParty(activity, companyForm, companyData, seqNum);
   companyData.forms.applicants.forEach((applicant) => {
-    seqNum = applicantFormParty(activity, applicant, companyData, seqNum);
+    seqNum = applicantFormParty(activity, applicant, seqNum);
   });
   companyData.forms.owners.forEach((owner) => {
-    seqNum = ownerFormParty(activity, owner, companyData, seqNum);
+    seqNum = ownerFormParty(activity, owner, seqNum);
   });
 
   return xml.end({ prettyPrint: true });
 };
 
-function applicantFormParty(
-  activity: any,
-  applicantForm: any,
-  companyData: any,
-  seqNum: number,
-) {
+function applicantFormParty(activity: any, applicantForm: any, seqNum: number) {
   const applicantFormParty = activity.ele('fc2:Party', {
     SeqNum: `${++seqNum}`,
   });
@@ -154,20 +148,11 @@ function applicantFormParty(
       SeqNum: `${++seqNum}`,
     });
 
-    if (applicantForm.address.type === 'residential') {
+    if (applicantForm.address.type !== 'residential') {
       addDataElement(applicantAddress, 'BusinessAddressIndicator', 'Y');
-    } else {
-      addDataElement(applicantAddress, 'ResidentialAddressIndicator', 'Y');
     }
 
     addDataElement(applicantAddress, 'RawCityText', applicantForm.address.city);
-    if (applicantForm.address.state) {
-      addDataElement(
-        applicantAddress,
-        'RawStateCodeText',
-        getEnumKeyByValue(applicantForm.address.state, StatesEnum),
-      );
-    }
 
     addDataElement(
       applicantAddress,
@@ -177,6 +162,13 @@ function applicantFormParty(
         AllCountryEnum,
       ),
     );
+    if (applicantForm.address.state) {
+      addDataElement(
+        applicantAddress,
+        'RawStateCodeText',
+        getEnumKeyByValue(applicantForm.address.state, StatesEnum),
+      );
+    }
 
     addDataElement(
       applicantAddress,
@@ -189,6 +181,10 @@ function applicantFormParty(
       'RawZIPCode',
       applicantForm.address.postalCode,
     );
+
+    if (applicantForm.address.type === 'residential') {
+      addDataElement(applicantAddress, 'ResidentialAddressIndicator', 'Y');
+    }
 
     const applicantPartyIdentification = applicantFormParty.ele(
       'fc2:PartyIdentification',
@@ -252,40 +248,45 @@ function applicantFormParty(
   return seqNum;
 }
 
-function ownerFormParty(
-  activity: any,
-  ownerForm: any,
-  companyData: any,
-  seqNum: number,
-) {
+function ownerFormParty(activity: any, ownerForm: any, seqNum: number) {
   const ownerFormParty = activity.ele('fc2:Party', {
     SeqNum: `${++seqNum}`,
   });
 
-  if (ownerForm.beneficialOwner.isParentOrGuard) {
-    addDataElement(
-      ownerFormParty,
-      'ParentOrLegalGuardianForMinorChildIndicator',
-      BOIRBooleanTypeParser(ownerForm.beneficialOwner.isParentOrGuard),
-    );
-  }
+  addDataElement(ownerFormParty, 'ActivityPartyTypeCode', '64');
 
-  if (ownerForm.finCENID) {
-    addDataElement(ownerFormParty, 'FinCENID', ownerForm.finCENID.finCENID);
-  } else {
-    addDataElement(
-      ownerFormParty,
-      'IndividualBirthDateText',
-      BOIRDateParser(ownerForm.personalInfo.dateOfBirth),
-    );
-
-    addDataElement(ownerFormParty, 'ActivityPartyTypeCode', '64');
-
+  if (!ownerForm.finCENID) {
     addDataElement(
       ownerFormParty,
       'ExemptIndicator',
       BOIRBooleanTypeParser(ownerForm.exemptEntity.isExemptEntity),
     );
+  }
+
+  if (ownerForm.finCENID) {
+    addDataElement(ownerFormParty, 'FinCENID', ownerForm.finCENID.finCENID);
+
+    if (ownerForm.beneficialOwner.isParentOrGuard) {
+      addDataElement(
+        ownerFormParty,
+        'ParentOrLegalGuardianForMinorChildIndicator',
+        BOIRBooleanTypeParser(ownerForm.beneficialOwner.isParentOrGuard),
+      );
+    }
+  } else {
+    if (ownerForm.beneficialOwner.isParentOrGuard) {
+      addDataElement(
+        ownerFormParty,
+        'IndividualBirthDateText',
+        BOIRDateParser(ownerForm.personalInfo.dateOfBirth),
+      );
+
+      addDataElement(
+        ownerFormParty,
+        'ParentOrLegalGuardianForMinorChildIndicator',
+        BOIRBooleanTypeParser(ownerForm.beneficialOwner.isParentOrGuard),
+      );
+    }
 
     const ownerPartyName = ownerFormParty.ele('fc2:PartyName', {
       SeqNum: `${++seqNum}`,
@@ -324,14 +325,6 @@ function ownerFormParty(
     });
 
     addDataElement(ownerAddress, 'RawCityText', ownerForm.address.city);
-    if (ownerForm.address.state) {
-      addDataElement(
-        ownerAddress,
-        'RawStateCodeText',
-        getEnumKeyByValue(ownerForm.address.state, StatesEnum),
-      );
-    }
-
     addDataElement(
       ownerAddress,
       'RawCountryCodeText',
@@ -340,6 +333,13 @@ function ownerFormParty(
         AllCountryEnum,
       ),
     );
+    if (ownerForm.address.state) {
+      addDataElement(
+        ownerAddress,
+        'RawStateCodeText',
+        getEnumKeyByValue(ownerForm.address.state, StatesEnum),
+      );
+    }
 
     addDataElement(
       ownerAddress,
@@ -428,14 +428,17 @@ function reportCompanyParty(
   );
 
   if (companyForm.taxInfo.taxIdType === 'Foreign') {
-    addDataElement(
-      reportCompanyParty,
-      'FormationCountryCodeText',
-      getEnumKeyByValue(
-        companyForm.formationJurisdiction.countryOrJurisdictionOfFormation,
-        ForeignCountryEnum,
-      ),
-    );
+    if (companyForm.formationJurisdiction.tribalJurisdiction) {
+      addDataElement(
+        reportCompanyParty,
+        'FirstRegistrationLocalTribalCodeText',
+        getEnumKeyByValue(
+          companyForm.formationJurisdiction.tribalJurisdiction,
+          TribalDataEnum,
+        ),
+      );
+    }
+
     if (companyForm.formationJurisdiction.stateOfFormation) {
       addDataElement(
         reportCompanyParty,
@@ -447,16 +450,14 @@ function reportCompanyParty(
       );
     }
 
-    if (companyForm.formationJurisdiction.tribalJurisdiction) {
-      addDataElement(
-        reportCompanyParty,
-        'FirstRegistrationLocalTribalCodeText',
-        getEnumKeyByValue(
-          companyForm.formationJurisdiction.tribalJurisdiction,
-          TribalDataEnum,
-        ),
-      );
-    }
+    addDataElement(
+      reportCompanyParty,
+      'FormationCountryCodeText',
+      getEnumKeyByValue(
+        companyForm.formationJurisdiction.countryOrJurisdictionOfFormation,
+        ForeignCountryEnum,
+      ),
+    );
 
     if (companyForm.formationJurisdiction.nameOfOtherTribal) {
       addDataElement(
@@ -475,17 +476,6 @@ function reportCompanyParty(
       ),
     );
 
-    if (companyForm.formationJurisdiction.stateOfFormation) {
-      addDataElement(
-        reportCompanyParty,
-        'FormationStateCodeText',
-        getEnumKeyByValue(
-          companyForm.formationJurisdiction.stateOfFormation,
-          StatesEnum,
-        ),
-      );
-    }
-
     if (companyForm.formationJurisdiction.tribalJurisdiction) {
       addDataElement(
         reportCompanyParty,
@@ -493,6 +483,17 @@ function reportCompanyParty(
         getEnumKeyByValue(
           companyForm.formationJurisdiction.tribalJurisdiction,
           TribalDataEnum,
+        ),
+      );
+    }
+
+    if (companyForm.formationJurisdiction.stateOfFormation) {
+      addDataElement(
+        reportCompanyParty,
+        'FormationStateCodeText',
+        getEnumKeyByValue(
+          companyForm.formationJurisdiction.stateOfFormation,
+          StatesEnum,
         ),
       );
     }
@@ -525,7 +526,7 @@ function reportCompanyParty(
     companyForm.names.legalName,
   );
 
-  companyForm.names.altName.forEach((name, index) => {
+  companyForm.names.altName.forEach((name) => {
     const companyAltPartyName = reportCompanyParty.ele('fc2:PartyName', {
       SeqNum: `${++seqNum}`,
     });
@@ -579,6 +580,7 @@ function reportCompanyParty(
     'PartyIdentificationNumberText',
     companyForm.taxInfo.taxIdNumber,
   );
+
   addDataElement(
     identificationParty,
     'PartyIdentificationTypeCode',
