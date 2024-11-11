@@ -76,6 +76,7 @@ export class AuthService {
     return res.json({
       message: authResponseMsgs.successfulLogin,
       userId: user['id'],
+      role: user['role'],
       refreshToken: refreshToken,
       accessToken: accessToken,
     });
@@ -153,6 +154,7 @@ export class AuthService {
 
     return res.json({
       message: authResponseMsgs.successfulLogin,
+      role: user['role'],
       userId: user['id'],
       refreshToken: refreshToken,
       accessToken: accessToken,
