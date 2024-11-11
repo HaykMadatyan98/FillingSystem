@@ -1,4 +1,3 @@
-import { GovernmentService } from '@/government/government.service';
 import { IRequestUser } from '@/auth/interfaces/request.interface';
 import { AzureService } from '@/azure/azure.service';
 import { companyFormResponseMsgs } from '@/company-form/constants';
@@ -12,6 +11,7 @@ import {
   UNITED_STATES,
 } from '@/company/constants';
 import { CompanyDocument } from '@/company/schemas/company.schema';
+import { GovernmentService } from '@/government/government.service';
 import { calculateRequiredFieldsCount } from '@/utils/req-field.util';
 import {
   BadRequestException,
@@ -335,7 +335,7 @@ export class ParticipantFormService {
     // return { message: participantFormResponseMsgs.failed };
     // }
 
-    return { message: participantFormResponseMsgs.changed };
+    return { message: participantFormResponseMsgs.changed, docImg: docImgName };
   }
 
   async uploadAnImageAndCreate(

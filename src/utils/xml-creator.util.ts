@@ -34,7 +34,7 @@ export const createCompanyXml = async (
       'xmlns:fc2': 'www.fincen.gov/base',
       'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
       'xsi:schemaLocation':
-        'www.fincen.gov/base http://www.fincen.gov/sites/default/files/schema/base/BSA_XML_2.0.xsd',
+        'www.fincen.gov/base https://www.fincen.gov/sites/default/files/schema/base/BOIRSchema.xsd',
       SeqNum: `${++seqNum}`,
     },
   );
@@ -213,7 +213,10 @@ function applicantFormParty(activity: any, applicantForm: any, seqNum: number) {
     addDataElement(
       applicantPartyIdentification,
       'OtherIssuerCountryText',
-      applicantForm.identificationDetails.countryOrJurisdiction,
+      getEnumKeyByValue(
+        applicantForm.identificationDetails.countryOrJurisdiction,
+        AllCountryEnum,
+      ),
     );
 
     if (applicantForm.identificationDetails.otherLocalOrTribalDesc) {
@@ -228,7 +231,10 @@ function applicantFormParty(activity: any, applicantForm: any, seqNum: number) {
       addDataElement(
         applicantPartyIdentification,
         'OtherIssuerStateText',
-        applicantForm.identificationDetails.state,
+        getEnumKeyByValue(
+          applicantForm.identificationDetails.state,
+          StatesEnum,
+        ),
       );
     }
 
@@ -256,11 +262,13 @@ function ownerFormParty(activity: any, ownerForm: any, seqNum: number) {
   addDataElement(ownerFormParty, 'ActivityPartyTypeCode', '64');
 
   if (!ownerForm.finCENID) {
-    addDataElement(
-      ownerFormParty,
-      'ExemptIndicator',
-      BOIRBooleanTypeParser(ownerForm.exemptEntity.isExemptEntity),
-    );
+    if (ownerForm.exemptEntity.isExemptEntity) {
+      addDataElement(
+        ownerFormParty,
+        'ExemptIndicator',
+        BOIRBooleanTypeParser(ownerForm.exemptEntity.isExemptEntity),
+      );
+    }
   }
 
   if (ownerForm.finCENID) {
@@ -277,16 +285,16 @@ function ownerFormParty(activity: any, ownerForm: any, seqNum: number) {
     if (ownerForm.beneficialOwner.isParentOrGuard) {
       addDataElement(
         ownerFormParty,
-        'IndividualBirthDateText',
-        BOIRDateParser(ownerForm.personalInfo.dateOfBirth),
-      );
-
-      addDataElement(
-        ownerFormParty,
         'ParentOrLegalGuardianForMinorChildIndicator',
         BOIRBooleanTypeParser(ownerForm.beneficialOwner.isParentOrGuard),
       );
     }
+
+    addDataElement(
+      ownerFormParty,
+      'IndividualBirthDateText',
+      BOIRDateParser(ownerForm.personalInfo.dateOfBirth),
+    );
 
     const ownerPartyName = ownerFormParty.ele('fc2:PartyName', {
       SeqNum: `${++seqNum}`,
@@ -376,7 +384,10 @@ function ownerFormParty(activity: any, ownerForm: any, seqNum: number) {
     addDataElement(
       ownerPartyIdentification,
       'OtherIssuerCountryText',
-      ownerForm.identificationDetails.countryOrJurisdiction,
+      getEnumKeyByValue(
+        ownerForm.identificationDetails.countryOrJurisdiction,
+        AllCountryEnum,
+      ),
     );
 
     if (ownerForm.identificationDetails.otherLocalOrTribalDesc) {
@@ -391,7 +402,7 @@ function ownerFormParty(activity: any, ownerForm: any, seqNum: number) {
       addDataElement(
         ownerPartyIdentification,
         'OtherIssuerStateText',
-        ownerForm.identificationDetails.state,
+        getEnumKeyByValue(ownerForm.identificationDetails.state, StatesEnum),
       );
     }
 
@@ -421,11 +432,13 @@ function reportCompanyParty(
     SeqNum: `${++seqNum}`,
   });
   addDataElement(reportCompanyParty, 'ActivityPartyTypeCode', '62');
-  addDataElement(
-    reportCompanyParty,
-    'ExistingReportingCompanyIndicator',
-    BOIRBooleanTypeParser(companyData.isExistingCompany),
-  );
+  if (companyData.isExistingCompany) {
+    addDataElement(
+      reportCompanyParty,
+      'ExistingReportingCompanyIndicator',
+      BOIRBooleanTypeParser(companyData.isExistingCompany),
+    );
+  }
 
   if (companyForm.taxInfo.taxIdType === 'Foreign') {
     if (companyForm.formationJurisdiction.tribalJurisdiction) {
