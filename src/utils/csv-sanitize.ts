@@ -68,8 +68,11 @@ export async function sanitizeData(data: any): Promise<{
 
   userKeys.forEach((key) => {
     const mappedField = UserData[key];
-    const value = data[key].join('');
+    let value = data[key].join('');
     if (value && value !== '') {
+      if (key === 'User Email') {
+        value = value.toLowerCase();
+      }
       mapFieldToObject(mappedField, value, sanitized.user);
     }
   });
@@ -145,9 +148,10 @@ export async function sanitizeData(data: any): Promise<{
 
   if (isDeletedCompany) {
     reasons.push({
-      fields:[ 'All Company Fields'],
-      problemDesc: 'Company could not be created because one or more required fields contain incorrect or missing information.'
-    })
+      fields: ['All Company Fields'],
+      problemDesc:
+        'Company could not be created because one or more required fields contain incorrect or missing information.',
+    });
   }
 
   return {

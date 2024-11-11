@@ -17,6 +17,7 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -30,6 +31,7 @@ import {
   RefreshTokenResponseDto,
   ResponseMessageDto,
 } from './dtos/response.dto';
+import { AccessTokenGuard } from './guards/access-token.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { RequestWithUser } from './interfaces/request.interface';
@@ -51,7 +53,7 @@ export class AuthController {
   async sendValidateEmail(
     @Body() body: SendEmailDto,
   ): Promise<IResponseMessage> {
-    return this.authService.sendValidationEmail(body.email);
+    return this.authService.sendValidationEmail(body.email.toLowerCase());
   }
 
   @Post('login')
@@ -67,7 +69,11 @@ export class AuthController {
     @Body() body: LoginDto,
     @Res() res: ICustomResponse,
   ): Promise<ILoginResponse> {
-    return this.authService.login(body.email, body.oneTimePass, res);
+    return this.authService.login(
+      body.email.toLowerCase(),
+      body.oneTimePass,
+      res,
+    );
   }
 
   @Post('login/admin')
@@ -82,7 +88,7 @@ export class AuthController {
     type: LoginResponseDto,
   })
   async signInAdmin(@Body() body: LoginAdminDto, @Res() res: ICustomResponse) {
-    return this.authService.signInAdmin(body.email, res);
+    return this.authService.signInAdmin(body.email.toLowerCase(), res);
   }
 
   @Get('refresh')
@@ -118,5 +124,20 @@ export class AuthController {
   @ApiOperation({ summary: 'Sign out by entered user id' })
   async logout(@Param('userId') userId: string): Promise<IResponseMessage> {
     return this.authService.logout(userId);
+  }
+
+  @Get('/admin/:userId')
+  @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'userId',
+    required: true,
+  })
+  @ApiOperation({ description: 'check user privileges' })
+  async checkAdmin(
+    @Param('userId') userId: string,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.authService.checkUserAdminRole(req.user, userId);
   }
 }

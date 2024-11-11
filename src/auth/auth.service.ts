@@ -18,6 +18,7 @@ import * as jwt from 'jsonwebtoken';
 import * as moment from 'moment';
 import { LoginAdminDto } from './dtos/auth.dto';
 import { ICustomResponse } from './dtos/response.dto';
+import { IRequestUser } from './interfaces/request.interface';
 
 @Injectable()
 export class AuthService {
@@ -167,5 +168,26 @@ export class AuthService {
       return { email: loginAdminDto.email, userId: user['id'] };
     }
     return null;
+  }
+
+  async checkUserAdminRole(user: IRequestUser, userId: string) {
+    if (user.role !== 'admin') {
+      throw new ForbiddenException('The current user is not an administrator.');
+    }
+
+    if (userId !== user.userId) {
+      throw new ForbiddenException('The provided user ID is incorrect.');
+    }
+
+    const userData = await this.userService.getUserById(userId);
+    if (userData.role !== 'admin') {
+      throw new ForbiddenException(
+        'The specified user does not have administrative privileges.',
+      );
+    }
+
+    return {
+      message: 'The current user has administrative privileges.',
+    };
   }
 }

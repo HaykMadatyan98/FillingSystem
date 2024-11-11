@@ -34,7 +34,7 @@ export const createCompanyXml = async (
       'xmlns:fc2': 'www.fincen.gov/base',
       'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
       'xsi:schemaLocation':
-        'www.fincen.gov/base https://www.fincen.gov/sites/default/files/schema/base/BOIRSchema.xsd',
+        'www.fincen.gov/base http://www.fincen.gov/sites/default/files/schema/base/BSA_XML_2.0.xsd',
       SeqNum: `${++seqNum}`,
     },
   );
@@ -76,7 +76,7 @@ export const createCompanyXml = async (
     companyForm.names.legalName,
   );
 
-  addDataElement(activity, 'FillingDateText', null);
+  addDataElement(activity, 'FillingDateText', BOIRDateParser(new Date()));
   const activityAssociation = activity.ele('fc2:ActivityAssociation', {
     SeqNum: `${++seqNum}`,
   });

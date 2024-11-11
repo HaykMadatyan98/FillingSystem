@@ -41,7 +41,11 @@ export class AzureService {
       throw new BadRequestException('file is missing');
     }
 
-    const redactedFileName = `${Date.now()}_${file.originalname}`;
+    const sanitizedFileName = file.originalname.replace(
+      /[^a-zA-Z0-9!@#$%()_\-\.=+\[\]{}|;~]/g,
+      '_',
+    );
+    const redactedFileName = `${Date.now()}_${sanitizedFileName}`;
     const blockBlobClient = this.getBlockBlobClient(redactedFileName);
 
     await blockBlobClient.uploadData(file.buffer);
