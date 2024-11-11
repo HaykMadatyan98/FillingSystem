@@ -34,7 +34,7 @@ export const createCompanyXml = async (
       'xmlns:fc2': 'www.fincen.gov/base',
       'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
       'xsi:schemaLocation':
-        'www.fincen.gov/base https://www.fincen.gov/sites/default/files/schema/base/BOIRSchema.xsd',
+        `www.fincen.gov/base https://agricultural-martina-arnology-90fe6838.koyeb.app/government/getSchema`,
       SeqNum: `${++seqNum}`,
     },
   );

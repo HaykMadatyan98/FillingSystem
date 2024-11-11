@@ -6,8 +6,10 @@ import {
   HttpStatus,
   Param,
   Post,
+  Res,
 } from '@nestjs/common';
 import { ApiParam, ApiTags } from '@nestjs/swagger';
+import * as path from 'node:path';
 import { GovernmentService } from './government.service';
 
 @Controller('government')
@@ -34,5 +36,14 @@ export class GovernmentController {
   })
   async checkCompanyStatus(@Param('companyId') companyId: string) {
     return this.governmentService.checkGovernmentStatus(companyId);
+  }
+
+  @Get('getSchema')
+  async getXMLSchema(@Res() res: any) {
+    const routeOfFile = path.join(
+      path.resolve(),
+      'src/government/files/11-11schema.xml',
+    );
+    return res.sendFile(routeOfFile);
   }
 }
