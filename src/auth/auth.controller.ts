@@ -115,7 +115,7 @@ export class AuthController {
     );
   }
 
-  @Get('logout/:id')
+  @Get('logout/:userId')
   @ApiOkResponse({
     type: ResponseMessageDto,
     description: authResponseMsgs.successfulLogout,
