@@ -17,6 +17,7 @@ export class MailService {
   emailFrom: string;
   adminFullName: string;
   adminEmail: string;
+  link: string;
 
   constructor(
     private readonly configService: ConfigService,
@@ -28,6 +29,9 @@ export class MailService {
       'ADMIN.lastName',
     )}`;
     this.adminEmail = this.configService.get<string>('ADMIN.email');
+    const linkHost = this.configService.get<string>('HOST');
+    const linkPort = this.configService.get<string>('CLIENT_PORT');
+    this.link = linkPort ? `${linkHost}:${linkPort}` : linkHost;
   }
 
   async sendOTPtoEmail(
@@ -40,6 +44,7 @@ export class MailService {
         path.resolve(),
         '/src/mail/templates/oneTimePass.hbs',
       );
+      console.log(this.link);
 
       const verificationTime = `${userVerificationTime[0]} ${userVerificationTime[1]}`;
       const template = fs.readFileSync(templatePath, 'utf-8');
@@ -48,6 +53,7 @@ export class MailService {
         oneTimePass,
         verificationTime,
         userName,
+        link: this.link,
       });
 
       const mail: SendGrid.MailDataRequired = {
@@ -83,10 +89,15 @@ export class MailService {
         path.resolve(),
         `/src/mail/templates/${isNewCompany ? 'invitation' : 'change-notification'}.hbs`,
       );
+      console.log(this.link);
 
       const template = fs.readFileSync(templatePath, 'utf-8');
       const compiledFile = Handlebars.compile(template);
-      const htmlContent = compiledFile({ companyName, fullName });
+      const htmlContent = compiledFile({
+        companyName,
+        fullName,
+        link: this.link,
+      });
       const mail: SendGrid.MailDataRequired = {
         to: email,
         from: this.emailFrom,
@@ -115,11 +126,13 @@ export class MailService {
         path.resolve(),
         '/src/mail/templates/oneTimePass.hbs',
       );
+      console.log(this.link);
 
       const template = fs.readFileSync(templatePath, 'utf-8');
       const compiledFile = Handlebars.compile(template);
       const htmlContent = compiledFile({
         userName,
+        link: this.link,
       });
 
       const mail: SendGrid.MailDataRequired = {
@@ -162,10 +175,12 @@ export class MailService {
     await Promise.all(
       companies.map(async (company) => {
         try {
+          console.log(this.link);
           const htmlContent = compiledFile({
             fillerFullName: `${company.user.firstName} ${company.user.lastName}`,
             companyName: company.name,
             remainingDays: remainingDay,
+            link: this.link,
           });
 
           const mail: SendGrid.MailDataRequired = {
