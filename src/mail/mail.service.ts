@@ -31,7 +31,11 @@ export class MailService {
     this.adminEmail = this.configService.get<string>('ADMIN.email');
     const linkHost = this.configService.get<string>('HOST');
     const linkPort = this.configService.get<string>('CLIENT_PORT');
-    this.link = linkPort ? `${linkHost}:${linkPort}` : linkHost;
+    this.link =
+      linkPort &&
+      (linkHost.includes('localhost') || linkHost.includes('127.0.0.1'))
+        ? `${linkHost}:${linkPort}`
+        : linkHost;
   }
 
   async sendOTPtoEmail(
