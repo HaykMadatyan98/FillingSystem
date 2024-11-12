@@ -28,7 +28,7 @@ export async function sanitizeData(
   const userKeys = Object.keys(UserData) as (keyof typeof UserData)[];
 
   function convertValue(key: string, value: string) {
-    if (key === 'dateOfBirth') {
+      if (key === 'dateOfBirth') {
       return value ? new Date(value) : undefined;
     } else if (value.toLowerCase() === 'true') {
       return true;
@@ -47,7 +47,6 @@ export async function sanitizeData(
   ) {
     const fieldParts = mappedField.split('.');
     let current = targetObj;
-
     fieldParts.forEach((part, index) => {
       if (index === fieldParts.length - 1) {
         current[part] = convertValue(part, value);
@@ -96,7 +95,7 @@ export async function sanitizeData(
           const participant: any = { isApplicant };
           participantKeys.forEach((key) => {
             const value = data[`${prefix} ${key}`];
-            if (value) {
+              if (value) {
               const splitValues = value.split(',');
               const trimmedValue = splitValues[index]?.trim();
               if (trimmedValue) {

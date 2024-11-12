@@ -84,7 +84,7 @@ export async function sanitizeData(data: any): Promise<{
       mapFieldToObject(mappedField, value, sanitized.company);
     }
   });
-
+  
   if (
     !(
       sanitized.company.isExistingCompany ||
@@ -97,7 +97,6 @@ export async function sanitizeData(data: any): Promise<{
       data['Applicant FinCEN ID']?.length;
     for (let i = 0; i < applicantCount; i++) {
       const participant: any = { isApplicant: true };
-
       applicantKeys.forEach((key) => {
         const mappedField = ApplicantData[key];
         const value = data[key][i];

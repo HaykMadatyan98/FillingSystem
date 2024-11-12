@@ -8,6 +8,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
+  IsDate,
   IsDateString,
   IsEnum,
   IsOptional,
@@ -51,6 +52,33 @@ export class PersonalInformationDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsDateString()
+  dateOfBirth?: Date;
+}
+
+export class PersonalInformationCSVDto {
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  lastOrLegalName?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  firstName?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  middleName?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  suffix?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsDate()
   dateOfBirth?: Date;
 }
 
@@ -208,6 +236,12 @@ export class CSVApplicantFormDto extends ApplicantFormDto {
   @ValidateNested({ each: true })
   @Type(() => CSVIdentificationAndJurisdictionDto)
   identificationDetails: CSVIdentificationAndJurisdictionDto;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => PersonalInformationCSVDto)
+  personalInfo?: PersonalInformationCSVDto;
 }
 
 export class CSVOwnerFormDto extends OwnerFormDto {
@@ -219,6 +253,12 @@ export class CSVOwnerFormDto extends OwnerFormDto {
   @ValidateNested({ each: true })
   @Type(() => CSVIdentificationAndJurisdictionDto)
   identificationDetails: CSVIdentificationAndJurisdictionDto;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => PersonalInformationCSVDto)
+  personalInfo?: PersonalInformationCSVDto;
 }
 
 export class CreateParticipantDocDto {
