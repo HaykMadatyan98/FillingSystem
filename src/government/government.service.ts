@@ -1,9 +1,9 @@
 import { CompanyService } from '@/company/company.service';
-import { createCompanyXml } from '@/utils/xml-creator.util';
 import { HttpService } from '@nestjs/axios';
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AxiosResponse } from 'axios';
+import * as FormData from 'form-data';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { firstValueFrom } from 'rxjs';
@@ -42,21 +42,26 @@ export class GovernmentService {
         try {
           const companyData =
             await this.companyService.getFilteredData(companyId);
-          let xmlData = await createCompanyXml(companyData, companyData.user);
+          // let xmlData = await createCompanyXml(companyData, companyData.user);
           const processId = await this.getProcessId(companyId);
-          xmlData = String(xmlData).trim().replace('^([\\W]+)<', '<');
-          fs.writeFile(
-            path.join(path.resolve(), `${companyId}.xml`),
-            xmlData,
-            (err) => {
-              console.error(err);
-            },
-          );
+          // xmlData = String(xmlData).trim().replace('^([\\W]+)<', '<');
+          // fs.writeFile(
+          //   path.join(path.resolve(), `${companyId}.xml`),
+          //   xmlData,
+          //   (err) => {
+          //     console.error(err);
+          //   },
+          // );
+
+          const filePath = path.join(path.resolve(), `${companyId}.xml`);
+
+          const formData = new FormData();
+          formData.append(`${companyId}.xml`, fs.createReadStream(filePath));
 
           const response: AxiosResponse = await firstValueFrom(
             this.httpService.post(
               `${this.sandboxURL}/upload/BOIR/${processId}/${companyId}.xml`,
-              { xmlData },
+              formData,
               {
                 headers: {
                   Authorization: `Bearer ${this.accessToken}`,
@@ -65,6 +70,18 @@ export class GovernmentService {
               },
             ),
           );
+          // const response: AxiosResponse = await firstValueFrom(
+          //   this.httpService.post(
+          //     `${this.sandboxURL}/upload/BOIR/${processId}/${companyId}.xml`,
+          //     { xmlData },
+          //     {
+          //       headers: {
+          //         Authorization: `Bearer ${this.accessToken}`,
+          //         'Content-Type': 'application/xml',
+          //       },
+          //     },
+          //   ),
+          // );
           console.log(response.data);
           return response.data;
         } catch (error) {

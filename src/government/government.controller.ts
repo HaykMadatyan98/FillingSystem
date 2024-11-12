@@ -46,4 +46,13 @@ export class GovernmentController {
     );
     return res.sendFile(routeOfFile);
   }
+
+  @Get('getNamespace')
+  async getXMLNamespace(@Res() res: any) {
+    const routeOfFile = path.join(
+      path.resolve(),
+      'src/government/files/11-12namespaces.xml',
+    );
+    return res.sendFile(routeOfFile);
+  }
 }

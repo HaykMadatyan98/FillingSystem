@@ -31,10 +31,10 @@ export const createCompanyXml = async (
   const xml = create({ version: '1.0', encoding: 'UTF-8' }).ele(
     'fc2:EFilingSubmissionXML',
     {
-      'xmlns:fc2': 'www.fincen.gov/base',
+      'xmlns:fc2':
+        'https://agricultural-martina-arnology-90fe6838.koyeb.app/government/getNamespace',
       'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-      'xsi:schemaLocation':
-        `www.fincen.gov/base https://agricultural-martina-arnology-90fe6838.koyeb.app/government/getSchema`,
+      'xsi:schemaLocation': `https://agricultural-martina-arnology-90fe6838.koyeb.app/government/getNamespace https://agricultural-martina-arnology-90fe6838.koyeb.app/government/getSchema`,
       SeqNum: `${++seqNum}`,
     },
   );
