@@ -75,7 +75,7 @@ export const createCompanyXml = async (
     companyForm.names.legalName,
   );
 
-  addDataElement(activity, 'FillingDateText', BOIRDateParser(new Date()));
+  addDataElement(activity, 'FilingDateText', BOIRDateParser(new Date()));
   const activityAssociation = activity.ele('fc2:ActivityAssociation', {
     SeqNum: `${++seqNum}`,
   });
