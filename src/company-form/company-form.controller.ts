@@ -1,13 +1,14 @@
+import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
+import { RequestWithUser } from '@/auth/interfaces/request.interface';
 import {
-  Controller,
   Body,
-  Patch,
+  Controller,
   Get,
   Param,
+  Patch,
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { CompanyFormService } from './company-form.service';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -15,8 +16,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { RequestWithUser } from '@/auth/interfaces/request.interface';
-import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
+import { CompanyFormService } from './company-form.service';
 import { ChangeCompanyFormDto } from './dtos/company-form.dto';
 
 @ApiTags('form/company')

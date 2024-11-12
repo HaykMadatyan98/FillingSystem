@@ -70,6 +70,7 @@ export class CompanyFormService {
     isForCsv?: boolean,
     company?: any,
   ): TRResponseMsg {
+    console.log(companyFormData, 'in update');
     if (user && typeof user !== 'boolean') {
       await this.companyService.checkUserCompanyPermission(
         user,
@@ -99,7 +100,7 @@ export class CompanyFormService {
     }
 
     let existingStatusChanged = false;
-    if (typeof companyFormData.isExistingCompany !== 'undefined') {
+    if (companyFormData.isExistingCompany) {
       existingStatusChanged =
         await this.companyService.changeExistingCompanyStatus(
           companyId,
@@ -114,6 +115,9 @@ export class CompanyFormService {
 
     const updateDataKeys = Object.keys(companyFormData);
     for (const i of updateDataKeys) {
+      if (companyFormData[i] === '') {
+        companyFormData[i] = undefined;
+      }
       companyData[i] = { ...companyData[i], ...companyFormData[i] };
     }
 

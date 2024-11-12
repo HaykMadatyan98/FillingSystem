@@ -17,10 +17,10 @@ class RepCompanyInfo {
 
 @Schema({ _id: false })
 class LegalAndAltNames {
-  @Prop({ required: true })
+  @Prop({ required: true, maxlength: 150 })
   legalName: string;
 
-  @Prop()
+  @Prop({ type: [String], maxlength: 150 })
   altName: string[];
 
   @Prop({ default: false })
@@ -62,10 +62,10 @@ class JurisdictionOfFormation {
 
 @Schema({ _id: false })
 class CompanyAddress {
-  @Prop()
+  @Prop({ maxlength: 100 })
   address: string;
 
-  @Prop()
+  @Prop({ maxlength: 50 })
   city: string;
 
   @Prop()

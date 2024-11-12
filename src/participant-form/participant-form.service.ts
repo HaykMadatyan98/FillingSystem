@@ -341,7 +341,7 @@ export class ParticipantFormService {
   async uploadAnImageAndCreate(
     companyId: string,
     docImg: Express.Multer.File,
-    payload: { isApplicant: boolean; docNum: string; docType: string },
+    payload: { docNum: string; docType: string },
     isApplicant: boolean,
     user: IRequestUser,
   ) {

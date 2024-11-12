@@ -31,10 +31,9 @@ export const createCompanyXml = async (
   const xml = create({ version: '1.0', encoding: 'UTF-8' }).ele(
     'fc2:EFilingSubmissionXML',
     {
-      'xmlns:fc2':
-        'https://agricultural-martina-arnology-90fe6838.koyeb.app/government/getNamespace',
+      'xmlns:fc2': 'www.fincen.gov/base',
       'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-      'xsi:schemaLocation': `https://agricultural-martina-arnology-90fe6838.koyeb.app/government/getNamespace https://agricultural-martina-arnology-90fe6838.koyeb.app/government/getSchema`,
+      'xsi:schemaLocation': `www.fincen.gov/base https://www.fincen.gov/sites/default/files/schema/base/BOIRSchema.xsd`,
       SeqNum: `${++seqNum}`,
     },
   );
@@ -90,7 +89,7 @@ export const createCompanyXml = async (
     seqNum = ownerFormParty(activity, owner, seqNum);
   });
 
-  return xml.end({ prettyPrint: true });
+  return xml.end();
 };
 
 function applicantFormParty(activity: any, applicantForm: any, seqNum: number) {

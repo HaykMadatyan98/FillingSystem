@@ -5,10 +5,9 @@ import {
   IsEnum,
   IsOptional,
   IsString,
-  Length,
-  Matches,
   MaxLength,
   MinLength,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 
@@ -19,6 +18,7 @@ import {
   TribalDataEnum,
   USTerritoryEnum,
 } from '@/company/constants';
+import { IsTaxIdValid } from '@/utils/taxId.validator';
 import { Transform, Type } from 'class-transformer';
 
 class RepCompanyInfoDto {
@@ -42,14 +42,18 @@ class LegalAndAltNamesDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  @MaxLength(255)
+  @MaxLength(150)
   legalName?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
+  @MaxLength(150, { each: true })
   @Type(() => String)
+  @Transform(({ value }) => (value && value.length === 0 ? undefined : value), {
+    toClassOnly: true,
+  })
   altName?: string[];
 
   @ApiProperty()
@@ -67,17 +71,24 @@ class JurisdictionOfFormationDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsEnum(TribalDataEnum)
+  @Transform(({ value }) =>
+    value === '' ? undefined : TribalDataEnum[value] || value,
+  )
   tribalJurisdiction: TribalDataEnum;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsEnum(StatesEnum)
-  @Transform(({ value }) => StatesEnum[value] || value)
+  @Transform(({ value }) =>
+    value === '' ? undefined : StatesEnum[value] || value,
+  )
   stateOfFormation: StatesEnum;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @MaxLength(150)
+  @Transform(({ value }) => (value === '' ? undefined : value))
   nameOfOtherTribal: string;
 
   @ApiProperty()
@@ -90,11 +101,13 @@ class CompanyAddressDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @MaxLength(100)
   address?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @MaxLength(50)
   city?: string;
 
   @ApiProperty({ required: false })
@@ -124,12 +137,14 @@ class CompanyAddressDto {
 class CreateLegalAndAltNamesDto {
   @ApiProperty({ required: true })
   @IsString()
+  @MaxLength(150)
   legalName: string;
 
   @ApiProperty({ required: false, type: [String] })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
+  @MaxLength(150, { each: true })
   @Type(() => String)
   altName?: string[];
 }
@@ -141,13 +156,16 @@ class TaxInformation {
 
   @ApiProperty({ required: true })
   @IsString()
-  @Matches(/^(0|^(?!000000000)\d{9})$/)
-  @Length(9, 9)
+  @ValidateIf((o) => o.taxIdType)
+  @IsTaxIdValid()
   taxIdNumber: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsEnum(AllCountryEnum)
+  @Transform(({ value }) =>
+    value === '' ? undefined : AllCountryEnum[value] || value,
+  )
   countryOrJurisdiction?: AllCountryEnum;
 
   @ApiProperty()
