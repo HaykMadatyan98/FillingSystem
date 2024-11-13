@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { AxiosResponse } from 'axios';
 import * as path from 'node:path';
 import { firstValueFrom } from 'rxjs';
+import fs from 'fs';
 import { IAttachmentResponse } from './interfaces';
 
 @Injectable()
@@ -44,35 +45,18 @@ export class GovernmentService {
           let xmlData = await createCompanyXml(companyData, companyData.user);
           const processId = await this.getProcessId(companyId);
           xmlData = String(xmlData).trim().replace('^([\\W]+)<', '<');
-          // fs.writeFile(
-          //   path.join(path.resolve(), `${companyId}.xml`),
-          //   xmlData,
-          //   (err) => {
-          //     console.error(err);
-          //   },
-          // );
-
-          const filePath = path.join(path.resolve(), `${companyId}.xml`);
-
-          // const formData = new FormData();
-          // formData.append(`${companyId}.xml`, fs.createReadStream(filePath));
-
-          // const response: AxiosResponse = await firstValueFrom(
-          //   this.httpService.post(
-          //     `${this.sandboxURL}/upload/BOIR/${processId}/${companyId}.xml`,
-          //     formData,
-          //     {
-          //       headers: {
-          //         Authorization: `Bearer ${this.accessToken}`,
-          //         'Content-Type': 'application/xml',
-          //       },
-          //     },
-          //   ),
-          // );
+          fs.writeFile(
+            path.join(path.resolve(), `${companyId}.xml`),
+            xmlData,
+            (err) => {
+              console.error(err);
+            },
+          );
+          console.log(processId);
           const response: AxiosResponse = await firstValueFrom(
             this.httpService.post(
               `${this.sandboxURL}/upload/BOIR/${processId}/${companyId}.xml`,
-              { xmlData },
+              xmlData,
               {
                 headers: {
                   Authorization: `Bearer ${this.accessToken}`,
@@ -156,16 +140,17 @@ export class GovernmentService {
 
   async sendAttachment(
     companyId: string,
-    filename: string,
-    file: any,
+    file: Express.Multer.File,
   ): Promise<IAttachmentResponse> {
-    const processId = this.getProcessId(companyId);
-
     try {
+      const URIName = encodeURI(file.originalname); // URL encode the file name
+      const processId = await this.getProcessId(companyId);
+      const fileData = file.buffer.toString('base64');
+      console.log(processId);
       const response: AxiosResponse = await firstValueFrom(
         this.httpService.post(
-          `${this.tokenURL}/${processId}/${filename}`,
-          file,
+          `${this.sandboxURL}/attachments/${processId}/${URIName}`,
+          fileData,
           {
             headers: {
               Authorization: `Bearer ${this.accessToken}`,
@@ -193,8 +178,14 @@ export class GovernmentService {
           },
         }),
       );
+      if (
+        response.data.status.submissionStatus === 'submission_validation_failed'
+      ) {
+        const company = await this.companyService.getCompanyById(companyId);
+        company.processId = null;
+        company.save();
+      }
 
-      console.log(response);
       return response.data;
     } catch (error) {
       console.log(error);
