@@ -89,7 +89,7 @@ export const createCompanyXml = async (
     seqNum = ownerFormParty(activity, owner, seqNum);
   });
 
-  return xml.end({ prettyPrint: true });
+  return xml.end();
 };
 
 function applicantFormParty(activity: any, applicantForm: any, seqNum: number) {

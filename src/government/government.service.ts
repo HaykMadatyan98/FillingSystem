@@ -1,19 +1,12 @@
 import { CompanyService } from '@/company/company.service';
 import { createCompanyXml } from '@/utils/xml-creator.util';
 import { HttpService } from '@nestjs/axios';
-import {
-  forwardRef,
-  HttpException,
-  HttpStatus,
-  Inject,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AxiosResponse } from 'axios';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { firstValueFrom } from 'rxjs';
+import fs from 'fs';
 import { IAttachmentResponse } from './interfaces';
 
 @Injectable()
@@ -60,7 +53,6 @@ export class GovernmentService {
             },
           );
           console.log(processId);
-
           const response: AxiosResponse = await firstValueFrom(
             this.httpService.post(
               `${this.sandboxURL}/upload/BOIR/${processId}/${companyId}.xml`,
@@ -176,7 +168,7 @@ export class GovernmentService {
 
   async checkGovernmentStatus(companyId: string) {
     const processId = await this.getProcessId(companyId);
-    console.log(processId);
+    console.log(processId, this.sandboxURL);
     try {
       const response: AxiosResponse = await firstValueFrom(
         this.httpService.get(`${this.sandboxURL}/transcript/${processId}`, {
@@ -193,8 +185,10 @@ export class GovernmentService {
         company.processId = null;
         company.save();
       }
+
       return response.data;
     } catch (error) {
+      console.log(error);
       throw new Error(`Failed to check submission status: ${error.message}`);
     }
   }

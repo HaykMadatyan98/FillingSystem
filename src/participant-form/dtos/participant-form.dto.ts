@@ -32,21 +32,25 @@ export class PersonalInformationDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @MaxLength(150)
   lastOrLegalName?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @MaxLength(50)
   firstName?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @MaxLength(50)
   middleName?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @MaxLength(50)
   suffix?: string;
 
   @ApiProperty({ required: false })
@@ -59,21 +63,25 @@ export class PersonalInformationCSVDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @MaxLength(150)
   lastOrLegalName?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @MaxLength(50)
   firstName?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @MaxLength(50)
   middleName?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @MaxLength(50)
   suffix?: string;
 
   @ApiProperty({ required: false })
@@ -98,11 +106,13 @@ class OwnerAddressDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @MaxLength(100)
   address?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @MaxLength(50)
   city?: string;
 
   @ApiProperty({ required: false })
@@ -114,7 +124,9 @@ class OwnerAddressDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsEnum(StatesEnum)
-  @Transform(({ value }) => StatesEnum[value] || value)
+  @Transform(({ value }) =>
+    value === '' ? undefined : StatesEnum[value] || value,
+  )
   state?: StatesEnum;
 
   @ApiProperty({ required: false })
@@ -141,18 +153,26 @@ class IdentificationAndJurisdictionBaseDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsEnum(StatesEnum)
-  @Transform(({ value }) => StatesEnum[value] || value)
+  @Transform(({ value }) =>
+    value === '' ? undefined : StatesEnum[value] || value,
+  )
   state?: StatesEnum;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsEnum(TribalDataEnum)
-  @Transform(({ value }) => TribalDataEnum[value] || value)
+  @Transform(({ value }) =>
+    value === '' ? undefined : TribalDataEnum[value] || value,
+  )
   localOrTribal?: TribalDataEnum;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @MaxLength(150)
+  @Transform(({ value }) =>
+    value === '' ? undefined :  value,
+  )
   otherLocalOrTribalDesc?: string;
 
   @ApiProperty({ required: true })
@@ -162,6 +182,7 @@ class IdentificationAndJurisdictionBaseDto {
 
   @ApiProperty({ required: true })
   @IsString()
+  @MaxLength(25)
   docNumber: string;
 }
 
@@ -262,14 +283,11 @@ export class CSVOwnerFormDto extends OwnerFormDto {
 }
 
 export class CreateParticipantDocDto {
-  @IsBoolean()
-  @Transform(({ value }) => value === 'true')
-  isApplicant: boolean;
-
   @IsEnum(DocumentTypeEnum)
   @Transform(({ value }) => AllCountryEnum[value] || value)
   docType: DocumentTypeEnum;
 
   @IsString()
+  @MaxLength(25)
   docNum: string;
 }

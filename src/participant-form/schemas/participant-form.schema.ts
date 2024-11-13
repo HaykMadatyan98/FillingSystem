@@ -24,7 +24,7 @@ class ExistingCompanyApplicant {
 
 @Schema({ _id: false })
 class FinCENID {
-  @Prop()
+  @Prop({ maxlength: 12 })
   finCENID: string;
 
   @Prop({ default: false })
@@ -33,16 +33,16 @@ class FinCENID {
 
 @Schema({ _id: false })
 class PersonalInformation {
-  @Prop()
+  @Prop({ maxLength: 150 })
   lastOrLegalName: string;
 
-  @Prop()
+  @Prop({ maxlength: 50 })
   firstName: string;
 
-  @Prop()
+  @Prop({ maxlength: 50 })
   middleName: string;
 
-  @Prop()
+  @Prop({ maxlength: 50 })
   suffix: string;
 
   @Prop()
@@ -54,10 +54,10 @@ class PersonalInformation {
 
 @Schema({ _id: false })
 class OwnerAddress {
-  @Prop()
+  @Prop({ maxlength: 100 })
   address: string;
 
-  @Prop()
+  @Prop({ maxlength: 50 })
   city: string;
 
   @Prop()
@@ -84,7 +84,7 @@ class IdentificationAndJurisdiction {
   @Prop()
   docType: string;
 
-  @Prop()
+  @Prop({ maxlength: 25 })
   docNumber: string;
 
   @Prop()
@@ -96,7 +96,7 @@ class IdentificationAndJurisdiction {
   @Prop()
   localOrTribal: string;
 
-  @Prop()
+  @Prop({ maxlength: 150 })
   otherLocalOrTribalDesc: string;
 
   @Prop()
