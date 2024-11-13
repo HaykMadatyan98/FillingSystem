@@ -1,7 +1,14 @@
 import { CompanyService } from '@/company/company.service';
 import { createCompanyXml } from '@/utils/xml-creator.util';
 import { HttpService } from '@nestjs/axios';
-import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  forwardRef,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AxiosResponse } from 'axios';
 import * as fs from 'node:fs';
@@ -52,11 +59,12 @@ export class GovernmentService {
               console.error(err);
             },
           );
+          console.log(processId);
 
           const response: AxiosResponse = await firstValueFrom(
             this.httpService.post(
               `${this.sandboxURL}/upload/BOIR/${processId}/${companyId}.xml`,
-              { xmlData },
+              xmlData,
               {
                 headers: {
                   Authorization: `Bearer ${this.accessToken}`,
@@ -140,16 +148,17 @@ export class GovernmentService {
 
   async sendAttachment(
     companyId: string,
-    filename: string,
-    file: any,
+    file: Express.Multer.File,
   ): Promise<IAttachmentResponse> {
-    const processId = this.getProcessId(companyId);
-
     try {
+      const URIName = encodeURI(file.originalname); // URL encode the file name
+      const processId = await this.getProcessId(companyId);
+      const fileData = file.buffer.toString('base64');
+      console.log(processId);
       const response: AxiosResponse = await firstValueFrom(
         this.httpService.post(
-          `${this.tokenURL}/${processId}/${filename}`,
-          file,
+          `${this.sandboxURL}/attachments/${processId}/${URIName}`,
+          fileData,
           {
             headers: {
               Authorization: `Bearer ${this.accessToken}`,
@@ -177,7 +186,13 @@ export class GovernmentService {
           },
         }),
       );
-
+      if (
+        response.data.status.submissionStatus === 'submission_validation_failed'
+      ) {
+        const company = await this.companyService.getCompanyById(companyId);
+        company.processId = null;
+        company.save();
+      }
       return response.data;
     } catch (error) {
       throw new Error(`Failed to check submission status: ${error.message}`);

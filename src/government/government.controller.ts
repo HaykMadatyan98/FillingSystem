@@ -7,15 +7,59 @@ import {
   Param,
   Post,
   Res,
+  UploadedFile,
+  UploadedFiles,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiParam, ApiTags } from '@nestjs/swagger';
 import * as path from 'node:path';
 import { GovernmentService } from './government.service';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('government')
 @ApiTags('government')
 export class GovernmentController {
   constructor(private readonly governmentService: GovernmentService) {}
+
+  @Get('get-processId/:companyId')
+  @ApiParam({
+    name: 'companyId',
+    required: true,
+  })
+  @HttpCode(HttpStatus.OK)
+  async handleGetProcessId(
+    @Param('companyId') companyId: string,
+  ): Promise<void> {
+    await this.governmentService.getProcessId(companyId);
+  }
+
+
+  @Post('sendAttachments/:companyId')
+  @UseInterceptors(FilesInterceptor('files'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        files: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+      },
+    },
+  })
+  async sendAttachments(
+    @Param('companyId') companyId: string,
+    @UploadedFiles() files: Array<Express.Multer.File>,
+  ) {
+    const result = files.map(async (file) => {
+      return await this.governmentService.sendAttachment(companyId, file);
+    });
+    return result;
+  }
 
   @Post('send-companies')
   @HttpCode(HttpStatus.OK)
@@ -23,17 +67,7 @@ export class GovernmentController {
     await this.governmentService.sendCompanyDataToGovernment(companies);
   }
 
-  @Post('get-processId')
-  @HttpCode(HttpStatus.OK)
-  async handleGetProcessId(@Body() companyId: string): Promise<void> {
-    await this.governmentService.getProcessId(companyId);
-  }
-
   @Get('checkStatus/:companyId')
-  @ApiParam({
-    name: 'companyId',
-    required: true,
-  })
   async checkCompanyStatus(@Param('companyId') companyId: string) {
     return this.governmentService.checkGovernmentStatus(companyId);
   }
