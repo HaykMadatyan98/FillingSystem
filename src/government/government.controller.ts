@@ -12,9 +12,8 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiBody, ApiConsumes, ApiParam, ApiTags } from '@nestjs/swagger';
-import * as path from 'node:path';
 import { GovernmentService } from './government.service';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('government')
 @ApiTags('government')
@@ -70,23 +69,5 @@ export class GovernmentController {
   @Get('checkStatus/:companyId')
   async checkCompanyStatus(@Param('companyId') companyId: string) {
     return this.governmentService.checkGovernmentStatus(companyId);
-  }
-
-  @Get('getSchema')
-  async getXMLSchema(@Res() res: any) {
-    const routeOfFile = path.join(
-      path.resolve(),
-      'src/government/files/11-11schema.xml',
-    );
-    return res.sendFile(routeOfFile);
-  }
-
-  @Get('getNamespace')
-  async getXMLNamespace(@Res() res: any) {
-    const routeOfFile = path.join(
-      path.resolve(),
-      'src/government/files/11-12namespaces.xml',
-    );
-    return res.sendFile(routeOfFile);
   }
 }

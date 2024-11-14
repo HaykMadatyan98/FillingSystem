@@ -367,11 +367,11 @@ function ownerFormParty(activity: any, ownerForm: any, seqNum: number) {
           ),
         );
       }
-      // addDataElement(
-      //   ownerPartyIdentification,
-      //   'OriginalAttachmentFileName',
-      //   ownerForm.identificationDetails.docImg,
-      // ); // WATCH BEFORE SEND
+      addDataElement(
+        ownerPartyIdentification,
+        'OriginalAttachmentFileName',
+        ownerForm.identificationDetails.docImg,
+      ); 
       addDataElement(
         ownerPartyIdentification,
         'OtherIssuerCountryText',

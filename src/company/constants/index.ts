@@ -1,4 +1,9 @@
-export { BOIRTaxIdTypeParser, BOIRDateParser, BOIRBooleanTypeParser, BOIRParticipantDocTypeParser} from './boir-types';
+export {
+  BOIRBooleanTypeParser,
+  BOIRDateParser,
+  BOIRParticipantDocTypeParser,
+  BOIRTaxIdTypeParser,
+} from './boir-types';
 export { companyResponseMsgs } from './company-responses';
 export {
   AllCountryEnum,
@@ -12,7 +17,6 @@ export {
   ApplicantData,
   CompanyData,
   OwnerData,
-  ParticipantData,
   UserData,
 } from './data-fields.enum';
 export {

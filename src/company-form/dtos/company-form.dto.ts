@@ -7,18 +7,25 @@ import {
   IsString,
   MaxLength,
   MinLength,
+  Validate,
   ValidateIf,
   ValidateNested,
 } from 'class-validator';
 
 import {
   AllCountryEnum,
+  ForeignCountryEnum,
   IdentificationTypesEnum,
   StatesEnum,
   TribalDataEnum,
   USTerritoryEnum,
 } from '@/company/constants';
 import { IsTaxIdValid } from '@/utils/taxId.validator';
+import {
+  IsEmptyIfNotInUSOrUSCountries,
+  IsEmptyIfNotOtherTribal,
+  StateOfFormationValidator,
+} from '@/utils/validateCountry.util';
 import { Transform, Type } from 'class-transformer';
 
 class RepCompanyInfoDto {
@@ -61,7 +68,6 @@ class LegalAndAltNamesDto {
   @IsBoolean()
   isVerified?: boolean;
 }
-
 class JurisdictionOfFormationDto {
   @ApiProperty({ required: false })
   @IsOptional()
@@ -71,23 +77,26 @@ class JurisdictionOfFormationDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsEnum(TribalDataEnum)
+  @IsEmptyIfNotInUSOrUSCountries()
   @Transform(({ value }) =>
     value === '' ? undefined : TribalDataEnum[value] || value,
   )
-  tribalJurisdiction: TribalDataEnum;
+  tribalJurisdiction?: TribalDataEnum;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsEnum(StatesEnum)
+  @StateOfFormationValidator()
   @Transform(({ value }) =>
     value === '' ? undefined : StatesEnum[value] || value,
   )
-  stateOfFormation: StatesEnum;
+  stateOfFormation?: StatesEnum;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   @MaxLength(150)
+  @IsEmptyIfNotOtherTribal()
   @Transform(({ value }) => (value === '' ? undefined : value))
   nameOfOtherTribal: string;
 
@@ -95,6 +104,7 @@ class JurisdictionOfFormationDto {
   @IsOptional()
   @IsBoolean()
   isVerified?: boolean;
+
 }
 
 class CompanyAddressDto {
@@ -162,11 +172,11 @@ class TaxInformation {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsEnum(AllCountryEnum)
+  @IsEnum(ForeignCountryEnum)
   @Transform(({ value }) =>
-    value === '' ? undefined : AllCountryEnum[value] || value,
+    value === '' ? undefined : ForeignCountryEnum[value] || value,
   )
-  countryOrJurisdiction?: AllCountryEnum;
+  countryOrJurisdiction?: ForeignCountryEnum;
 
   @ApiProperty()
   @IsOptional()

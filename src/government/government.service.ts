@@ -1,12 +1,11 @@
+import { AzureService } from '@/azure/azure.service';
 import { CompanyService } from '@/company/company.service';
 import { createCompanyXml } from '@/utils/xml-creator.util';
 import { HttpService } from '@nestjs/axios';
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AxiosResponse } from 'axios';
-import * as path from 'node:path';
 import { firstValueFrom } from 'rxjs';
-import fs from 'fs';
 import { IAttachmentResponse } from './interfaces';
 
 @Injectable()
@@ -25,6 +24,7 @@ export class GovernmentService {
     @Inject(forwardRef(() => CompanyService))
     private readonly companyService: CompanyService,
     private httpService: HttpService,
+    private readonly azureService: AzureService,
   ) {
     this.clientSecret = this.configService.get<string>(
       'GOVERNMENT.clientSecret',
@@ -36,22 +36,44 @@ export class GovernmentService {
     this.accessToken = '';
   }
 
+  private async streamToBinary(readableStream) {
+    const chunks = [];
+    for await (const chunk of readableStream) {
+      chunks.push(chunk);
+    }
+    return Buffer.concat(chunks);
+  }
+
   async sendCompanyDataToGovernment(companies: string[]) {
     await Promise.all(
       companies.map(async (companyId) => {
         try {
-          const companyData =
-            await this.companyService.getFilteredData(companyId);
-          let xmlData = await createCompanyXml(companyData, companyData.user);
+          const companyData = (await this.companyService.getFilteredData(
+            companyId,
+          )) as any;
+          console.log(companyData);
           const processId = await this.getProcessId(companyId);
+
+          if (companyData?.forms.applicants.length) {
+            await this.sendCompanyImagesAttachments(
+              companyData.forms.applicants,
+              processId,
+            ); 
+          } else if(companyData?.forms.owners.length) {
+            await this.sendCompanyImagesAttachments(
+              companyData.forms.owners,
+              processId,
+            ); 
+          }
+          let xmlData = await createCompanyXml(companyData, companyData.user);
           xmlData = String(xmlData).trim().replace('^([\\W]+)<', '<');
-          fs.writeFile(
-            path.join(path.resolve(), `${companyId}.xml`),
-            xmlData,
-            (err) => {
-              console.error(err);
-            },
-          );
+          // fs.writeFile(
+          //   path.join(path.resolve(), `${companyId}.xml`),
+          //   xmlData,
+          //   (err) => {
+          //     console.error(err);
+          //   },
+          // );
           console.log(processId);
           const response: AxiosResponse = await firstValueFrom(
             this.httpService.post(
@@ -77,6 +99,37 @@ export class GovernmentService {
     );
   }
 
+  private async sendCompanyImagesAttachments(formData: any, processId: string) {
+    await Promise.all(
+      formData.map(async (applicant) => {
+        if (applicant.identificationDetails.docImg) {
+          console.log(applicant.identificationDetails.docImg);
+          const applicantImageData = await this.azureService.readStream(
+            applicant.identificationDetails.docImg,
+          );
+          const binaryImageData = (
+            await this.streamToBinary(applicantImageData)
+          ).toString('base64');
+          console.log(binaryImageData, 'image data');
+          const URIName = encodeURI(applicant.identificationDetails.docImg);
+          const response: AxiosResponse = await firstValueFrom(
+            this.httpService.post(
+              `${this.sandboxURL}/attachments/${processId}/${URIName}`,
+              binaryImageData,
+              {
+                headers: {
+                  Authorization: `Bearer ${this.accessToken}`,
+                  'Content-Type': 'application/binary',
+                },
+              },
+            ),
+          );
+          console.log(response);
+        }
+      }),
+    );
+  }
+  
   async getAccessToken(): Promise<string> {
     if (this.accessToken) {
       return this.accessToken;

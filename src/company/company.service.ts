@@ -4,8 +4,6 @@ import { IUserInvitationEmail } from '@/mail/interfaces/mail.interface';
 import { MailService } from '@/mail/mail.service';
 import { ParticipantFormService } from '@/participant-form/participant-form.service';
 import { UserService } from '@/user/user.service';
-import { sanitizeData } from '@/utils/csv-sanitize';
-import { filterApplicantAndOwnerRowData } from '@/utils/rowdata-parser';
 import {
   BadRequestException,
   ForbiddenException,
@@ -23,6 +21,7 @@ import { companyResponseMsgs } from './constants';
 import { ISanitizedData } from './interfaces';
 import { ICompanyCSVRowData } from './interfaces/company-csv.interface';
 import { Company, CompanyDocument } from './schemas/company.schema';
+import { sanitizeData } from '@/utils/csv-sanitize';
 
 @Injectable()
 export class CompanyService {
@@ -101,14 +100,15 @@ export class CompanyService {
                 rowData[header].push(value.trim());
               }
             });
-
-            filterApplicantAndOwnerRowData(rowData);
+            
             results.push(rowData);
           }
         })
         .on('end', () => resolve(results))
         .on('error', reject);
     });
+
+    console.log(resultData);
 
     const allErrors = [];
     const allReasons = [];
@@ -118,30 +118,29 @@ export class CompanyService {
       resultData.map(async (row: ICompanyCSVRowData) => {
         const { sanitized, errorData, reasons, companyDeleted } =
           await sanitizeData(row);
-        console.log('companyDeleted', companyDeleted);
-        if (Object.keys(errorData).length) allErrors.push(errorData);
-        if (Object.keys(reasons).length) allReasons.push(reasons);
-        if (!companyDeleted) {
-          const changedCompanyData = await this.ParseCsvData(
-            sanitized,
-            allReasons,
-          );
-          if (!changedCompanyData) {
-            companiesResults.push(
-              `${sanitized.company.names.legalName || 'Company'} data could not be added due to missing or incorrect information.`,
-            );
-            return;
-          }
-
-          companiesResults.push(
-            `${sanitized.company.names.legalName || 'Company'} created/changed`,
-          );
-          allMissingFields.push(changedCompanyData);
-        } else {
-          companiesResults.push(
-            `${sanitized.company.names.legalName || 'Company'} data could not be added due to missing or incorrect information.`,
-          );
-        }
+        // console.log(sanitized)
+        //   if (Object.keys(errorData).length) allErrors.push(errorData);
+        //   if (Object.keys(reasons).length) allReasons.push(reasons);
+        //   if (!companyDeleted) {
+        //     const changedCompanyData = await this.ParseCsvData(
+        //       sanitized,
+        //       allReasons,
+        //     );
+        //     if (!changedCompanyData) {
+        //       companiesResults.push(
+        //         `${sanitized.company.names.legalName || 'Company'} data could not be added due to missing or incorrect information.`,
+        //       );
+        //       return;
+        //     }
+        //     companiesResults.push(
+        //       `${sanitized.company.names.legalName || 'Company'} created/changed`,
+        //     );
+        //     allMissingFields.push(changedCompanyData);
+        //   } else {
+        //     companiesResults.push(
+        //       `${sanitized.company.names.legalName || 'Company'} data could not be added due to missing or incorrect information.`,
+        //     );
+        //   }
       }),
     );
 

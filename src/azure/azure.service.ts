@@ -54,14 +54,16 @@ export class AzureService {
 
   async readStream(
     fileName: string,
-    participantId: string,
-    user: IRequestUser,
+    participantId?: string,
+    user?: IRequestUser,
   ) {
-    await this.companyService.checkUserCompanyPermission(
-      user,
-      participantId,
-      'participantForm',
-    );
+    if (user) {
+      await this.companyService.checkUserCompanyPermission(
+        user,
+        participantId,
+        'participantForm',
+      );
+    }
     const blockBlobClient = this.getBlockBlobClient(fileName);
     const blobDownload = await blockBlobClient.download(0);
     return blobDownload.readableStreamBody;

@@ -18,6 +18,7 @@ export async function sanitizeData(data: any): Promise<{
   reasons: any;
   companyDeleted: boolean;
 }> {
+  console.log(data, 'data in csv parser');
   const sanitized: ISanitizedData = {
     user: {} as ICsvUser,
     company: {} as ICompanyData,
@@ -53,6 +54,7 @@ export async function sanitizeData(data: any): Promise<{
     value: string,
     targetObj: IParticipantData | ICompanyData | ICsvUser,
   ) {
+    console.log('in mapped fields', mappedField, value);
     const fieldParts = mappedField.split('.');
     let current = targetObj;
 
@@ -84,7 +86,7 @@ export async function sanitizeData(data: any): Promise<{
       mapFieldToObject(mappedField, value, sanitized.company);
     }
   });
-  
+
   if (
     !(
       sanitized.company.isExistingCompany ||
@@ -97,13 +99,24 @@ export async function sanitizeData(data: any): Promise<{
       data['Applicant FinCEN ID']?.length;
     for (let i = 0; i < applicantCount; i++) {
       const participant: any = { isApplicant: true };
-      applicantKeys.forEach((key) => {
-        const mappedField = ApplicantData[key];
-        const value = data[key][i];
+      if (
+        data['Applicant FinCEN ID']?.length &&
+        data['Applicant FinCEN ID'][i] !== ''
+      ) {
+        const mappedField = ApplicantData['Applicant FinCEN ID'];
+        const value = data['Applicant FinCEN ID'][i];
         if (value !== undefined && value !== '') {
           mapFieldToObject(mappedField, value, participant);
         }
-      });
+      } else {
+        applicantKeys.forEach((key) => {
+          const mappedField = ApplicantData[key];
+          const value = data[key][i];
+          if (value !== undefined && value !== '') {
+            mapFieldToObject(mappedField, value, participant);
+          }
+        });
+      }
 
       sanitized.participants.push(participant);
     }
@@ -118,13 +131,73 @@ export async function sanitizeData(data: any): Promise<{
   for (let i = 0; i < ownerCount; i++) {
     const participant: any = { isApplicant: false };
 
-    ownerKeys.forEach((key) => {
-      const mappedField = OwnerData[key];
-      const value = data[key][i];
+    if (data['Owner FinCEN ID']?.length && data['Owner FinCEN ID'][i] !== '') {
+      const mappedField = OwnerData['Owner FinCEN ID'];
+      const value = data['Owner FinCEN ID'][i];
       if (value !== undefined && value !== '') {
         mapFieldToObject(mappedField, value, participant);
       }
-    });
+    } else if (
+      data['Owner Is Exempt Entity']?.length &&
+      data['Owner Is Exempt Entity'][i] === 'true'
+    ) {
+      if (data['Owner Last or Legal Name'][i]) {
+        const mappedField = OwnerData['Owner Last or Legal Name'];
+        const value = data['Owner Last or Legal Name'][i];
+        if (value !== undefined && value !== '') {
+          mapFieldToObject(mappedField, value, participant);
+        }
+      }
+
+      if (data['Owner Document Country/Jurisdiction'][i]) {
+        const mappedField = OwnerData['Owner Document Country/Jurisdiction'];
+        const value = data['Owner Document Country/Jurisdiction'][i];
+        if (value !== undefined && value !== '') {
+          mapFieldToObject(mappedField, value, participant);
+        }
+      }
+
+      if (data['Owner Document State'][i]) {
+        const mappedField = OwnerData['Owner Document State'];
+        const value = data['Owner Document State'][i];
+        if (value !== undefined && value !== '') {
+          mapFieldToObject(mappedField, value, participant);
+        }
+      }
+
+      if (data['Owner Local or Tribal'][i]) {
+        const mappedField = OwnerData['Owner Local or Tribal'];
+        const value = data['Owner Local or Tribal'][i];
+        if (value !== undefined && value !== '') {
+          mapFieldToObject(mappedField, value, participant);
+        }
+      }
+
+      if (data['Owner Other Local or Tribal Description'][i]) {
+        const mappedField =
+          OwnerData['Owner Other Local or Tribal Description'];
+        const value = data['Owner Other Local or Tribal Description'][i];
+        if (value !== undefined && value !== '') {
+          mapFieldToObject(mappedField, value, participant);
+        }
+      }
+
+      if (data['Owner Document Image'][i]) {
+        const mappedField = OwnerData['Owner Document Image'];
+        const value = data['Owner Document Image'][i];
+        if (value !== undefined && value !== '') {
+          mapFieldToObject(mappedField, value, participant);
+        }
+      }
+    } else {
+      ownerKeys.forEach((key) => {
+        const mappedField = OwnerData[key];
+        const value = data[key][i];
+        if (value !== undefined && value !== '') {
+          mapFieldToObject(mappedField, value, participant);
+        }
+      });
+    }
 
     sanitized.participants.push(participant);
   }
@@ -153,6 +226,13 @@ export async function sanitizeData(data: any): Promise<{
     });
   }
 
+  console.log(
+    sanitized.company,
+    sanitized.participants,
+    reasons,
+    errorData,
+    'sanitized data',
+  );
   return {
     sanitized,
     reasons,

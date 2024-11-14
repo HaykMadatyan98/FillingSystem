@@ -1,9 +1,12 @@
 import {
   AllCountryEnum,
   DocumentTypeEnum,
+  ForeignCountryEnum,
   StatesEnum,
   TribalDataEnum,
+  USTerritoryEnum,
 } from '@/company/constants';
+import { CountryStateValidator, IsCountryOrJurisdictionValid, IsLocalOrTribalValid, IsOtherLocalOrTribalDescValid, IsStateValid } from '@/utils/validateCountry.util';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
@@ -26,6 +29,7 @@ export class FinCENIDDto {
   @IsString()
   @Matches(/^[0-13-9]\d{11}$/)
   @Length(12, 12)
+  @Transform(({ value }) => (value === '' ? undefined : value))
   finCENID?: string;
 }
 export class PersonalInformationDto {
@@ -123,7 +127,7 @@ class OwnerAddressDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsEnum(StatesEnum)
+  @CountryStateValidator()
   @Transform(({ value }) =>
     value === '' ? undefined : StatesEnum[value] || value,
   )
@@ -144,15 +148,27 @@ class ApplicantAddressDto extends OwnerAddressDto {
   type: AddressTypeEnum;
 }
 class IdentificationAndJurisdictionBaseDto {
+  @ApiProperty({ required: true })
+  @IsEnum(DocumentTypeEnum)
+  @Transform(({ value }) => DocumentTypeEnum[value] || value)
+  docType: DocumentTypeEnum;
+
+  @ApiProperty({ required: true })
+  @IsString()
+  @MaxLength(25)
+  docNumber: string;
+
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsEnum(AllCountryEnum)
+  @IsCountryOrJurisdictionValid({
+    message: 'Invalid country or jurisdiction for the selected docType',
+  })
   @Transform(({ value }) => AllCountryEnum[value] || value)
   countryOrJurisdiction?: AllCountryEnum;
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsEnum(StatesEnum)
+  @IsStateValid({ message: 'Invalid state for the selected docType and countryOrJurisdiction.' })
   @Transform(({ value }) =>
     value === '' ? undefined : StatesEnum[value] || value,
   )
@@ -160,7 +176,7 @@ class IdentificationAndJurisdictionBaseDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsEnum(TribalDataEnum)
+  @IsLocalOrTribalValid({ message: 'Invalid localOrTribal field for the selected docType and countryOrJurisdiction.' })
   @Transform(({ value }) =>
     value === '' ? undefined : TribalDataEnum[value] || value,
   )
@@ -170,20 +186,12 @@ class IdentificationAndJurisdictionBaseDto {
   @IsOptional()
   @IsString()
   @MaxLength(150)
-  @Transform(({ value }) =>
-    value === '' ? undefined :  value,
-  )
+  @IsOtherLocalOrTribalDescValid({
+    message:
+      'The otherLocalOrTribalDesc field is only allowed when docType is "State/local/tribe-issued ID", countryOrJurisdiction is "United States of America", and localOrTribal is "Other".',
+  })
+  @Transform(({ value }) => (value === '' ? undefined : value))
   otherLocalOrTribalDesc?: string;
-
-  @ApiProperty({ required: true })
-  @IsEnum(DocumentTypeEnum)
-  @Transform(({ value }) => DocumentTypeEnum[value] || value)
-  docType: string;
-
-  @ApiProperty({ required: true })
-  @IsString()
-  @MaxLength(25)
-  docNumber: string;
 }
 
 class ExemptEntityDto {

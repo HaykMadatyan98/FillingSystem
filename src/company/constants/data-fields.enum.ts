@@ -18,30 +18,6 @@ export enum CompanyData {
   'Company Exists' = 'isExistingCompany',
 }
 
-export enum ParticipantData {
-  'Is Parent or Guardian' = 'beneficialOwner.isParentOrGuard',
-  'Is Exempt Entity' = 'exemptEntity.isExemptEntity',
-  'FinCEN ID' = 'finCENID.finCENID',
-  'Last or Legal Name' = 'personalInfo.lastOrLegalName',
-  'First Name' = 'personalInfo.firstName',
-  'Middle Name' = 'personalInfo.middleName',
-  'Suffix' = 'personalInfo.suffix',
-  'Date of Birth' = 'personalInfo.dateOfBirth',
-  'Address Type' = 'address.type',
-  'Address' = 'address.address',
-  'City' = 'address.city',
-  'Country/Jurisdiction' = 'address.countryOrJurisdiction',
-  'State' = 'address.state',
-  'Postal Code' = 'address.postalCode',
-  'Document Type' = 'identificationDetails.docType',
-  'Document Number' = 'identificationDetails.docNumber',
-  'Document Country/Jurisdiction' = 'identificationDetails.countryOrJurisdiction',
-  'Document State' = 'identificationDetails.state',
-  'Local or Tribal' = 'identificationDetails.localOrTribal',
-  'Other Local or Tribal Description' = 'identificationDetails.otherLocalOrTribalDesc',
-  'Document Image' = 'identificationDetails.docImg',
-}
-
 export enum UserData {
   'User FirstName' = 'firstName',
   'User Email' = 'email',
