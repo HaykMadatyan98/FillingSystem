@@ -225,14 +225,6 @@ export async function sanitizeData(data: any): Promise<{
         'Company could not be created because one or more required fields contain incorrect or missing information.',
     });
   }
-
-  console.log(
-    sanitized.company,
-    sanitized.participants,
-    reasons,
-    errorData,
-    'sanitized data',
-  );
   return {
     sanitized,
     reasons,
