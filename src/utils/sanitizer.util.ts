@@ -1,3 +1,21 @@
+// const results = [];
+// await new Promise((resolve, reject) => {
+//   bufferStream
+//     .pipe(csvParser({ separator: ',', quote: '"' }))
+//     .on('data', (data: []) => {
+//       const trimmedData = Object.fromEntries(
+//         Object.entries(data).map(([key, value]: [string, string]) => [
+//           key.trim(),
+//           value.trim(),
+//         ]),
+//       );
+
+//       results.push(trimmedData);
+//     })
+//     .on('end', () => resolve(results))
+//     .on('error', reject);
+// });
+
 // import { CompanyData, ParticipantData, UserData } from '@/company/constants';
 // import {
 //   ICompanyCSVRowData,

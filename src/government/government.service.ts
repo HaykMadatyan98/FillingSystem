@@ -58,12 +58,12 @@ export class GovernmentService {
             await this.sendCompanyImagesAttachments(
               companyData.forms.applicants,
               processId,
-            ); 
-          } else if(companyData?.forms.owners.length) {
+            );
+          } else if (companyData?.forms.owners.length) {
             await this.sendCompanyImagesAttachments(
               companyData.forms.owners,
               processId,
-            ); 
+            );
           }
           let xmlData = await createCompanyXml(companyData, companyData.user);
           xmlData = String(xmlData).trim().replace('^([\\W]+)<', '<');
@@ -129,7 +129,7 @@ export class GovernmentService {
       }),
     );
   }
-  
+
   async getAccessToken(): Promise<string> {
     if (this.accessToken) {
       return this.accessToken;

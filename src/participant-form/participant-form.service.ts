@@ -11,7 +11,6 @@ import {
   UNITED_STATES,
 } from '@/company/constants';
 import { CompanyDocument } from '@/company/schemas/company.schema';
-import { GovernmentService } from '@/government/government.service';
 import { calculateRequiredFieldsCount } from '@/utils/req-field.util';
 import {
   BadRequestException,
@@ -22,6 +21,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { requiredOwnerFieldWhichExemptEntity } from './../company/constants/required-data-fields';
 import {
   applicantFormFields,
   ownerFormFields,
@@ -47,7 +47,6 @@ export class ParticipantFormService {
     private applicantFormModel: Model<ApplicantFormDocument>,
     @Inject(forwardRef(() => CompanyService))
     private readonly companyService: CompanyService,
-    private readonly governmentService: GovernmentService,
     private readonly azureService: AzureService,
   ) {}
 
@@ -59,6 +58,8 @@ export class ParticipantFormService {
 
     delete companyParticipantData.isApplicant;
 
+    const isExemptEntity =
+      !isApplicant && companyParticipantData?.exemptEntity?.isExemptEntity;
     const participant = isApplicant
       ? new this.applicantFormModel(companyParticipantData)
       : new this.ownerFormModel(companyParticipantData);
@@ -70,7 +71,11 @@ export class ParticipantFormService {
           : requiredOwnerFields.length
         : await calculateRequiredFieldsCount(
             participant,
-            isApplicant ? requiredApplicantFields : requiredOwnerFields,
+            isApplicant
+              ? requiredApplicantFields
+              : isExemptEntity
+                ? requiredOwnerFieldWhichExemptEntity
+                : requiredOwnerFields,
           );
     participant.answerCount = requiredFieldsCount;
 
@@ -112,6 +117,19 @@ export class ParticipantFormService {
     if (!participant) {
       throw new NotFoundException('Form Not Found');
     }
+    let participantStatusBefore = 'default';
+    if (participant.finCENID.finCENID) {
+      participantStatusBefore = 'finCEN';
+    } else if (!isApplicant && participant.exemptEntity.isExemptEntity) {
+      participantStatusBefore = 'entity';
+    }
+
+    let participantStatusAfter = 'default';
+    if (participantData.finCENID.finCENID) {
+      participantStatusAfter = 'finCEN';
+    } else if (!isApplicant && participant.exemptEntity.isExemptEntity) {
+      participantStatusAfter = 'entity';
+    }
 
     const requiredFieldsCountBefore =
       participant?.finCENID && participant.finCENID?.finCENID
@@ -120,20 +138,61 @@ export class ParticipantFormService {
           : requiredOwnerFields.length
         : await calculateRequiredFieldsCount(
             participant,
-            isApplicant ? requiredApplicantFields : requiredOwnerFields,
+            isApplicant
+              ? requiredApplicantFields
+              : participantStatusBefore === 'entity'
+                ? requiredOwnerFieldWhichExemptEntity
+                : requiredOwnerFields,
           );
 
     if (
-      participantData?.identificationDetails &&
-      participantData?.identificationDetails.docImg &&
+      participantStatusAfter === 'finCEN' &&
       participant.identificationDetails.docImg
     ) {
       await this.azureService.delete(participant.identificationDetails.docImg);
     }
 
-    const updateDataKeys = Object.keys(participantData);
-    for (const i of updateDataKeys) {
-      participant[i] = { ...participant[i], ...participantData[i] };
+    if (
+      participantStatusBefore === participantStatusAfter ||
+      (participantStatusBefore === 'entity' &&
+        participantStatusAfter === 'default')
+    ) {
+      const updateDataKeys = Object.keys(participantData);
+      for (const i of updateDataKeys) {
+        participant[i] = { ...participant[i], ...participantData[i] };
+      }
+    } else if (participantStatusBefore === 'finCEN') {
+      participant['finCENID'] = undefined;
+      const updateDataKeys = Object.keys(participantData);
+      for (const i of updateDataKeys) {
+        participant[i] = { ...participant[i], ...participantData[i] };
+      }
+    } else if (participantStatusAfter === 'finCEN') {
+      const participantKeys = Object.keys(participant);
+      for (const i of participantKeys) {
+        participant[i] = undefined;
+      }
+      participant.finCENID.finCENID = participantData.finCENID.finCENID;
+      participant.finCENID.isVerified = participantData.finCENID.isVerified;
+      if (!isApplicant && participantData.beneficialOwner.isParentOrGuard) {
+        participant.beneficialOwner.isParentOrGuard =
+          participantData.beneficialOwner.isParentOrGuard;
+      }
+    } else if (!isApplicant && participantStatusAfter === 'entity') {
+      const exemptEntityKeys = ['exempt entity', 'personalInfo', 'answerCount'];
+
+      const updateDataKeys = Object.keys(participantData);
+      const participantKeys = Object.keys(participant);
+      for (const i of participantKeys) {
+        if (exemptEntityKeys.includes(i) && updateDataKeys.includes(i)) {
+          participant[i] = { ...participant[i], ...participantData[i] };
+        } else if (
+          !exemptEntityKeys.includes(i) &&
+          !updateDataKeys.includes(i)
+        ) {
+          participant[i] = undefined;
+        }
+      }
     }
 
     const requiredFieldsCountAfter =
@@ -143,7 +202,11 @@ export class ParticipantFormService {
           : requiredOwnerFields.length
         : await calculateRequiredFieldsCount(
             participant,
-            isApplicant ? requiredApplicantFields : requiredOwnerFields,
+            isApplicant
+              ? requiredApplicantFields
+              : participantStatusBefore === 'entity'
+                ? requiredOwnerFieldWhichExemptEntity
+                : requiredOwnerFields,
           );
 
     const countDifference =
@@ -310,30 +373,12 @@ export class ParticipantFormService {
     );
 
     const docImgName = await this.azureService.uploadImage(docImg);
-    // const uploadInfo = await this.governmentService.sendAttachment(
-    //   companyId,
-    //   participantId,
-    //   docImg,
-    // );
-    // if (uploadInfo.status === 'upload_success') {
     await this.changeParticipantForm(
       { identificationDetails: { docImg: docImgName } },
       participantId,
       isApplicant,
       company['id'],
     );
-    // } else {
-    //   return { message: participantFormResponseMsgs.failed };
-    // }
-    // const uploadInfo = await this.governmentService.sendAttachment(
-    //   companyId,
-    //   participantId,
-    //   docImg,
-    // );
-    // if (uploadInfo.status === 'upload_success') {
-    // } else {
-    // return { message: participantFormResponseMsgs.failed };
-    // }
 
     return { message: participantFormResponseMsgs.changed, docImg: docImgName };
   }
@@ -416,13 +461,14 @@ export class ParticipantFormService {
   }
 
   async getParticipantFormMissingFields(
-    participantForm: ApplicantFormDocument | OwnerFormDocument,
+    participantForm: ApplicantFormDocument | OwnerFormDocument | any,
     isApplicant: boolean,
   ) {
     const formFields = isApplicant ? applicantFormFields : ownerFormFields;
     const topLevelKeys = Object.keys(formFields);
     const missingFields: string[] = [];
-
+    const isExemptEntity =
+      !isApplicant && participantForm?.exemptEntity?.isExemptEntity;
     topLevelKeys.forEach((topLevelKey) => {
       if (participantForm[topLevelKey]) {
         Object.keys(formFields[topLevelKey]).forEach((lowLevelKey) => {
@@ -434,7 +480,7 @@ export class ParticipantFormService {
             if (!participantForm['finCENID']) {
               if (
                 topLevelKey === 'identificationDetails' &&
-                (lowLevelKey !== 'docImg' || 'docNumber' || 'docType')
+                (lowLevelKey !== 'docNumber' || 'docType')
               ) {
                 if (
                   lowLevelKey === 'state' ||
@@ -466,15 +512,29 @@ export class ParticipantFormService {
                   missingFields.push(formFields[topLevelKey][lowLevelKey]);
                 }
               } else {
-                missingFields.push(formFields[topLevelKey][lowLevelKey]);
+                if (!isApplicant && isExemptEntity) {
+                  if (
+                    !(
+                      topLevelKey === 'address' ||
+                      topLevelKey === 'beneficialOwner'
+                    )
+                  ) {
+                    if (topLevelKey === 'personalInfo') {
+                      if (
+                        lowLevelKey === 'lastOrLegalName' &&
+                        !participantForm[topLevelKey][lowLevelKey]
+                      ) {
+                        missingFields.push(
+                          formFields[topLevelKey][lowLevelKey],
+                        );
+                      }
+                    }
+                  }
+                } else {
+                  missingFields.push(formFields[topLevelKey][lowLevelKey]);
+                }
               }
             }
-          } else if (
-            !isApplicant &&
-            topLevelKey === 'beneficialOwner' &&
-            lowLevelKey === 'isParentOrGuard'
-          ) {
-            missingFields.push(formFields[topLevelKey][lowLevelKey]);
           }
         });
       }

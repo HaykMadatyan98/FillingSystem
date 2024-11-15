@@ -47,16 +47,6 @@ export const createCompanyXml = async (
     'ApprovalOfficialSignatureDateText',
     BOIRDateParser(new Date()),
   );
-  // addDataElement(
-  //   activity,
-  //   'EFilingPriorReportingCompanyIdentificationNumberText',
-  //   companyForm.taxInfo.taxIdNumber,
-  // );
-  // addDataElement(
-  //   activity,
-  //   'EFilingPriorReportingCompanyIdentificationTypeCode',
-  //   BOIRTaxIdTypeParser(companyForm.taxInfo.taxIdType),
-  // );
 
   if (companyForm.taxInfo.taxIdType === 'Foreign') {
     addDataElement(
@@ -68,12 +58,6 @@ export const createCompanyXml = async (
       ),
     );
   }
-
-  // addDataElement(
-  //   activity,
-  //   'EFilingPriorReportingCompanyName',
-  //   companyForm.names.legalName,
-  // );
 
   addDataElement(activity, 'FilingDateText', BOIRDateParser(new Date()));
   const activityAssociation = activity.ele('fc2:ActivityAssociation', {
@@ -89,7 +73,7 @@ export const createCompanyXml = async (
     seqNum = ownerFormParty(activity, owner, seqNum);
   });
 
-  return xml.end();
+  return xml.end({ prettyPrint: true });
 };
 
 function applicantFormParty(activity: any, applicantForm: any, seqNum: number) {
@@ -207,7 +191,7 @@ function applicantFormParty(activity: any, applicantForm: any, seqNum: number) {
       applicantPartyIdentification,
       'OriginalAttachmentFileName',
       applicantForm.identificationDetails.docImg,
-    ); // WATCH BEFORE SEND
+    );
 
     addDataElement(
       applicantPartyIdentification,
@@ -371,7 +355,7 @@ function ownerFormParty(activity: any, ownerForm: any, seqNum: number) {
         ownerPartyIdentification,
         'OriginalAttachmentFileName',
         ownerForm.identificationDetails.docImg,
-      ); 
+      );
       addDataElement(
         ownerPartyIdentification,
         'OtherIssuerCountryText',
@@ -423,7 +407,7 @@ function reportCompanyParty(
     addDataElement(
       reportCompanyParty,
       'ExistingReportingCompanyIndicator',
-      BOIRBooleanTypeParser(companyData.isExistingCompany),
+      'Y',
     );
   }
 
@@ -508,11 +492,7 @@ function reportCompanyParty(
   }
 
   if (companyForm.repCompanyInfo.requestToReceiveFID) {
-    addDataElement(
-      reportCompanyParty,
-      'RequestFinCENIDIndicator',
-      BOIRBooleanTypeParser(companyForm.repCompanyInfo.requestToReceiveFID),
-    );
+    addDataElement(reportCompanyParty, 'RequestFinCENIDIndicator', 'Y');
   }
 
   const companyLegalPartyName = reportCompanyParty.ele('fc2:PartyName', {

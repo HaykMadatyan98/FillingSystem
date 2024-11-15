@@ -4,29 +4,28 @@
   <fc2:SubmitterEntityIndivdualLastName>Test29</fc2:SubmitterEntityIndivdualLastName>
   <fc2:SubmitterIndivdualFirstName>Vard</fc2:SubmitterIndivdualFirstName>
   <fc2:Activity SeqNum="2">
-    <fc2:ApprovalOfficialSignatureDateText>20241113</fc2:ApprovalOfficialSignatureDateText>
-    <fc2:FilingDateText>20241113</fc2:FilingDateText>
+    <fc2:ApprovalOfficialSignatureDateText>20241115</fc2:ApprovalOfficialSignatureDateText>
+    <fc2:FilingDateText>20241115</fc2:FilingDateText>
     <fc2:ActivityAssociation SeqNum="3">
       <fc2:InitialReportIndicator>Y</fc2:InitialReportIndicator>
     </fc2:ActivityAssociation>
     <fc2:Party SeqNum="4">
       <fc2:ActivityPartyTypeCode>62</fc2:ActivityPartyTypeCode>
       <fc2:FormationCountryCodeText>US</fc2:FormationCountryCodeText>
-      <fc2:FormationLocalTribalCodeText>Other</fc2:FormationLocalTribalCodeText>
-      <fc2:OtherFormationLocalTribalText>Other tribal Name</fc2:OtherFormationLocalTribalText>
+      <fc2:FormationLocalTribalCodeText>Alatna</fc2:FormationLocalTribalCodeText>
       <fc2:PartyName SeqNum="5">
         <fc2:PartyNameTypeCode>L</fc2:PartyNameTypeCode>
         <fc2:RawPartyFullName>Company ABC Test</fc2:RawPartyFullName>
       </fc2:PartyName>
       <fc2:Address SeqNum="6">
-        <fc2:RawCityText>Yerevan</fc2:RawCityText>
-        <fc2:RawCountryCodeText>GU</fc2:RawCountryCodeText>
-        <fc2:RawStateCodeText>GU</fc2:RawStateCodeText>
-        <fc2:RawStreetAddress1Text>Komitas street</fc2:RawStreetAddress1Text>
-        <fc2:RawZIPCode>56489</fc2:RawZIPCode>
+        <fc2:RawCityText>San Francisco</fc2:RawCityText>
+        <fc2:RawCountryCodeText>US</fc2:RawCountryCodeText>
+        <fc2:RawStateCodeText>KS</fc2:RawStateCodeText>
+        <fc2:RawStreetAddress1Text>Baker street</fc2:RawStreetAddress1Text>
+        <fc2:RawZIPCode>89456</fc2:RawZIPCode>
       </fc2:Address>
       <fc2:PartyIdentification SeqNum="7">
-        <fc2:PartyIdentificationNumberText>145624879</fc2:PartyIdentificationNumberText>
+        <fc2:PartyIdentificationNumberText>897845162</fc2:PartyIdentificationNumberText>
         <fc2:PartyIdentificationTypeCode>2</fc2:PartyIdentificationTypeCode>
       </fc2:PartyIdentification>
     </fc2:Party>
@@ -44,7 +43,7 @@
         <fc2:RawCityText>St. Peterburg</fc2:RawCityText>
         <fc2:RawCountryCodeText>RU</fc2:RawCountryCodeText>
         <fc2:RawStreetAddress1Text>N14 sty</fc2:RawStreetAddress1Text>
-        <fc2:RawZIPCode>54123</fc2:RawZIPCode>
+        <fc2:RawZIPCode>4561</fc2:RawZIPCode>
       </fc2:Address>
       <fc2:PartyIdentification SeqNum="11">
         <fc2:OriginalAttachmentFileName>1731339735434_Leonardo_Lightning_XL_abstract_dark_3.jpg</fc2:OriginalAttachmentFileName>
@@ -59,7 +58,7 @@
       <fc2:ExemptIndicator>Y</fc2:ExemptIndicator>
       <fc2:PartyName SeqNum="13">
         <fc2:PartyNameTypeCode>L</fc2:PartyNameTypeCode>
-        <fc2:RawEntityIndividualLastName>Name</fc2:RawEntityIndividualLastName>
+        <fc2:RawEntityIndividualLastName>Astghik</fc2:RawEntityIndividualLastName>
       </fc2:PartyName>
     </fc2:Party>
   </fc2:Activity>

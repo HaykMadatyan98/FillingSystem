@@ -63,24 +63,6 @@ export class CompanyService {
     const bufferStream = new Stream.PassThrough();
     bufferStream.end(file.buffer);
 
-    // const results = [];
-    // await new Promise((resolve, reject) => {
-    //   bufferStream
-    //     .pipe(csvParser({ separator: ',', quote: '"' }))
-    //     .on('data', (data: []) => {
-    //       const trimmedData = Object.fromEntries(
-    //         Object.entries(data).map(([key, value]: [string, string]) => [
-    //           key.trim(),
-    //           value.trim(),
-    //         ]),
-    //       );
-
-    //       results.push(trimmedData);
-    //     })
-    //     .on('end', () => resolve(results))
-    //     .on('error', reject);
-    // });
-
     const resultData: any[] = await new Promise((resolve, reject) => {
       const results: any[] = [];
       const headers: string[] = [];
@@ -560,7 +542,10 @@ export class CompanyService {
     }
   }
 
-  private calculateReqFieldsCount(company: CompanyDocument): number {
+  private calculateReqFieldsCount(
+    company: CompanyDocument,
+    isExemptEntityOwner?: boolean,
+  ): number {
     return (
       company.forms.applicants.length * 12 +
       company.forms.owners.length * 11 +
@@ -572,6 +557,7 @@ export class CompanyService {
     companyId: string,
     count: number,
     existingCompanyStatusChanged?: boolean,
+    OwnerIsEntity?: boolean,
   ): Promise<void> {
     const company = await this.companyModel.findById(companyId);
 
