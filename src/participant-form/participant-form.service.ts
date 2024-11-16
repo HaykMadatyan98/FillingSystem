@@ -1,7 +1,7 @@
-import { IRequestUser } from '@/auth/interfaces/request.interface';
-import { AzureService } from '@/azure/azure.service';
-import { companyFormResponseMsgs } from '@/company-form/constants';
-import { CompanyService } from '@/company/company.service';
+import { IRequestUser } from "@/auth/interfaces/request.interface";
+import { AzureService } from "@/azure/azure.service";
+import { companyFormResponseMsgs } from "@/company-form/constants";
+import { CompanyService } from "@/company/company.service";
 import {
   CANADA,
   countriesWithStates,
@@ -9,34 +9,34 @@ import {
   requiredApplicantFields,
   requiredOwnerFields,
   UNITED_STATES,
-} from '@/company/constants';
-import { CompanyDocument } from '@/company/schemas/company.schema';
-import { calculateRequiredFieldsCount } from '@/utils/req-field.util';
+} from "@/company/constants";
+import { CompanyDocument } from "@/company/schemas/company.schema";
+import { calculateRequiredFieldsCount } from "@/utils/req-field.util";
 import {
   BadRequestException,
   forwardRef,
   Inject,
   Injectable,
   NotFoundException,
-} from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { requiredOwnerFieldWhichExemptEntity } from './../company/constants/required-data-fields';
+} from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
+import { requiredOwnerFieldWhichExemptEntity } from "./../company/constants/required-data-fields";
 import {
   applicantFormFields,
   ownerFormFields,
   participantFormResponseMsgs,
-} from './constants';
+} from "./constants";
 import {
   TRCreateParticipantByCSV,
   TRResponseMsg,
-} from './interfaces/participant-service.interface';
+} from "./interfaces/participant-service.interface";
 import {
   ApplicantForm,
   ApplicantFormDocument,
   OwnerForm,
   OwnerFormDocument,
-} from './schemas/participant-form.schema';
+} from "./schemas/participant-form.schema";
 
 @Injectable()
 export class ParticipantFormService {
@@ -47,12 +47,12 @@ export class ParticipantFormService {
     private applicantFormModel: Model<ApplicantFormDocument>,
     @Inject(forwardRef(() => CompanyService))
     private readonly companyService: CompanyService,
-    private readonly azureService: AzureService,
+    private readonly azureService: AzureService
   ) {}
 
   async createParticipantFormFromCsv(
     companyParticipantData: any,
-    missingFields: any,
+    missingFields: any
   ): TRCreateParticipantByCSV {
     const isApplicant = companyParticipantData.isApplicant;
 
@@ -74,20 +74,20 @@ export class ParticipantFormService {
             isApplicant
               ? requiredApplicantFields
               : isExemptEntity
-                ? requiredOwnerFieldWhichExemptEntity
-                : requiredOwnerFields,
+              ? requiredOwnerFieldWhichExemptEntity
+              : requiredOwnerFields
           );
     participant.answerCount = requiredFieldsCount;
 
     await participant.save();
 
-    if (!missingFields[isApplicant ? 'applicants' : 'owners']) {
-      missingFields[isApplicant ? 'applicants' : 'owners'] = [
+    if (!missingFields[isApplicant ? "applicants" : "owners"]) {
+      missingFields[isApplicant ? "applicants" : "owners"] = [
         await this.getParticipantFormMissingFields(participant, isApplicant),
       ];
     } else {
-      missingFields[isApplicant ? 'applicants' : 'owners'].push(
-        await this.getParticipantFormMissingFields(participant, isApplicant),
+      missingFields[isApplicant ? "applicants" : "owners"].push(
+        await this.getParticipantFormMissingFields(participant, isApplicant)
       );
     }
 
@@ -100,13 +100,13 @@ export class ParticipantFormService {
     isApplicant: boolean,
     companyId: string,
     user?: IRequestUser | boolean,
-    missingFields?: any,
+    missingFields?: any
   ): Promise<any> {
-    if (user && typeof user !== 'boolean') {
+    if (user && typeof user !== "boolean") {
       await this.companyService.checkUserCompanyPermission(
         user,
         participantFormId,
-        'participantForm',
+        "participantForm"
       );
     }
 
@@ -115,38 +115,24 @@ export class ParticipantFormService {
       : await this.ownerFormModel.findById(participantFormId);
 
     if (!participant) {
-      throw new NotFoundException('Form Not Found');
+      throw new NotFoundException("Form Not Found");
     }
-    let participantStatusBefore = 'default';
+    let participantStatusBefore = "default";
     if (participant.finCENID.finCENID) {
-      participantStatusBefore = 'finCEN';
+      participantStatusBefore = "finCEN";
     } else if (!isApplicant && participant.exemptEntity.isExemptEntity) {
-      participantStatusBefore = 'entity';
+      participantStatusBefore = "entity";
     }
 
-    let participantStatusAfter = 'default';
+    let participantStatusAfter = "default";
     if (participantData.finCENID.finCENID) {
-      participantStatusAfter = 'finCEN';
+      participantStatusAfter = "finCEN";
     } else if (!isApplicant && participant.exemptEntity.isExemptEntity) {
-      participantStatusAfter = 'entity';
+      participantStatusAfter = "entity";
     }
-
-    const requiredFieldsCountBefore =
-      participant?.finCENID && participant.finCENID?.finCENID
-        ? isApplicant
-          ? requiredApplicantFields.length
-          : requiredOwnerFields.length
-        : await calculateRequiredFieldsCount(
-            participant,
-            isApplicant
-              ? requiredApplicantFields
-              : participantStatusBefore === 'entity'
-                ? requiredOwnerFieldWhichExemptEntity
-                : requiredOwnerFields,
-          );
 
     if (
-      participantStatusAfter === 'finCEN' &&
+      participantStatusAfter === "finCEN" &&
       participant.identificationDetails.docImg
     ) {
       await this.azureService.delete(participant.identificationDetails.docImg);
@@ -154,20 +140,20 @@ export class ParticipantFormService {
 
     if (
       participantStatusBefore === participantStatusAfter ||
-      (participantStatusBefore === 'entity' &&
-        participantStatusAfter === 'default')
+      (participantStatusBefore === "entity" &&
+        participantStatusAfter === "default")
     ) {
       const updateDataKeys = Object.keys(participantData);
       for (const i of updateDataKeys) {
         participant[i] = { ...participant[i], ...participantData[i] };
       }
-    } else if (participantStatusBefore === 'finCEN') {
-      participant['finCENID'] = undefined;
+    } else if (participantStatusBefore === "finCEN") {
+      participant["finCENID"] = undefined;
       const updateDataKeys = Object.keys(participantData);
       for (const i of updateDataKeys) {
         participant[i] = { ...participant[i], ...participantData[i] };
       }
-    } else if (participantStatusAfter === 'finCEN') {
+    } else if (participantStatusAfter === "finCEN") {
       const participantKeys = Object.keys(participant);
       for (const i of participantKeys) {
         participant[i] = undefined;
@@ -178,8 +164,8 @@ export class ParticipantFormService {
         participant.beneficialOwner.isParentOrGuard =
           participantData.beneficialOwner.isParentOrGuard;
       }
-    } else if (!isApplicant && participantStatusAfter === 'entity') {
-      const exemptEntityKeys = ['exempt entity', 'personalInfo', 'answerCount'];
+    } else if (!isApplicant && participantStatusAfter === "entity") {
+      const exemptEntityKeys = ["exempt entity", "personalInfo", "answerCount"];
 
       const updateDataKeys = Object.keys(participantData);
       const participantKeys = Object.keys(participant);
@@ -195,39 +181,27 @@ export class ParticipantFormService {
       }
     }
 
-    const requiredFieldsCountAfter =
-      participant?.finCENID && participant.finCENID.finCENID
-        ? isApplicant
-          ? requiredApplicantFields.length
-          : requiredOwnerFields.length
-        : await calculateRequiredFieldsCount(
-            participant,
-            isApplicant
-              ? requiredApplicantFields
-              : participantStatusBefore === 'entity'
-                ? requiredOwnerFieldWhichExemptEntity
-                : requiredOwnerFields,
-          );
-
-    const countDifference =
-      requiredFieldsCountBefore - requiredFieldsCountAfter;
-    participant.answerCount += countDifference;
-
-    await this.companyService.changeCompanyReqFieldsCount(
-      companyId,
-      countDifference,
+    participant.answerCount = await calculateRequiredFieldsCount(
+      participant,
+      isApplicant
+        ? requiredApplicantFields
+        : participantStatusBefore === "entity"
+        ? requiredOwnerFieldWhichExemptEntity
+        : requiredOwnerFields
     );
+
+    await this.companyService.changeCompanyCounts(companyId);
 
     await participant.save();
 
     if (missingFields) {
-      if (!missingFields[isApplicant ? 'applicants' : 'owners']) {
-        missingFields[isApplicant ? 'applicants' : 'owners'] = [
+      if (!missingFields[isApplicant ? "applicants" : "owners"]) {
+        missingFields[isApplicant ? "applicants" : "owners"] = [
           await this.getParticipantFormMissingFields(participant, isApplicant),
         ];
       } else {
-        missingFields[isApplicant ? 'applicants' : 'owners'].push(
-          await this.getParticipantFormMissingFields(participant, isApplicant),
+        missingFields[isApplicant ? "applicants" : "owners"].push(
+          await this.getParticipantFormMissingFields(participant, isApplicant)
         );
       }
     }
@@ -242,17 +216,17 @@ export class ParticipantFormService {
     docNum: string,
     docType: string,
     ids: any,
-    isApplicant: boolean,
+    isApplicant: boolean
   ) {
     const participantForm = isApplicant
       ? await this.applicantFormModel.findOne({
-          'identificationDetails.docNumber': docNum,
-          'identificationDetails.docType': docType,
+          "identificationDetails.docNumber": docNum,
+          "identificationDetails.docType": docType,
           _id: { $in: ids },
         })
       : await this.ownerFormModel.findOne({
-          'identificationDetails.docNumber': docNum,
-          'identificationDetails.docType': docType,
+          "identificationDetails.docNumber": docNum,
+          "identificationDetails.docType": docType,
           _id: { $in: ids },
         });
 
@@ -263,12 +237,12 @@ export class ParticipantFormService {
     payload: any,
     companyId: string,
     isApplicant: boolean,
-    user: IRequestUser,
+    user: IRequestUser
   ) {
     await this.companyService.checkUserCompanyPermission(
       user,
       companyId,
-      'company',
+      "company"
     );
 
     const company = await this.companyService.getCompanyById(companyId);
@@ -278,8 +252,8 @@ export class ParticipantFormService {
         })
       : await this.ownerFormModel.create({ ...payload });
 
-    company.forms[`${isApplicant ? 'applicants' : 'owners'}`].push(
-      createdParticipant['id'],
+    company.forms[`${isApplicant ? "applicants" : "owners"}`].push(
+      createdParticipant["id"]
     );
 
     const answerCount =
@@ -289,7 +263,7 @@ export class ParticipantFormService {
           : requiredOwnerFields.length
         : await calculateRequiredFieldsCount(
             createdParticipant,
-            isApplicant ? requiredApplicantFields : requiredOwnerFields,
+            isApplicant ? requiredApplicantFields : requiredOwnerFields
           );
 
     createdParticipant.answerCount = answerCount;
@@ -301,12 +275,12 @@ export class ParticipantFormService {
   async getParticipantFormById(
     participantFormId: string,
     isApplicant: boolean,
-    user: IRequestUser,
+    user: IRequestUser
   ) {
     await this.companyService.checkUserCompanyPermission(
       user,
       participantFormId,
-      'participantForm',
+      "participantForm"
     );
 
     const participantForm = isApplicant
@@ -323,13 +297,13 @@ export class ParticipantFormService {
   async deleteParticipantFormById(
     participantFormId: string,
     isApplicant: boolean,
-    user?: IRequestUser,
+    user?: IRequestUser
   ): TRResponseMsg {
     if (user) {
       await this.companyService.checkUserCompanyPermission(
         user,
         participantFormId,
-        'participantForm',
+        "participantForm"
       );
     }
 
@@ -360,16 +334,16 @@ export class ParticipantFormService {
     participantId: string,
     docImg: Express.Multer.File,
     user: any,
-    isApplicant: boolean,
+    isApplicant: boolean
   ) {
     await this.companyService.checkUserCompanyPermission(
       user,
       participantId,
-      'participantForm',
+      "participantForm"
     );
     const company = await this.companyService.getByParticipantId(
       participantId,
-      isApplicant,
+      isApplicant
     );
 
     const docImgName = await this.azureService.uploadImage(docImg);
@@ -377,7 +351,7 @@ export class ParticipantFormService {
       { identificationDetails: { docImg: docImgName } },
       participantId,
       isApplicant,
-      company['id'],
+      company["id"]
     );
 
     return { message: participantFormResponseMsgs.changed, docImg: docImgName };
@@ -388,12 +362,12 @@ export class ParticipantFormService {
     docImg: Express.Multer.File,
     payload: { docNum: string; docType: string },
     isApplicant: boolean,
-    user: IRequestUser,
+    user: IRequestUser
   ) {
     await this.companyService.checkUserCompanyPermission(
       user,
       companyId,
-      'company',
+      "company"
     );
 
     const { docNum, docType } = payload;
@@ -407,15 +381,15 @@ export class ParticipantFormService {
           identificationDetails: { docNum, docType, docImg: docImgName },
         });
 
-    company.forms[`${isApplicant ? 'applicants' : 'owners'}`].push(
-      createdParticipant['id'],
+    company.forms[`${isApplicant ? "applicants" : "owners"}`].push(
+      createdParticipant["id"]
     );
 
     await company.save();
 
     return {
       message: participantFormResponseMsgs.created,
-      participantId: createdParticipant['id'],
+      participantId: createdParticipant["id"],
     };
   }
 
@@ -423,7 +397,7 @@ export class ParticipantFormService {
     const userParticipantsIds =
       await this.companyService.getUserCompaniesParticipants(
         userId,
-        isApplicant,
+        isApplicant
       );
 
     const allParticipants = await Promise.all(
@@ -441,17 +415,17 @@ export class ParticipantFormService {
             });
 
         return {
-          id: participant['id'],
+          id: participant["id"],
           fullName:
             participant.personalInfo.firstName +
-            ' ' +
+            " " +
             participant.personalInfo.lastOrLegalName,
           percentage:
             (isApplicant
               ? participant.answerCount / 15
               : participant.answerCount / 11) * 100,
         };
-      }),
+      })
     );
 
     return {
@@ -462,7 +436,7 @@ export class ParticipantFormService {
 
   async getParticipantFormMissingFields(
     participantForm: ApplicantFormDocument | OwnerFormDocument | any,
-    isApplicant: boolean,
+    isApplicant: boolean
   ) {
     const formFields = isApplicant ? applicantFormFields : ownerFormFields;
     const topLevelKeys = Object.keys(formFields);
@@ -473,19 +447,19 @@ export class ParticipantFormService {
       if (participantForm[topLevelKey]) {
         Object.keys(formFields[topLevelKey]).forEach((lowLevelKey) => {
           if (
-            participantForm[topLevelKey][lowLevelKey] === '' ||
+            participantForm[topLevelKey][lowLevelKey] === "" ||
             participantForm[topLevelKey][lowLevelKey] === undefined ||
             participantForm[topLevelKey][lowLevelKey] === null
           ) {
-            if (!participantForm['finCENID']) {
+            if (!participantForm["finCENID"]) {
               if (
-                topLevelKey === 'identificationDetails' &&
-                (lowLevelKey !== 'docNumber' || 'docType')
+                topLevelKey === "identificationDetails" &&
+                (lowLevelKey !== "docNumber" || "docType")
               ) {
                 if (
-                  lowLevelKey === 'state' ||
-                  lowLevelKey === 'localOrTribal' ||
-                  (lowLevelKey === 'otherLocalOrTribalDesc' &&
+                  lowLevelKey === "state" ||
+                  lowLevelKey === "localOrTribal" ||
+                  (lowLevelKey === "otherLocalOrTribalDesc" &&
                     participantForm[topLevelKey].countryOrJurisdiction ===
                       UNITED_STATES) ||
                   participantForm[topLevelKey].countryOrJurisdiction ===
@@ -493,20 +467,20 @@ export class ParticipantFormService {
                   participantForm[topLevelKey].countryOrJurisdiction === CANADA
                 ) {
                   if (
-                    (lowLevelKey === 'state' &&
+                    (lowLevelKey === "state" &&
                       !participantForm[topLevelKey].localOrTribal) ||
-                    (lowLevelKey === 'localOrTribal' &&
+                    (lowLevelKey === "localOrTribal" &&
                       !participantForm[topLevelKey].state) ||
-                    (lowLevelKey === 'otherLocalOrTribalDesc' &&
-                      participantForm[topLevelKey].localOrTribal === 'Other' &&
+                    (lowLevelKey === "otherLocalOrTribalDesc" &&
+                      participantForm[topLevelKey].localOrTribal === "Other" &&
                       !participantForm[topLevelKey].otherLocalOrTribalDesc)
                   ) {
                     missingFields.push(formFields[topLevelKey][lowLevelKey]);
                   }
                 } else if (
-                  lowLevelKey === 'state' &&
+                  lowLevelKey === "state" &&
                   countriesWithStates.includes(
-                    participantForm[topLevelKey].countryOrJurisdiction,
+                    participantForm[topLevelKey].countryOrJurisdiction
                   )
                 ) {
                   missingFields.push(formFields[topLevelKey][lowLevelKey]);
@@ -515,17 +489,17 @@ export class ParticipantFormService {
                 if (!isApplicant && isExemptEntity) {
                   if (
                     !(
-                      topLevelKey === 'address' ||
-                      topLevelKey === 'beneficialOwner'
+                      topLevelKey === "address" ||
+                      topLevelKey === "beneficialOwner"
                     )
                   ) {
-                    if (topLevelKey === 'personalInfo') {
+                    if (topLevelKey === "personalInfo") {
                       if (
-                        lowLevelKey === 'lastOrLegalName' &&
+                        lowLevelKey === "lastOrLegalName" &&
                         !participantForm[topLevelKey][lowLevelKey]
                       ) {
                         missingFields.push(
-                          formFields[topLevelKey][lowLevelKey],
+                          formFields[topLevelKey][lowLevelKey]
                         );
                       }
                     }
@@ -546,10 +520,10 @@ export class ParticipantFormService {
   async changeForForeignPooled(
     company: CompanyDocument,
     ownerData?: any,
-    isUploadedData?: boolean,
+    isUploadedData?: boolean
   ) {
     const currentCompanyOwners = company.forms.owners;
-    company.populate({ path: 'forms.owners', model: 'OwnerForm' });
+    company.populate({ path: "forms.owners", model: "OwnerForm" });
     const currentCompanyOwnersCount = currentCompanyOwners.length;
 
     if (!currentCompanyOwnersCount) {
@@ -560,12 +534,12 @@ export class ParticipantFormService {
     if (ownerData) {
       isExistingOwner = ownerData.finCENID
         ? await this.ownerFormModel.findOne({
-            ['finCENID.finCENID']: ownerData.finCENID.finCENID,
+            ["finCENID.finCENID"]: ownerData.finCENID.finCENID,
           })
         : await this.ownerFormModel.findOne({
-            ['identificationDetails.docNumber']:
+            ["identificationDetails.docNumber"]:
               ownerData.identificationDetails.docNumber,
-            ['identificationDetails.docType']:
+            ["identificationDetails.docType"]:
               ownerData.identificationDetails.docType,
           });
     }
@@ -573,12 +547,12 @@ export class ParticipantFormService {
     if (!isExistingOwner) {
       while (company.forms.owners.length !== 1) {
         const owner = currentCompanyOwners.pop();
-        await this.deleteParticipantFormById(owner['_id'], false);
+        await this.deleteParticipantFormById(owner["_id"], false);
       }
     } else {
       for (const owner of currentCompanyOwners) {
-        if (owner['_id'] !== isExistingOwner['_id']) {
-          await this.deleteParticipantFormById(owner['_id'], false);
+        if (owner["_id"] !== isExistingOwner["_id"]) {
+          await this.deleteParticipantFormById(owner["_id"], false);
         }
       }
     }
@@ -588,12 +562,12 @@ export class ParticipantFormService {
     }
   }
 
-  async getByFinCENId(finCENId: string, isApplicant) {
+  async getByFinCENId(finCENId: string, isApplicant: boolean) {
     const participant = isApplicant
       ? await this.applicantFormModel.findOne({
-          ['finCENID.finCENID']: finCENId,
+          ["finCENID.finCENID"]: finCENId,
         })
-      : await this.ownerFormModel.findOne({ ['finCENID.finCENID']: finCENId });
+      : await this.ownerFormModel.findOne({ ["finCENID.finCENID"]: finCENId });
     return participant;
   }
 
@@ -601,12 +575,12 @@ export class ParticipantFormService {
     participantId: string,
     user: IRequestUser,
     isApplicant: boolean,
-    companyId: string,
+    companyId: string
   ) {
     await this.companyService.checkUserCompanyPermission(
       user,
       participantId,
-      'participantForm',
+      "participantForm"
     );
 
     const participant = isApplicant
@@ -618,15 +592,13 @@ export class ParticipantFormService {
     }
 
     if (!participant.identificationDetails.docImg) {
-      throw new BadRequestException('current participant dont have an image');
+      throw new BadRequestException("current participant dont have an image");
     }
 
     await this.azureService.delete(participant.identificationDetails.docImg);
 
-    if (!participant.finCENID?.finCENID) {
-      await this.companyService.changeCompanyReqFieldsCount(companyId, 1);
-    }
+    await this.companyService.changeCompanyCounts(companyId);
 
-    return { message: 'image deleted' };
+    return { message: "image deleted" };
   }
 }

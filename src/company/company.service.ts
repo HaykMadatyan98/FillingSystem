@@ -544,20 +544,18 @@ export class CompanyService {
 
   private calculateReqFieldsCount(
     company: CompanyDocument,
-    isExemptEntityOwner?: boolean,
+    countOfExemtEntity?: number,
   ): number {
     return (
       company.forms.applicants.length * 12 +
-      company.forms.owners.length * 11 +
+      (company.forms.owners.length - Number(countOfExemtEntity)) * 11 +
+      Number(countOfExemtEntity) * 1 +
       9
     );
   }
 
-  async changeCompanyReqFieldsCount(
+  async changeCompanyCounts(
     companyId: string,
-    count: number,
-    existingCompanyStatusChanged?: boolean,
-    OwnerIsEntity?: boolean,
   ): Promise<void> {
     const company = await this.companyModel.findById(companyId);
 
@@ -565,34 +563,35 @@ export class CompanyService {
       throw new NotFoundException(companyResponseMsgs.companyNotFound);
     }
 
-    company.reqFieldsCount += count;
+    await company.populate({
+      path: 'forms.company',
+      select: 'answerCount -_id',
+    });
 
-    if (
-      existingCompanyStatusChanged &&
-      company.forms.applicants &&
-      company.forms.applicants.length
-    ) {
+    await company.populate({
+      path: 'forms.applicants',
+      select: 'answerCount -_id',
+    });
+
+    await company.populate({
+      path: 'forms.owners',
+      select: 'answerCount -_id',
+    });
+
       const applicantIsNotRequired =
         company.isExistingCompany ||
         company.forms.company.repCompanyInfo?.foreignPooled;
+
+      let countOfEntityOwners = 0;
+      if (company.forms.owners) {
+        company.forms.owners.forEach((owner) => {
+          if(owner?.exemptEntity?.isExemptEntity) ++countOfEntityOwners
+        })
+      }  
+      
       company.reqFieldsCount = applicantIsNotRequired
-        ? 9 + company.forms.owners.length * 11
-        : this.calculateReqFieldsCount(company);
-
-      await company.populate({
-        path: 'forms.company',
-        select: 'answerCount -_id',
-      });
-
-      await company.populate({
-        path: 'forms.applicants',
-        select: 'answerCount -_id',
-      });
-
-      await company.populate({
-        path: 'forms.owners',
-        select: 'answerCount -_id',
-      });
+        ? 9 + (company.forms.owners.length - countOfEntityOwners) * 11 + (countOfEntityOwners * 1)
+        : this.calculateReqFieldsCount(company, countOfEntityOwners);
 
       let totalCount = 0;
 
@@ -606,7 +605,7 @@ export class CompanyService {
       );
       totalCount += company.forms.company.answerCount;
       company.answersCount = totalCount;
-    }
+    
 
     if (company.isSubmitted) {
       company.isSubmitted = false;
