@@ -544,8 +544,10 @@ export class CompanyService {
 
   private calculateReqFieldsCount(
     company: CompanyDocument,
-    countOfExemtEntity?: number,
+    countOfExemtEntity = 0,
   ): number {
+    console.log(company, countOfExemtEntity)
+
     return (
       company.forms.applicants.length * 12 +
       (company.forms.owners.length - Number(countOfExemtEntity)) * 11 +

@@ -118,22 +118,22 @@ export class ParticipantFormService {
       throw new NotFoundException("Form Not Found");
     }
     let participantStatusBefore = "default";
-    if (participant.finCENID.finCENID) {
+    if (participant?.finCENID?.finCENID) {
       participantStatusBefore = "finCEN";
-    } else if (!isApplicant && participant.exemptEntity.isExemptEntity) {
+    } else if (!isApplicant && participant?.exemptEntity?.isExemptEntity) {
       participantStatusBefore = "entity";
     }
 
     let participantStatusAfter = "default";
-    if (participantData.finCENID.finCENID) {
+    if (participantData?.finCENID?.finCENID) {
       participantStatusAfter = "finCEN";
-    } else if (!isApplicant && participant.exemptEntity.isExemptEntity) {
+    } else if (!isApplicant && participant?.exemptEntity?.isExemptEntity) {
       participantStatusAfter = "entity";
     }
 
     if (
       participantStatusAfter === "finCEN" &&
-      participant.identificationDetails.docImg
+      participant?.identificationDetails?.docImg
     ) {
       await this.azureService.delete(participant.identificationDetails.docImg);
     }
