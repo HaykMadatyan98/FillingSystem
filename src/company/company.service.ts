@@ -544,21 +544,18 @@ export class CompanyService {
 
   private calculateReqFieldsCount(
     company: CompanyDocument,
-    countOfExemtEntity = 0,
+    countOfExemptEntity?: number,
   ): number {
-    console.log(company, countOfExemtEntity)
-
+    countOfExemptEntity = countOfExemptEntity ? countOfExemptEntity : 0;
     return (
       company.forms.applicants.length * 12 +
-      (company.forms.owners.length - Number(countOfExemtEntity)) * 11 +
-      Number(countOfExemtEntity) * 1 +
+      (company.forms.owners.length - countOfExemptEntity) * 11 +
+      countOfExemptEntity * 1 +
       9
     );
   }
 
-  async changeCompanyCounts(
-    companyId: string,
-  ): Promise<void> {
+  async changeCompanyCounts(companyId: string): Promise<void> {
     const company = await this.companyModel.findById(companyId);
 
     if (!company) {
@@ -580,34 +577,38 @@ export class CompanyService {
       select: 'answerCount -_id',
     });
 
-      const applicantIsNotRequired =
-        company.isExistingCompany ||
-        company.forms.company.repCompanyInfo?.foreignPooled;
+    const applicantIsNotRequired =
+      company.isExistingCompany ||
+      company.forms.company.repCompanyInfo?.foreignPooled;
 
-      let countOfEntityOwners = 0;
-      if (company.forms.owners) {
-        company.forms.owners.forEach((owner) => {
-          if(owner?.exemptEntity?.isExemptEntity) ++countOfEntityOwners
-        })
-      }  
-      
-      company.reqFieldsCount = applicantIsNotRequired
-        ? 9 + (company.forms.owners.length - countOfEntityOwners) * 11 + (countOfEntityOwners * 1)
-        : this.calculateReqFieldsCount(company, countOfEntityOwners);
+    let countOfEntityOwners = 0;
+    if (company.forms.owners) {
+      company.forms.owners.forEach((owner) => {
+        if (owner?.exemptEntity?.isExemptEntity) ++countOfEntityOwners;
+      });
+    }
+    console.log(
+      countOfEntityOwners,
+      'countOfEntityOwners',
+      company.forms.owners,
+    );
 
-      let totalCount = 0;
+    company.reqFieldsCount = applicantIsNotRequired
+      ? 9 +
+        (company.forms.owners.length - countOfEntityOwners) * 11 +
+        countOfEntityOwners * 1
+      : this.calculateReqFieldsCount(company, countOfEntityOwners);
 
-      if (!applicantIsNotRequired) {
-        company.forms.applicants.forEach(
-          (applicant) => (totalCount += applicant.answerCount),
-        );
-      }
-      company.forms.owners.forEach(
-        (owner) => (totalCount += owner.answerCount),
+    let totalCount = 0;
+
+    if (!applicantIsNotRequired) {
+      company.forms.applicants.forEach(
+        (applicant) => (totalCount += applicant.answerCount),
       );
-      totalCount += company.forms.company.answerCount;
-      company.answersCount = totalCount;
-    
+    }
+    company.forms.owners.forEach((owner) => (totalCount += owner.answerCount));
+    totalCount += company.forms.company.answerCount;
+    company.answersCount = totalCount;
 
     if (company.isSubmitted) {
       company.isSubmitted = false;

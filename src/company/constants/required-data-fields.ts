@@ -12,10 +12,6 @@ export const requiredCompanyFields = [
 
 export const requiredOwnerFieldWhichExemptEntity = [
   'personalInfo.lastOrLegalName',
-  'identificationDetails.docType',
-  'identificationDetails.docNumber',
-  'identificationDetails.countryOrJurisdiction',
-  'identificationDetails.docImg',
 ];
 
 export const requiredOwnerFields = [
@@ -25,6 +21,10 @@ export const requiredOwnerFields = [
   'address.postalCode',
   'personalInfo.firstName',
   'personalInfo.dateOfBirth',
+  'identificationDetails.docType',
+  'identificationDetails.docNumber',
+  'identificationDetails.countryOrJurisdiction',
+  'identificationDetails.docImg',
   ...requiredOwnerFieldWhichExemptEntity,
 ];
 
