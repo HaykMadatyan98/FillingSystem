@@ -740,22 +740,26 @@ export class CompanyService {
     return company;
   }
 
-  async changeCompanyPaidStatus(transactionId: string): Promise<void> {
-    const company = await this.companyModel.findOne({
+  async changeCompanyPaidStatus(transactionId: string): Promise<string[]> {
+    const companies = await this.companyModel.find({
       transactions: {
         $in: [transactionId],
       },
     });
-
-    if (!company) {
+  
+    if (!companies.length) {
       throw new NotFoundException(companyResponseMsgs.companyNotFound);
     }
-
-    company.isPaid = true;
-
-    await company.save();
+  
+    const updatedCompanyIds = [];
+    for (const company of companies) {
+      company.isPaid = true;
+      await company.save(); 
+      updatedCompanyIds.push(company._id.toString());
+    }
+  
+    return updatedCompanyIds;
   }
-
   async getSubmittedCompanies(user: IRequestUser, userId: string) {
     if (user.userId !== userId) {
       if (user.role !== 'admin') {

@@ -1,4 +1,5 @@
 import { CompanyModule } from '@/company/company.module';
+import { GovernmentModule } from '@/government/government.module';
 import { DynamicModule, forwardRef, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -9,6 +10,7 @@ import { TransactionService } from './transaction.service';
 @Module({
   imports: [
     forwardRef(() => CompanyModule),
+    GovernmentModule,
     ConfigModule,
     MongooseModule.forFeature([
       { name: Transaction.name, schema: TransactionSchema },

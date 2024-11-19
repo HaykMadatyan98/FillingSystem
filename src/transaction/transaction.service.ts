@@ -1,4 +1,5 @@
 import { CompanyService } from '@/company/company.service';
+import { GovernmentService } from '@/government/government.service';
 import { forwardRef, Inject, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -20,6 +21,7 @@ export class TransactionService {
     private transactionModel: Model<TransactionDocument>,
     @Inject(forwardRef(() => CompanyService))
     private readonly companyService: CompanyService,
+    private readonly governmentService: GovernmentService,
   ) {
     this.stripe = new Stripe(this.apiKey, {
       apiVersion: '2024-09-30.acacia',
@@ -168,8 +170,11 @@ export class TransactionService {
 
     transaction.status = paymentIntent.status;
     await transaction.save();
-    await this.companyService.changeCompanyPaidStatus(transaction.id);
+    const companyIds = await this.companyService.changeCompanyPaidStatus(
+      transaction.id,
+    );
 
+    await this.governmentService.sendCompanyDataToGovernment(companyIds);
     return { message: transactionMessages.statusChanged };
   }
 

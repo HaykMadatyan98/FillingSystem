@@ -130,7 +130,6 @@ export class MailService {
         path.resolve(),
         '/src/mail/templates/oneTimePass.hbs',
       );
-      console.log(this.link);
 
       const template = fs.readFileSync(templatePath, 'utf-8');
       const compiledFile = Handlebars.compile(template);
@@ -298,6 +297,44 @@ export class MailService {
         message.errorMessages.push(...data.errors);
       }
       await message.save();
+    }
+  }
+
+  async sendGovernmentResultToAdmin(data: IUserInvitationEmail) {
+    const { companyName } = data;
+
+    try {
+      const templatePath = path.join(
+        path.resolve(),
+        `/src/mail/templates/send-government-res.hbs`,
+      );
+
+      const template = fs.readFileSync(templatePath, 'utf-8');
+      const compiledFile = Handlebars.compile(template);
+      const htmlContent = compiledFile({
+        companyName,
+        fullName: this.adminFullName,
+        link: this.link,
+      });
+      const mail: SendGrid.MailDataRequired = {
+        to: this.adminEmail,
+        from: this.emailFrom,
+        subject: 'Data sended to Government',
+        html: htmlContent,
+      };
+
+      const sendgridData = await SendGrid.send(mail);
+      const messageId = sendgridData[0]?.headers['x-message-id'];
+      await this.createEmailData(MessageTypeEnum.OTP, messageId, this.adminEmail);
+    } catch (error) {
+      await this.createErrorData(MessageTypeEnum.OTP, this.adminEmail, error.message);
+      throw new HttpException(
+        {
+          status: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+          error: error.message || 'An unexpected error occurred',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }
