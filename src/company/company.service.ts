@@ -746,18 +746,18 @@ export class CompanyService {
         $in: [transactionId],
       },
     });
-  
+
     if (!companies.length) {
       throw new NotFoundException(companyResponseMsgs.companyNotFound);
     }
-  
+
     const updatedCompanyIds = [];
     for (const company of companies) {
       company.isPaid = true;
-      await company.save(); 
+      await company.save();
       updatedCompanyIds.push(company._id.toString());
     }
-  
+
     return updatedCompanyIds;
   }
   async getSubmittedCompanies(user: IRequestUser, userId: string) {
@@ -898,6 +898,35 @@ export class CompanyService {
 
     company.processId = processId;
     await company.save();
+  }
+
+  async removeParticipantFromCompany(
+    participantId: string,
+    companyId: string,
+    isApplicant: boolean,
+  ) {
+    const company = await this.companyModel.findOne({ _id: companyId });
+    if (!company) {
+      throw new Error('Company not found');
+    }
+
+    if (isApplicant) {
+      const updatedApplicants = company.forms.applicants.filter(
+        (applicant: any) => applicant !== participantId,
+      );
+      if (updatedApplicants.length !== company.forms.applicants.length) {
+        company.forms.applicants = updatedApplicants;
+        await company.save();
+      }
+    } else {
+      const updatedOwners = company.forms.owners.filter(
+        (owner: any) => owner !== participantId,
+      );
+      if (updatedOwners.length !== company.forms.owners.length) {
+        company.forms.owners = updatedOwners;
+        await company.save();
+      }
+    }
   }
 
   // need some changes after admin part creating

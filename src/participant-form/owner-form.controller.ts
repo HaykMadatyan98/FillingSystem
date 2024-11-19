@@ -132,16 +132,26 @@ export class OwnerFormController {
   @ApiOperation({
     summary: 'Remove owner by formId',
   })
+  @ApiParam({
+    name: 'companyId',
+    required: true,
+  })
+  @ApiParam({
+    name: 'formId',
+    required: true,
+  })
   @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
   async deleteParticipantFormById(
     @Param('formId') formId: string,
+    @Param('companyId') companyId: string,
     @Req() req: RequestWithUser,
   ) {
     return this.participantFormService.deleteParticipantFormById(
       formId,
       false,
       req.user,
+      companyId,
     );
   }
 

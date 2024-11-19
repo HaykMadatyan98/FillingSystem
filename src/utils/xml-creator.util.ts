@@ -48,17 +48,6 @@ export const createCompanyXml = async (
     BOIRDateParser(new Date()),
   );
 
-  if (companyForm.taxInfo.taxIdType === 'Foreign') {
-    addDataElement(
-      activity,
-      'EFilingPriorReportingCompanyIssuerCountryCodeText',
-      getEnumKeyByValue(
-        companyForm.taxInfo.countryOrJurisdiction,
-        AllCountryEnum,
-      ),
-    );
-  }
-
   addDataElement(activity, 'FilingDateText', BOIRDateParser(new Date()));
   const activityAssociation = activity.ele('fc2:ActivityAssociation', {
     SeqNum: `${++seqNum}`,

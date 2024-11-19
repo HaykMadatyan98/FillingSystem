@@ -118,20 +118,30 @@ export class ApplicantFormController {
     );
   }
 
-  @Delete('/:formId')
+  @Delete('/:companyId/:formId')
   @ApiOperation({
     summary: 'Remove applicant by formId',
+  })
+  @ApiParam({
+    name: 'companyId',
+    required: true,
+  })
+  @ApiParam({
+    name: 'formId',
+    required: true,
   })
   @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
   async deleteParticipantFormById(
     @Param('formId') formId: string,
+    @Param('companyId') companyId: string,
     @Req() req: RequestWithUser,
   ) {
     return this.participantFormService.deleteParticipantFormById(
       formId,
       true,
       req.user,
+      companyId,
     );
   }
 

@@ -5,6 +5,8 @@ import { HttpService } from '@nestjs/axios';
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AxiosResponse } from 'axios';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { firstValueFrom } from 'rxjs';
 import { IAttachmentResponse } from './interfaces';
 
@@ -59,7 +61,8 @@ export class GovernmentService {
               companyData.forms.applicants,
               processId,
             );
-          } else if (companyData?.forms.owners.length) {
+          }
+          if (companyData?.forms.owners.length) {
             await this.sendCompanyImagesAttachments(
               companyData.forms.owners,
               processId,

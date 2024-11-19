@@ -309,6 +309,7 @@ export class ParticipantFormService {
     participantFormId: string,
     isApplicant: boolean,
     user?: IRequestUser,
+    companyId?: string,
   ): TRResponseMsg {
     if (user) {
       await this.companyService.checkUserCompanyPermission(
@@ -330,6 +331,14 @@ export class ParticipantFormService {
 
     if (imageName) {
       await this.azureService.delete(imageName);
+    }
+
+    if (companyId) {
+      await this.companyService.removeParticipantFromCompany(
+        participantFormId,
+        companyId,
+        isApplicant
+      );
     }
 
     if (isApplicant) {
