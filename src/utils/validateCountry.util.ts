@@ -14,25 +14,30 @@ import {
   ValidatorConstraintInterface,
 } from 'class-validator';
 
-export function IsEmptyIfNotInUSOrUSCountries(
+export function ValidateCompanyTribalData(
   validationOptions?: ValidationOptions,
 ) {
   return function (object: Object, propertyName: string) {
     registerDecorator({
-      name: 'isEmptyIfNotInUSOrUSCountries',
+      name: 'ValidateCompanyTribalData',
       target: object.constructor,
       propertyName: propertyName,
       options: validationOptions,
       validator: {
         validate(value: any, args: ValidationArguments) {
-          const { countryOrJurisdictionOfFormation } = args.object as any;
-          if (countryOrJurisdictionOfFormation !== AllCountryEnum.US) {
+          const object: any = args.object;
+          const { countryOrJurisdictionOfFormation } = object;
+          if (object?.stateOfFormation) {
             return value === undefined || value === null;
           }
-          return true;
+          if (countriesWithStates.includes(countryOrJurisdictionOfFormation)) {
+            return countryOrJurisdictionOfFormation === value;
+          }
+
+          return Object.values(TribalDataEnum).includes(value);
         },
         defaultMessage: () =>
-          `tribalJurisdiction should be empty if the country is not USA or in USCountries`,
+          `Tribal Jurisdiction cannot be selected when a state is chosen. Please deselect Tribal Jurisdiction or choose a valid state.`,
       },
     });
   };
@@ -52,26 +57,20 @@ export function StateOfFormationValidator(
           const object = args.object as any;
           const { countryOrJurisdictionOfFormation } = object;
           if (object?.tribalJurisdiction) {
-            return false;
-          }
-          if (countryOrJurisdictionOfFormation === AllCountryEnum.US) {
-            return Object.values(StatesEnum).includes(value);
+            return value === undefined || value === null;
           }
 
           if (countriesWithStates.includes(countryOrJurisdictionOfFormation)) {
             return value === countryOrJurisdictionOfFormation;
           }
 
-          return value === undefined || value === null;
+          return Object.values(StatesEnum).includes(value);
         },
         defaultMessage: (args: ValidationArguments) => {
           const objects = args.object as any;
           const { countryOrJurisdictionOfFormation } = objects;
           if (objects?.tribalJurisdiction) {
             return `Only one of stateOfFormation or tribalJurisdiction can be provided.`;
-          }
-          if (countryOrJurisdictionOfFormation === AllCountryEnum.US) {
-            return `stateOfFormation must be a valid state when country is USA.`;
           }
           if (countriesWithStates.includes(countryOrJurisdictionOfFormation)) {
             return `stateOfFormation must match the country value when country is one of the USCountries.`;

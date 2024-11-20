@@ -1,5 +1,5 @@
-import { companyFormFields } from "@/company-form/constants";
-import { CSVCompanyFormDto } from "@/company-form/dtos/company-form.dto";
+import { companyFormFields } from '@/company-form/constants';
+import { CSVCompanyFormDto } from '@/company-form/dtos/company-form.dto';
 import {
   ApplicantData,
   CANADA,
@@ -12,20 +12,20 @@ import {
   requiredOwnerFields,
   UNITED_STATES,
   UserData,
-} from "@/company/constants";
-import { ISanitizedData } from "@/company/interfaces";
-import { IErrorReasons } from "@/exceptions/error.interface";
+} from '@/company/constants';
+import { ISanitizedData } from '@/company/interfaces';
+import { IErrorReasons } from '@/exceptions/error.interface';
 import {
   applicantFormFields,
   ownerFormFields,
-} from "@/participant-form/constants";
+} from '@/participant-form/constants';
 import {
   CSVApplicantFormDto,
   CSVOwnerFormDto,
-} from "@/participant-form/dtos/participant-form.dto";
-import { CSVUserDto } from "@/user/dtos/user.dto";
-import { plainToInstance } from "class-transformer";
-import { validate } from "class-validator";
+} from '@/participant-form/dtos/participant-form.dto';
+import { CSVUserDto } from '@/user/dtos/user.dto';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 
 export async function validateData(data: any) {
   const errorData: {
@@ -36,13 +36,13 @@ export async function validateData(data: any) {
   } = {};
   const finalStatus = { isDeletedCompany: false, errorData };
 
-  await validateTheData(CSVUserDto, data.user, finalStatus, "user", UserData);
+  await validateTheData(CSVUserDto, data.user, finalStatus, 'user', UserData);
   await validateTheData(
     CSVCompanyFormDto,
     data.company,
     finalStatus,
-    "company",
-    CompanyData
+    'company',
+    CompanyData,
   );
 
   const owners = [];
@@ -60,16 +60,16 @@ export async function validateData(data: any) {
     CSVApplicantFormDto,
     applicants,
     finalStatus,
-    "applicant",
-    ApplicantData
+    'applicant',
+    ApplicantData,
   );
 
   await validateTheData(
     CSVOwnerFormDto,
     owners,
     finalStatus,
-    "owner",
-    OwnerData
+    'owner',
+    OwnerData,
   );
 
   return finalStatus;
@@ -77,7 +77,7 @@ export async function validateData(data: any) {
 
 export function getEnumKeyByValue(value: string, enumData: any): string {
   return Object.keys(enumData).find(
-    (key) => enumData[key as keyof typeof enumData] === value
+    (key) => enumData[key as keyof typeof enumData] === value,
   );
 }
 
@@ -85,10 +85,10 @@ async function validateTheData(
   dto: any,
   data: any,
   finalStatus: any,
-  type: "user" | "company" | "applicant" | "owner",
-  typeData: any
+  type: 'user' | 'company' | 'applicant' | 'owner',
+  typeData: any,
 ) {
-  if (type === "user" || type === "company") {
+  if (type === 'user' || type === 'company') {
     const dtoInstance = plainToInstance(dto, data);
     const validationResults = await validate(dtoInstance as object, {
       whitelist: true,
@@ -107,19 +107,19 @@ async function validateTheData(
       for (let i = 0; i < countOfErrors; i++) {
         const fieldInDb =
           validationResults[0].property +
-          "." +
+          '.' +
           validationResults[0].children[i]?.property;
 
         finalStatus.errorData[type].push({
           fieldName: getEnumKeyByValue(fieldInDb, typeData),
           value: validationResults[0].children[i].value,
         });
-        if (type === "company" && requiredCompanyFields.includes(fieldInDb)) {
+        if (type === 'company' && requiredCompanyFields.includes(fieldInDb)) {
           finalStatus.isDeletedCompany = true;
         }
       }
     }
-  } else if (type === "applicant" || type === "owner") {
+  } else if (type === 'applicant' || type === 'owner') {
     await Promise.all(
       data.map(async (participant: any) => {
         const participantDtoInstance = plainToInstance(dto, participant);
@@ -130,7 +130,7 @@ async function validateTheData(
             whitelist: true,
             forbidNonWhitelisted: true,
             skipMissingProperties: true,
-          }
+          },
         );
 
         if (participantValidationResults.length) {
@@ -144,7 +144,7 @@ async function validateTheData(
           for (let i = 0; i < countOfErrors; i++) {
             const fieldInDb =
               participantValidationResults[0].property +
-              "." +
+              '.' +
               participantValidationResults[0].children[i]?.property;
 
             finalStatus.errorData[type].push({
@@ -153,9 +153,9 @@ async function validateTheData(
             });
 
             if (
-              (type === "applicant" &&
+              (type === 'applicant' &&
                 requiredApplicantFields.includes(fieldInDb)) ||
-              (type === "owner" && requiredOwnerFields.includes(fieldInDb))
+              (type === 'owner' && requiredOwnerFields.includes(fieldInDb))
             ) {
               finalStatus.isDeletedCompany = true;
             }
@@ -172,7 +172,7 @@ async function validateTheData(
             }
           }
         }
-      })
+      }),
     );
   }
 }
@@ -184,8 +184,8 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
 
   if (BOIRExpTime && isNaN(BOIRExpTime.getTime())) {
     reasons.push({
-      fields: ["BOIR Submission Deadline"],
-      problemDesc: "Invalid BOIR expiration time",
+      fields: ['BOIR Submission Deadline'],
+      problemDesc: 'Invalid BOIR expiration time',
     });
 
     companyDeleted = true;
@@ -206,7 +206,7 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
 
   if (
     company.taxInfo.taxIdType &&
-    company.taxInfo.taxIdType !== "Foreign" &&
+    company.taxInfo.taxIdType !== 'Foreign' &&
     company.taxInfo.countryOrJurisdiction
   ) {
     reasons.push({
@@ -231,7 +231,7 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
           .countryOrJurisdictionOfFormation,
       ],
       problemDesc:
-        "Formation jurisdiction is missing required country or jurisdiction data.",
+        'Formation jurisdiction is missing required country or jurisdiction data.',
     });
 
     companyDeleted = true;
@@ -240,10 +240,7 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
   const formationOfJurisdiction = company.formationJurisdiction;
   if (formationOfJurisdiction) {
     if (
-      formationOfJurisdiction.countryOrJurisdictionOfFormation ===
-        UNITED_STATES ||
-      formationOfJurisdiction.countryOrJurisdictionOfFormation === MEXICO ||
-      formationOfJurisdiction.countryOrJurisdictionOfFormation === CANADA
+      formationOfJurisdiction.countryOrJurisdictionOfFormation === UNITED_STATES
     ) {
       if (
         formationOfJurisdiction.stateOfFormation &&
@@ -263,12 +260,12 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
       }
     } else if (
       countriesWithStates.includes(
-        formationOfJurisdiction.countryOrJurisdictionOfFormation
+        formationOfJurisdiction.countryOrJurisdictionOfFormation,
       )
     ) {
       const reasonData = {
         fields: [],
-        problemDesc: "",
+        problemDesc: '',
       };
 
       if (
@@ -276,26 +273,26 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
         formationOfJurisdiction.countryOrJurisdictionOfFormation
       ) {
         reasonData.fields.push(
-          companyFormFields.formationJurisdiction.stateOfFormation
+          companyFormFields.formationJurisdiction.stateOfFormation,
         );
         reasonData.problemDesc =
-          "The specified state does not match the country.";
+          'The specified state does not match the country.';
         companyDeleted = true;
       }
 
       if (formationOfJurisdiction.tribalJurisdiction) {
         reasonData.fields.push(
-          companyFormFields.formationJurisdiction.tribalJurisdiction
+          companyFormFields.formationJurisdiction.tribalJurisdiction,
         );
         reasonData.problemDesc =
-          "The selected country does not support local or tribal data.";
+          'The selected country does not support local or tribal data.';
 
         if (formationOfJurisdiction.nameOfOtherTribal) {
           reasonData.fields.push(
-            companyFormFields.formationJurisdiction.nameOfOtherTribal
+            companyFormFields.formationJurisdiction.nameOfOtherTribal,
           );
           reasonData.problemDesc =
-            "The selected country does not support other local or tribal descriptions.";
+            'The selected country does not support other local or tribal descriptions.';
         }
 
         companyDeleted = true;
@@ -309,25 +306,25 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
       const reasonData = {
         fields: [],
         problemDesc: formationOfJurisdiction.countryOrJurisdictionOfFormation
-          ? "The selected country does not support state, local, or tribal data."
-          : "Identification details include state, local, or tribal data without a specified country or jurisdiction.",
+          ? 'The selected country does not support state, local, or tribal data.'
+          : 'Identification details include state, local, or tribal data without a specified country or jurisdiction.',
       };
 
       if (formationOfJurisdiction.stateOfFormation) {
         reasonData.fields.push(
-          companyFormFields.formationJurisdiction.stateOfFormation
+          companyFormFields.formationJurisdiction.stateOfFormation,
         );
       }
 
       if (formationOfJurisdiction.tribalJurisdiction) {
         reasonData.fields.push(
-          companyFormFields.formationJurisdiction.tribalJurisdiction
+          companyFormFields.formationJurisdiction.tribalJurisdiction,
         );
       }
 
       if (formationOfJurisdiction.nameOfOtherTribal) {
         reasonData.fields.push(
-          companyFormFields.formationJurisdiction.nameOfOtherTribal
+          companyFormFields.formationJurisdiction.nameOfOtherTribal,
         );
       }
 
@@ -355,7 +352,7 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
           ],
 
           problemDesc: `${
-            participants[i].isApplicant ? "Applicant" : "Owner"
+            participants[i].isApplicant ? 'Applicant' : 'Owner'
           } must have a valid document type and document number.`,
           affectedData: null,
         };
@@ -385,7 +382,7 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
               });
               companyDeleted = true;
             }
-          } else if (identificationDetails.docType === "US Passport") {
+          } else if (identificationDetails.docType === 'US Passport') {
             if (identificationDetails.countryOrJurisdiction !== UNITED_STATES) {
               reasons.push({
                 fields: [identificationDetails.countryOrJurisdiction],
@@ -394,7 +391,7 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
               });
               companyDeleted = true;
             }
-          } else if (identificationDetails.docType === "Foreign Passport") {
+          } else if (identificationDetails.docType === 'Foreign Passport') {
             if (
               identificationDetails.state ||
               identificationDetails.localOrTribal
@@ -432,12 +429,12 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
 
               reasonData.affectedData.push(
                 identificationDetails.state,
-                identificationDetails.localOrTribal
+                identificationDetails.localOrTribal,
               );
 
               if (identificationDetails.otherLocalOrTribalDesc) {
                 reasonData.affectedData.push(
-                  identificationDetails.otherLocalOrTribalDesc
+                  identificationDetails.otherLocalOrTribalDesc,
                 );
               }
 
@@ -446,12 +443,12 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
             }
           } else if (
             countriesWithStates.includes(
-              identificationDetails.countryOrJurisdiction
+              identificationDetails.countryOrJurisdiction,
             )
           ) {
             const reasonData = {
               fields: [],
-              problemDesc: "",
+              problemDesc: '',
               affectedData: [],
             };
 
@@ -462,26 +459,26 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
               reasonData.fields.push(formFields.identificationDetails.state);
               reasonData.affectedData.push(identificationDetails.state);
               reasonData.problemDesc =
-                "The specified state does not match the country.";
+                'The specified state does not match the country.';
             }
 
             if (identificationDetails.localOrTribal) {
               reasonData.fields.push(
-                formFields.identificationDetails.localOrTribal
+                formFields.identificationDetails.localOrTribal,
               );
               reasonData.affectedData.push(identificationDetails.localOrTribal);
               reasonData.problemDesc =
-                "The selected country does not support local or tribal data.";
+                'The selected country does not support local or tribal data.';
 
               if (identificationDetails.otherLocalOrTribalDesc) {
                 reasonData.fields.push(
-                  formFields.identificationDetails.otherLocalOrTribalDesc
+                  formFields.identificationDetails.otherLocalOrTribalDesc,
                 );
                 reasonData.affectedData.push(
-                  identificationDetails.otherLocalOrTribalDesc
+                  identificationDetails.otherLocalOrTribalDesc,
                 );
                 reasonData.problemDesc =
-                  "The selected country does not support other local or tribal descriptions.";
+                  'The selected country does not support other local or tribal descriptions.';
               }
 
               companyDeleted = true;
@@ -495,8 +492,8 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
             const reasonData = {
               fields: [],
               problemDesc: identificationDetails.countryOrJurisdiction
-                ? "The selected country does not support state, local, or tribal data."
-                : "Identification details include state, local, or tribal data without a specified country or jurisdiction.",
+                ? 'The selected country does not support state, local, or tribal data.'
+                : 'Identification details include state, local, or tribal data without a specified country or jurisdiction.',
               affectedData: [],
             };
 
@@ -507,17 +504,17 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
 
             if (identificationDetails.localOrTribal) {
               reasonData.fields.push(
-                formFields.identificationDetails.localOrTribal
+                formFields.identificationDetails.localOrTribal,
               );
               reasonData.affectedData.push(identificationDetails.localOrTribal);
             }
 
             if (identificationDetails.otherLocalOrTribalDesc) {
               reasonData.fields.push(
-                formFields.identificationDetails.otherLocalOrTribalDesc
+                formFields.identificationDetails.otherLocalOrTribalDesc,
               );
               reasonData.affectedData.push(
-                identificationDetails.otherLocalOrTribalDesc
+                identificationDetails.otherLocalOrTribalDesc,
               );
             }
 

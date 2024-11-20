@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
   IsBoolean,
@@ -9,7 +9,7 @@ import {
   MaxLength,
   ValidateIf,
   ValidateNested,
-} from "class-validator";
+} from 'class-validator';
 
 import {
   AllCountryEnum,
@@ -18,14 +18,14 @@ import {
   StatesEnum,
   TribalDataEnum,
   USTerritoryEnum,
-} from "@/company/constants";
-import { IsTaxIdValid } from "@/utils/taxId.validator";
+} from '@/company/constants';
+import { IsTaxIdValid } from '@/utils/taxId.validator';
 import {
-  IsEmptyIfNotInUSOrUSCountries,
   IsEmptyIfNotOtherTribal,
   StateOfFormationValidator,
-} from "@/utils/validateCountry.util";
-import { Transform, Type } from "class-transformer";
+  ValidateCompanyTribalData,
+} from '@/utils/validateCountry.util';
+import { Transform, Type } from 'class-transformer';
 
 class RepCompanyInfoDto {
   @ApiProperty({ default: false, required: false })
@@ -76,9 +76,9 @@ class JurisdictionOfFormationDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsEnum(TribalDataEnum)
-  @IsEmptyIfNotInUSOrUSCountries()
+  @ValidateCompanyTribalData()
   @Transform(({ value }) =>
-    value === "" ? undefined : TribalDataEnum[value] || value
+    value === '' ? undefined : TribalDataEnum[value] || value,
   )
   tribalJurisdiction?: TribalDataEnum;
 
@@ -87,7 +87,7 @@ class JurisdictionOfFormationDto {
   @IsEnum(StatesEnum)
   @StateOfFormationValidator()
   @Transform(({ value }) =>
-    value === "" ? undefined : StatesEnum[value] || value
+    value === '' ? undefined : StatesEnum[value] || value,
   )
   stateOfFormation?: StatesEnum;
 
@@ -96,7 +96,7 @@ class JurisdictionOfFormationDto {
   @IsString()
   @MaxLength(150)
   @IsEmptyIfNotOtherTribal()
-  @Transform(({ value }) => (value === "" ? undefined : value))
+  @Transform(({ value }) => (value === '' ? undefined : value))
   nameOfOtherTribal: string;
 
   @ApiProperty()
@@ -131,12 +131,12 @@ class CompanyAddressDto {
 
   @ApiProperty({
     required: false,
-    description: "Must be 5 or 9 numeric characters.",
+    description: 'Must be 5 or 9 numeric characters.',
   })
   @IsOptional()
   @Matches(/^(?!.*(\d)\1{4})(?!.*12345|123456789)(\d{5}|\d{9})$/, {
     message:
-      "ZipCode must be 5 or 9 numeric characters, and cannot be consecutive or repetitive numbers.",
+      'ZipCode must be 5 or 9 numeric characters, and cannot be consecutive or repetitive numbers.',
   })
   zipCode?: string;
 
@@ -176,7 +176,7 @@ class TaxInformation {
   @IsOptional()
   @IsEnum(ForeignCountryEnum)
   @Transform(({ value }) =>
-    value === "" ? undefined : ForeignCountryEnum[value] || value
+    value === '' ? undefined : ForeignCountryEnum[value] || value,
   )
   countryOrJurisdiction?: ForeignCountryEnum;
 

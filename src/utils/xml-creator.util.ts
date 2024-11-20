@@ -4,9 +4,11 @@ import {
   BOIRDateParser,
   BOIRParticipantDocTypeParser,
   BOIRTaxIdTypeParser,
+  countriesWithStates,
   ForeignCountryEnum,
   StatesEnum,
   TribalDataEnum,
+  UNITED_STATES,
 } from '@/company/constants';
 import { CompanyDocument } from '@/company/schemas/company.schema';
 import { create } from 'xmlbuilder2';
@@ -400,7 +402,15 @@ function reportCompanyParty(
     );
   }
 
-  if (companyForm.taxInfo.taxIdType === 'Foreign') {
+  if (
+    !(
+      countriesWithStates.includes(
+        companyForm.formationJurisdiction.countryOrJurisdictionOfFormation,
+      ) ||
+      companyForm.formationJurisdiction.countryOrJurisdictionOfFormation ===
+        UNITED_STATES
+    )
+  ) {
     if (companyForm.formationJurisdiction.tribalJurisdiction) {
       addDataElement(
         reportCompanyParty,
