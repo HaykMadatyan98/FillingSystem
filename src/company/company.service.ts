@@ -926,6 +926,8 @@ export class CompanyService {
         company.forms.owners = updatedOwners;
         await company.save();
       }
+
+      await this.changeCompanyCounts(companyId);
     }
   }
 
