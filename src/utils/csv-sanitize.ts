@@ -18,7 +18,7 @@ export async function sanitizeData(data: any): Promise<{
   reasons: any;
   companyDeleted: boolean;
 }> {
-  console.log(data, 'data in csv parser');
+
   const sanitized: ISanitizedData = {
     user: {} as ICsvUser,
     company: {} as ICompanyData,
@@ -54,7 +54,7 @@ export async function sanitizeData(data: any): Promise<{
     value: string,
     targetObj: IParticipantData | ICompanyData | ICsvUser,
   ) {
-    console.log('in mapped fields', mappedField, value);
+  
     const fieldParts = mappedField.split('.');
     let current = targetObj;
 

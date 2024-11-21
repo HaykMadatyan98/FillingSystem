@@ -90,7 +90,6 @@ export class CompanyService {
         .on('error', reject);
     });
 
-    console.log(resultData);
 
     const allErrors = [];
     const allReasons = [];
@@ -340,7 +339,9 @@ export class CompanyService {
             : await this.participantFormService.findParticipantFormByDocDataAndIds(
                 participant.identificationDetails.docNumber,
                 participant.identificationDetails.docType,
-                [...company.forms.owners, ...company.forms.applicants],
+                participant.isApplicant
+                  ? company.forms.applicants
+                  : company.forms.owners,
                 participant.isApplicant,
               );
 
@@ -587,11 +588,6 @@ export class CompanyService {
         if (owner?.exemptEntity?.isExemptEntity) ++countOfEntityOwners;
       });
     }
-    console.log(
-      countOfEntityOwners,
-      'countOfEntityOwners',
-      company.forms.owners,
-    );
 
     company.reqFieldsCount = applicantIsNotRequired
       ? 9 +

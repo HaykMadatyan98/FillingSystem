@@ -72,6 +72,7 @@ export class MailService {
       await this.createEmailData(MessageTypeEnum.OTP, messageId, email);
     } catch (error) {
       await this.createErrorData(MessageTypeEnum.OTP, email, error.message);
+      console.log(error, 'in sendgrid');
       throw new HttpException(
         {
           status: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
@@ -325,9 +326,17 @@ export class MailService {
 
       const sendgridData = await SendGrid.send(mail);
       const messageId = sendgridData[0]?.headers['x-message-id'];
-      await this.createEmailData(MessageTypeEnum.OTP, messageId, this.adminEmail);
+      await this.createEmailData(
+        MessageTypeEnum.OTP,
+        messageId,
+        this.adminEmail,
+      );
     } catch (error) {
-      await this.createErrorData(MessageTypeEnum.OTP, this.adminEmail, error.message);
+      await this.createErrorData(
+        MessageTypeEnum.OTP,
+        this.adminEmail,
+        error.message,
+      );
       throw new HttpException(
         {
           status: error.status || HttpStatus.INTERNAL_SERVER_ERROR,

@@ -337,7 +337,7 @@ export class ParticipantFormService {
       await this.companyService.removeParticipantFromCompany(
         participantFormId,
         companyId,
-        isApplicant
+        isApplicant,
       );
     }
 
@@ -546,34 +546,45 @@ export class ParticipantFormService {
     company.populate({ path: 'forms.owners', model: 'OwnerForm' });
     const currentCompanyOwnersCount = currentCompanyOwners.length;
 
-    if (!currentCompanyOwnersCount) {
+    if (
+      !currentCompanyOwnersCount ||
+      (isUploadedData && currentCompanyOwnersCount === 1)
+    ) {
       return;
     }
 
-    let isExistingOwner = null;
     if (ownerData) {
-      isExistingOwner = ownerData.finCENID
-        ? await this.ownerFormModel.findOne({
-            ['finCENID.finCENID']: ownerData.finCENID.finCENID,
-          })
-        : await this.ownerFormModel.findOne({
-            ['identificationDetails.docNumber']:
-              ownerData.identificationDetails.docNumber,
-            ['identificationDetails.docType']:
-              ownerData.identificationDetails.docType,
-          });
-    }
-
-    if (!isExistingOwner) {
-      while (company.forms.owners.length !== 1) {
-        const owner = currentCompanyOwners.pop();
-        await this.deleteParticipantFormById(owner['_id'], false);
-      }
-    } else {
-      for (const owner of currentCompanyOwners) {
-        if (owner['_id'] !== isExistingOwner['_id']) {
-          await this.deleteParticipantFormById(owner['_id'], false);
+      const isExistedOwner = currentCompanyOwners.find((owner) => {
+        if (ownerData?.finCENID?.finCENID) {
+          return owner.finCENID.finCENID === ownerData.finCENID.finCENID;
+        } else if (ownerData?.exemptEntity?.isExemptEntity) {
+          return (
+            owner?.exemptEntity?.isExemptEntity ===
+              ownerData?.exemptEntity?.isExemptEntity &&
+            ownerData?.personalInfo?.lastOrLegalName ===
+              owner?.personalInfo?.lastOrLegalName
+          );
+        } else if (
+          ownerData?.identificationDetails?.docType &&
+          ownerData?.identificationDetails?.docNumber
+        ) {
+          return (
+            owner?.identificationDetails?.docType ===
+              ownerData?.identificationDetails?.docType &&
+            ownerData?.identificationDetails?.docNumber ===
+              owner?.identificationDetails?.docNumber
+          );
         }
+        return;
+      });
+
+      if (isExistedOwner) {
+        company.forms.owners = currentCompanyOwners.filter(
+          (owner) => owner['id'] !== isExistedOwner['id'],
+        );
+      } else {
+        company.forms.owners.length = 0;
+        company.forms.owners.push(isExistedOwner['id']);
       }
     }
 
