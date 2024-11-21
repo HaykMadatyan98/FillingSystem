@@ -90,7 +90,6 @@ export class CompanyService {
         .on('error', reject);
     });
 
-
     const allErrors = [];
     const allReasons = [];
     const allMissingFields = [];

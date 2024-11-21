@@ -1,7 +1,9 @@
 import {
+  AllCountryEnum,
   ApplicantData,
   CompanyData,
   OwnerData,
+  StatesEnum,
   UserData,
 } from '@/company/constants';
 import {
@@ -18,7 +20,6 @@ export async function sanitizeData(data: any): Promise<{
   reasons: any;
   companyDeleted: boolean;
 }> {
-
   const sanitized: ISanitizedData = {
     user: {} as ICsvUser,
     company: {} as ICompanyData,
@@ -45,6 +46,22 @@ export async function sanitizeData(data: any): Promise<{
       return value.toLowerCase() === 'true';
     } else if (key === 'altName') {
       return value.trim().split(',');
+    } else if (
+      key === 'countryOrJurisdiction' ||
+      key === 'countryOrJurisdictionOfFormation' ||
+      key === 'usOrUsTerritory'
+    ) {
+      if (value.trim().length <= 2) {
+        const countryData = AllCountryEnum[value];
+        return countryData || value;
+      }
+    } else if (key === 'state' || key === 'stateOfFormation') {
+      if (value.trim().length <= 2) {
+        const stateData = StatesEnum[value];
+        return stateData || value;
+      }
+    } else if (key === 'taxIdNumber') {
+      return value.replace(/-/g, '');
     }
     return value;
   }
@@ -54,7 +71,6 @@ export async function sanitizeData(data: any): Promise<{
     value: string,
     targetObj: IParticipantData | ICompanyData | ICsvUser,
   ) {
-  
     const fieldParts = mappedField.split('.');
     let current = targetObj;
 
@@ -225,6 +241,7 @@ export async function sanitizeData(data: any): Promise<{
         'Company could not be created because one or more required fields contain incorrect or missing information.',
     });
   }
+
   return {
     sanitized,
     reasons,
