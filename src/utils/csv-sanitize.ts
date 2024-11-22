@@ -95,11 +95,21 @@ export async function sanitizeData(data: any): Promise<{
     }
   });
 
+  if (data['Company Formation Date']) {
+    const formationDate = data['Company Formation Date'];
+    const targetDate = new Date('2024-01-01');
+    const date =
+      formationDate instanceof Date ? formationDate : new Date(formationDate);
+    sanitized.company.isExistingCompany = date < targetDate;
+  }
+
   companyKeys.forEach((key) => {
-    const mappedField = CompanyData[key];
-    const value = data[key].join('');
-    if (value && value !== '') {
-      mapFieldToObject(mappedField, value, sanitized.company);
+    if (key && typeof data[key] !== 'undefined') {
+      const mappedField = CompanyData[key];
+      const value = data[key].join('');
+      if (value && value !== '') {
+        mapFieldToObject(mappedField, value, sanitized.company);
+      }
     }
   });
 
@@ -126,10 +136,12 @@ export async function sanitizeData(data: any): Promise<{
         }
       } else {
         applicantKeys.forEach((key) => {
-          const mappedField = ApplicantData[key];
-          const value = data[key][i];
-          if (value !== undefined && value !== '') {
-            mapFieldToObject(mappedField, value, participant);
+          if (key && typeof data[key] !== 'undefined') {
+            const mappedField = ApplicantData[key];
+            const value = data[key][i];
+            if (value !== undefined && value !== '') {
+              mapFieldToObject(mappedField, value, participant);
+            }
           }
         });
       }
@@ -165,52 +177,29 @@ export async function sanitizeData(data: any): Promise<{
         }
       }
 
-      if (data['Owner Document Country/Jurisdiction'][i]) {
-        const mappedField = OwnerData['Owner Document Country/Jurisdiction'];
-        const value = data['Owner Document Country/Jurisdiction'][i];
+      if (data['Owner Is Parent or Guardian'][i]) {
+        const mappedField = OwnerData['Owner Is Parent or Guardian'];
+        const value = data['Owner Is Parent or Guardian'][i];
         if (value !== undefined && value !== '') {
           mapFieldToObject(mappedField, value, participant);
         }
       }
 
-      if (data['Owner Document State'][i]) {
-        const mappedField = OwnerData['Owner Document State'];
-        const value = data['Owner Document State'][i];
-        if (value !== undefined && value !== '') {
-          mapFieldToObject(mappedField, value, participant);
-        }
-      }
-
-      if (data['Owner Local or Tribal'][i]) {
-        const mappedField = OwnerData['Owner Local or Tribal'];
-        const value = data['Owner Local or Tribal'][i];
-        if (value !== undefined && value !== '') {
-          mapFieldToObject(mappedField, value, participant);
-        }
-      }
-
-      if (data['Owner Other Local or Tribal Description'][i]) {
-        const mappedField =
-          OwnerData['Owner Other Local or Tribal Description'];
-        const value = data['Owner Other Local or Tribal Description'][i];
-        if (value !== undefined && value !== '') {
-          mapFieldToObject(mappedField, value, participant);
-        }
-      }
-
-      if (data['Owner Document Image'][i]) {
-        const mappedField = OwnerData['Owner Document Image'];
-        const value = data['Owner Document Image'][i];
+      if (data['Owner Is Exempt Entity'][i]) {
+        const mappedField = OwnerData['Owner Is Exempt Entity'];
+        const value = data['Owner Is Exempt Entity'][i];
         if (value !== undefined && value !== '') {
           mapFieldToObject(mappedField, value, participant);
         }
       }
     } else {
       ownerKeys.forEach((key) => {
-        const mappedField = OwnerData[key];
-        const value = data[key][i];
-        if (value !== undefined && value !== '') {
-          mapFieldToObject(mappedField, value, participant);
+        if (key && typeof data[key] !== 'undefined') {
+          const mappedField = OwnerData[key];
+          const value = data[key][i];
+          if (value !== undefined && value !== '') {
+            mapFieldToObject(mappedField, value, participant);
+          }
         }
       });
     }
