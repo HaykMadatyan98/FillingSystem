@@ -208,7 +208,7 @@ export class ParticipantFormService {
     await participant.save();
     await this.companyService.changeCompanyCounts(companyId);
 
-    if (missingFields) {
+    if (missingFields && Object.keys(missingFields).length) {
       if (!missingFields[isApplicant ? 'applicants' : 'owners']) {
         missingFields[isApplicant ? 'applicants' : 'owners'] = [
           await this.getParticipantFormMissingFields(participant, isApplicant),
@@ -397,8 +397,6 @@ export class ParticipantFormService {
     user: any,
     isApplicant: boolean,
   ) {
-
-
     await this.companyService.checkUserCompanyPermission(
       user,
       participantId,
