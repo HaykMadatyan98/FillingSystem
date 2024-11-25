@@ -642,13 +642,12 @@ export class CompanyService {
 
     const isAllVerified = (data: any[]) => {
       return data.every((item) => {
-        return Object.keys(item).some((key) => {
-          const field = item[key];
+        return Object.keys(item['_doc']).some((key) => {
+          const field = item['_doc'][key];
+          if (['_id', '$__', 'createdAt', 'updatedAt'].some(item => item === key)) return true
           return (
-            typeof field === 'object' &&
-            field !== null &&
-            typeof field.isVerified === 'boolean' &&
-            field.isVerified
+            typeof field !== 'object' ||
+            (typeof field.isVerified === 'boolean' && field.isVerified)
           );
         });
       });
@@ -657,14 +656,13 @@ export class CompanyService {
     const allApplicantsVerified = isAllVerified(company.forms.applicants);
     const allOwnersVerified = isAllVerified(company.forms.owners);
 
-    const isCompanyVerified = Object.keys(company.forms.company).every(
+    const isCompanyVerified = Object.keys(company.forms.company['_doc']).every(
       (key) => {
-        const field = company.forms.company[key];
+        const field = company.forms.company['_doc'][key];
+          if (['_id', '$__', 'createdAt', 'updatedAt'].some(item => item === key)) return true
         return (
-          typeof field === 'object' &&
-          field !== null &&
-          typeof field.isVerified === 'boolean' &&
-          field.isVerified
+          typeof field !== 'object' ||
+          (typeof field.isVerified === 'boolean' && field.isVerified)
         );
       },
     );
