@@ -132,11 +132,6 @@ export async function sanitizeData(
     const applicantCount =
       (data['Applicant Document Type']?.filter(Boolean).length ?? 0) +
       (data['Applicant FinCEN ID']?.filter(Boolean).length ?? 0);
-    console.log(
-      applicantCount,
-      data['Applicant Document Type'],
-      data['Applicant FinCEN ID'],
-    );
     for (let i = 0; i < applicantCount; i++) {
       const participant: any = { isApplicant: true };
       if (

@@ -620,20 +620,27 @@ export class CompanyService {
     await company.save();
   }
 
-  async getUserCompaniesParticipants(userId: string, isApplicant: boolean) {
-    const companies = await this.companyModel.find({
-      user: userId,
-    });
+  async getUserCompanyParticipants(companyId: string, isApplicant: boolean) {
+    const company = await this.companyModel.findById(companyId);
 
-    if (!companies.length) {
+    if (!company) {
       throw new NotFoundException(companyResponseMsgs.companyNotFound);
     }
 
-    const allParticipants = companies.map((company) =>
-      isApplicant ? company.forms.applicants : company.forms.owners,
-    );
+    const allParticipants = isApplicant
+      ? company.forms.applicants
+      : company.forms.owners;
 
-    return allParticipants.flat();
+    if (isApplicant) {
+      await company.populate({
+        path: 'forms.applicants',
+        model: 'ApplicantForm',
+      });
+    } else {
+      await company.populate({ path: 'forms.owners', model: 'OwnerForm' });
+    }
+
+    return allParticipants;
   }
 
   async submitCompanyById(companyId: string) {

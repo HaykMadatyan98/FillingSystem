@@ -486,44 +486,49 @@ export class ParticipantFormService {
     };
   }
 
-  async getAllCompaniesParticipants(isApplicant: boolean, userId: string) {
-    const userParticipantsIds =
-      await this.companyService.getUserCompaniesParticipants(
-        userId,
+  async getAllCompanyParticipants(isApplicant: boolean, companyId: string) {
+    const userParticipants =
+      await this.companyService.getUserCompanyParticipants(
+        companyId,
         isApplicant,
       );
 
-    const allParticipants = await Promise.all(
-      userParticipantsIds.map(async (participantId) => {
-        const participant = isApplicant
-          ? await this.applicantFormModel.findById(participantId, {
-              id: 1,
-              answerCount: 1,
-              personalInfo: 1,
-            })
-          : await this.ownerFormModel.findById(participantId, {
-              id: 1,
-              answerCount: 1,
-              personalInfo: 1,
-            });
-
-        return {
-          id: participant['id'],
-          fullName:
-            participant.personalInfo.firstName +
-            ' ' +
-            participant.personalInfo.lastOrLegalName,
-          percentage:
-            (isApplicant
-              ? participant.answerCount / 15
+    console.log(userParticipants, 'participants');
+    const filtered = userParticipants.map((participant: any) => {
+      const participantKeys = [
+        'finCENID',
+        'personalInfo',
+        'address',
+        'identificationDetails',
+        'exemptEntity',
+        'beneficialOwner',
+      ];
+      const allVerified = Object.keys(participant['_doc']).every((key) => {
+        if (participantKeys.includes(key)) {
+          console.log(participant[key]?.isVerified, 'isVerified', key);
+          return participant[key]?.isVerified || false;
+        } else {
+          return true;
+        }
+      });
+      return {
+        participantId: participant['id'],
+        name:
+          participant?.personalInfo?.firstName ||
+          `New ${isApplicant ? 'applicant' : 'owner'}`,
+        allVerified,
+        percentage: Math.floor(
+          (isApplicant
+            ? participant.answerCount / 12
+            : participant?.exemptEntity?.isExemptEntity
+              ? participant.answerCount / 1
               : participant.answerCount / 11) * 100,
-        };
-      }),
-    );
-
+        ),
+      };
+    });
     return {
       message: participantFormResponseMsgs.retrieved,
-      allParticipants,
+      filtered,
     };
   }
 
