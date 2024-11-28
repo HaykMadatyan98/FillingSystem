@@ -28,10 +28,7 @@ import {
   ownerFormFields,
   participantFormResponseMsgs,
 } from './constants';
-import {
-  TRCreateParticipantByCSV,
-  TRResponseMsg,
-} from './interfaces/participant-service.interface';
+import { TRCreateParticipantByCSV } from './interfaces/participant-service.interface';
 import {
   ApplicantForm,
   ApplicantFormDocument,
@@ -322,6 +319,13 @@ export class ParticipantFormService {
     }
 
     await this.companyService.changeCompanyCounts(companyId);
+    const companyFormData =
+      await this.companyService.getCurrentParticipantForms(
+        companyId,
+        isApplicant,
+      );
+
+    return { participantForms: companyFormData };
   }
 
   async getParticipantFormById(
@@ -351,7 +355,7 @@ export class ParticipantFormService {
     isApplicant: boolean,
     user?: IRequestUser,
     companyId?: string,
-  ): TRResponseMsg {
+  ) {
     if (user) {
       await this.companyService.checkUserCompanyPermission(
         user,
@@ -388,7 +392,16 @@ export class ParticipantFormService {
       await this.ownerFormModel.findByIdAndDelete(participantFormId);
     }
 
-    return { message: participantFormResponseMsgs.deleted };
+    const companyFormData =
+      await this.companyService.getCurrentParticipantForms(
+        companyId,
+        isApplicant,
+      );
+
+    return {
+      message: participantFormResponseMsgs.deleted,
+      participantForms: companyFormData,
+    };
   }
 
   async updateDocImageInParticipantForm(
@@ -479,10 +492,17 @@ export class ParticipantFormService {
     await company.save();
     await this.companyService.changeCompanyCounts(companyId);
 
+    const companyFormData =
+      await this.companyService.getCurrentParticipantForms(
+        companyId,
+        isApplicant,
+      );
+    console.log(companyFormData, 'string');
     return {
       message: participantFormResponseMsgs.created,
       participantId: createdParticipant['id'],
       docImg: docImgName,
+      participantForms: companyFormData,
     };
   }
 
