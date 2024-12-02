@@ -229,7 +229,7 @@ export class MailService {
     userName: string,
     companyName: string,
     email: string,
-    pdf: string,
+    pdfBase64: string,
   ) {
     const templatePath = path.join(
       path.resolve(),
@@ -241,7 +241,6 @@ export class MailService {
     const htmlContent = compiledFile({
       userName,
       companyName,
-      pdf,
     });
     try {
       const mail: SendGrid.MailDataRequired = {
@@ -249,6 +248,14 @@ export class MailService {
         from: this.emailFrom,
         subject: 'Company report success',
         html: htmlContent,
+        attachments: [
+          {
+            content: pdfBase64,
+            filename: `${companyName}_Report.pdf`,
+            type: 'application/pdf',
+            disposition: 'attachment',
+          },
+        ],
       };
 
       const sendgridData = await SendGrid.send(mail);

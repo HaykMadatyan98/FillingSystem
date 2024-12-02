@@ -1,4 +1,8 @@
 import { CompanyService } from '@/company/company.service';
+import {
+  GovernmentApiStatusEnum,
+  governmentStatusesAfterProcess,
+} from '@/government/constants/statuses';
 import { GovernmentService } from '@/government/government.service';
 import { MailService } from '@/mail/mail.service';
 import { forwardRef, Inject, NotFoundException } from '@nestjs/common';
@@ -21,6 +25,7 @@ export class TransactionService {
     @InjectModel(Transaction.name)
     private transactionModel: Model<TransactionDocument>,
     @Inject(forwardRef(() => CompanyService))
+    @Inject(forwardRef(() => MailService))
     private readonly mailService: MailService,
     private readonly companyService: CompanyService,
     private readonly governmentService: GovernmentService,
@@ -177,18 +182,59 @@ export class TransactionService {
     );
 
     await this.governmentService.sendCompanyDataToGovernment(companyIds);
+
     Promise.all(
       companyIds.map(async (companyId: string) => {
         const company = await this.companyService.getCompanyById(companyId);
         await company.populate({ path: 'user', model: 'User' });
         const fullname = `${company.user.firstName} ${company.user.lastName}`;
 
-        await this.mailService.sendInvoiceData(
-          fullname,
-          company.name,
-          company.user.email,
-          paymentIntent.id,
+        console.log('before interval', companyId);
+        const intervalId = setInterval(
+          async () => {
+            try {
+              const data =
+                await this.governmentService.checkGovernmentStatus(companyId);
+              console.log('Received response:', data);
+
+              if (
+                governmentStatusesAfterProcess.includes(
+                  data.status.submissionStatus,
+                )
+              ) {
+                console.log('Status is accepted. Clearing interval...');
+                const fullname = `${data.status.firstName} ${data.status.lastName}`;
+
+                if (data?.pdfBinary) {
+                  await this.mailService.sendPDFtoUsers(
+                    fullname,
+                    company.name,
+                    data.status.email,
+                    data.pdfBinary,
+                  );
+                }
+                clearInterval(intervalId);
+              } else if (
+                data.status.submissionStatus ===
+                GovernmentApiStatusEnum.submission_initiated
+              ) {
+              } else {
+                clearInterval(intervalId);
+                throw new Error('something is wrong');
+              }
+            } catch (error) {
+              console.error('Error while making request:', error);
+              clearInterval(intervalId);
+            }
+          },
+          1 * 60 * 1000,
         );
+        // await this.mailService.sendInvoiceData(
+        //   fullname,
+        //   company.name,
+        //   company.user.email,
+        //   paymentIntent.id,
+        // );
       }),
     );
 

@@ -238,12 +238,12 @@ export class GovernmentService {
         const company = await this.companyService.getCompanyById(companyId);
         let fullName = `${company.user.firstName} ${company.user.lastName}`;
 
-        await this.mailService.sendPDFtoUsers(
-          fullName,
-          company.name,
-          company.user.email,
-          response.data.pdfBinary,
-        );
+        // await this.mailService.sendPDFtoUsers(
+        //   fullName,
+        //   company.name,
+        //   company.user.email,
+        //   response.data.pdfBinary,
+        // );
       }
 
       return response.data;

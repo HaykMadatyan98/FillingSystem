@@ -790,6 +790,7 @@ export class CompanyService {
   }
 
   async changeCompanyPaidStatus(transactionId: string): Promise<string[]> {
+    console.log(transactionId, 'in change company status');
     const companies = await this.companyModel.find({
       transactions: {
         $in: [transactionId],
