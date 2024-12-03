@@ -11,8 +11,8 @@ import { TransactionService } from './transaction.service';
 @Module({
   imports: [
     forwardRef(() => CompanyModule),
-    forwardRef(() => MailModule),
     GovernmentModule,
+    MailModule,
     ConfigModule,
     MongooseModule.forFeature([
       { name: Transaction.name, schema: TransactionSchema },

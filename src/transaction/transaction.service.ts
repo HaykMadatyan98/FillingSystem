@@ -25,10 +25,9 @@ export class TransactionService {
     @InjectModel(Transaction.name)
     private transactionModel: Model<TransactionDocument>,
     @Inject(forwardRef(() => CompanyService))
-    @Inject(forwardRef(() => MailService))
-    private readonly mailService: MailService,
     private readonly companyService: CompanyService,
     private readonly governmentService: GovernmentService,
+    private readonly mailService: MailService,
   ) {
     this.stripe = new Stripe(this.apiKey, {
       apiVersion: '2024-09-30.acacia',
@@ -189,20 +188,17 @@ export class TransactionService {
         await company.populate({ path: 'user', model: 'User' });
         const fullname = `${company.user.firstName} ${company.user.lastName}`;
 
-        console.log('before interval', companyId);
         const intervalId = setInterval(
           async () => {
             try {
               const data =
                 await this.governmentService.checkGovernmentStatus(companyId);
-              console.log('Received response:', data);
 
               if (
                 governmentStatusesAfterProcess.includes(
                   data.status.submissionStatus,
                 )
               ) {
-                console.log('Status is accepted. Clearing interval...');
                 const fullname = `${data.status.firstName} ${data.status.lastName}`;
 
                 if (data?.pdfBinary) {
@@ -227,8 +223,9 @@ export class TransactionService {
               clearInterval(intervalId);
             }
           },
-          1 * 60 * 1000,
+          5 * 60 * 1000,
         );
+
         // await this.mailService.sendInvoiceData(
         //   fullname,
         //   company.name,
