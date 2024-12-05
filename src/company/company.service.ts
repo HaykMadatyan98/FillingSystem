@@ -1,6 +1,7 @@
 import { IRequestUser } from '@/auth/interfaces/request.interface';
 import { CompanyFormService } from '@/company-form/company-form.service';
 import { CsvDataService } from '@/csv-data/csv-data.service';
+import { GovernmentApiStatusEnum } from '@/government/constants/statuses';
 import { IUserInvitationEmail } from '@/mail/interfaces/mail.interface';
 import { MailService } from '@/mail/mail.service';
 import { ParticipantFormService } from '@/participant-form/participant-form.service';
@@ -914,6 +915,7 @@ export class CompanyService {
         $set: {
           isPaid: false,
           isSubmitted: false,
+          boirSubmissionStatus: GovernmentApiStatusEnum.not_presented,
           expTime: {
             $cond: {
               if: { $ne: ['$expTime', null] },
@@ -931,7 +933,7 @@ export class CompanyService {
   async getFilteredData(companyId: string) {
     const company = await this.companyModel
       .findById(companyId)
-      .select('name forms -_id isExistingCompany')
+      .select('name forms -_id isExistingCompany -boirSubmissionStatus')
       .populate({
         path: 'user',
         model: 'User',
@@ -1065,6 +1067,18 @@ export class CompanyService {
     }
 
     return company.forms[`${isApplicant ? 'applicants' : 'owners'}`];
+  }
+
+  async changeCompanySubmissionStatus(
+    companyId: string,
+    submissionStatus: any,
+  ) {
+    const company = await this.companyModel.findById(companyId);
+
+    if (company) {
+      company.boirSubmissionStatus = submissionStatus;
+      await company.save();
+    }
   }
   // need some changes after admin part creating
   // async createNewCompany(payload: any) {
