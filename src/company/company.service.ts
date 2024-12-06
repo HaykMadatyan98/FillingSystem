@@ -145,7 +145,6 @@ export class CompanyService {
     await this.mailService.sendInvitationEmailToFormFillers(
       mailDataParser(companiesEmailData),
     );
-
     return {
       message: companyResponseMsgs.csvUploadSuccessful,
       errors: allErrors,
@@ -298,7 +297,9 @@ export class CompanyService {
       sanitized.company,
     );
 
-    missingFields.company = companyForm.missingFormData;
+    if (companyForm?.missingFormData?.length) {
+      missingFields.company = companyForm.missingFormData;
+    }
     answerCount += companyForm.answerCount;
 
     company = new this.companyModel({
@@ -933,7 +934,7 @@ export class CompanyService {
   async getFilteredData(companyId: string) {
     const company = await this.companyModel
       .findById(companyId)
-      .select('name forms -_id isExistingCompany -boirSubmissionStatus')
+      .select('name forms -_id isExistingCompany')
       .populate({
         path: 'user',
         model: 'User',

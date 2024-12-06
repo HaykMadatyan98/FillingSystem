@@ -206,14 +206,13 @@ export class TransactionService {
             try {
               const data =
                 await this.governmentService.checkGovernmentStatus(companyId);
-
+              const fullName = `${data.status.firstName} ${data.status.lastName}`;
+              
               if (
                 governmentStatusesAfterProcess.includes(
                   data.status.submissionStatus,
                 )
               ) {
-                const fullName = `${data.status.firstName} ${data.status.lastName}`;
-
                 if (data?.pdfBinary) {
                   await this.mailService.sendPDFtoUsers(
                     fullName,
@@ -250,6 +249,13 @@ export class TransactionService {
                   );
                 }
 
+                if (data.status.submissionStatus) {
+                  await this.companyService.changeCompanySubmissionStatus(
+                    company._id as string,
+                    data.status.submissionStatus,
+                  );
+                }
+
                 clearInterval(intervalId);
               } else if (
                 !(
@@ -260,14 +266,38 @@ export class TransactionService {
                 )
               ) {
                 clearInterval(intervalId);
+
+                await this.companyService.changeCompanySubmissionStatus(
+                  company._id as string,
+                  GovernmentApiStatusEnum.submission_failed,
+                );
+
+                await this.mailService.notifyAdminAboutCompanySubmissionStatus(
+                  company.name,
+                  fullName,
+                  false,
+                );
+
                 throw new Error('something is wrong');
               }
             } catch (error) {
               console.error('Error while making request:', error);
+
+              await this.companyService.changeCompanySubmissionStatus(
+                company._id as string,
+                GovernmentApiStatusEnum.submission_failed,
+              );
+
+              await this.mailService.notifyAdminAboutCompanySubmissionStatus(
+                company.name,
+                'Customer',
+                false,
+              );
+
               clearInterval(intervalId);
             }
           },
-          5 * 60 * 1000,
+          1 * 60 * 1000,
         );
 
         if (!userEmailData.email) {
