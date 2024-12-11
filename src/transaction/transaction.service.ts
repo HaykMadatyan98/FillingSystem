@@ -207,7 +207,7 @@ export class TransactionService {
               const data =
                 await this.governmentService.checkGovernmentStatus(companyId);
               const fullName = `${data.status.firstName} ${data.status.lastName}`;
-              
+
               if (
                 governmentStatusesAfterProcess.includes(
                   data.status.submissionStatus,
@@ -239,6 +239,7 @@ export class TransactionService {
                 ) {
                   await this.mailService.notifyUserAboutFail(
                     company.name,
+                    
                     fullName,
                     data.status.email,
                   );
@@ -297,7 +298,7 @@ export class TransactionService {
               clearInterval(intervalId);
             }
           },
-          1 * 60 * 1000,
+          3 * 60 * 1000,
         );
 
         if (!userEmailData.email) {
