@@ -75,7 +75,3 @@ interface IIdentificationDetails {
 interface IBeneficialOwner {
   isParentOrGuard: boolean;
 }
-
-interface IExemptEntity {
-  isExemptEntity: boolean;
-}

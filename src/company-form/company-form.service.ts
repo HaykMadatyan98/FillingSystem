@@ -4,7 +4,6 @@ import {
   countriesWithStates,
   requiredCompanyFields,
 } from '@/company/constants';
-import { OwnerFormService } from '@/owner-form/owner-form.service';
 import { calculateRequiredFieldsCount } from '@/utils/util';
 import {
   ConflictException,
@@ -32,8 +31,6 @@ export class CompanyFormService {
     private companyFormModel: Model<CompanyFormDocument>,
     @Inject(forwardRef(() => CompanyService))
     private readonly companyService: CompanyService,
-    @Inject(forwardRef(() => OwnerFormService))
-    private readonly ownerFormService: OwnerFormService,
   ) {}
 
   async createCompanyFormFromCsv(companyFormData: ICompanyForm) {
@@ -52,7 +49,6 @@ export class CompanyFormService {
       companyName: companyData.names.legalName,
       answerCount,
       missingFormData,
-      isForeignPooled: companyData.repCompanyInfo?.foreignPooled,
     };
   }
 

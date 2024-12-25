@@ -10,6 +10,7 @@ import { sanitizeData } from '@/utils/csv-sanitize';
 import { mailDataParser } from '@/utils/util';
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   forwardRef,
   Inject,
@@ -584,43 +585,6 @@ export class CompanyService {
       throw new BadRequestException(companyResponseMsgs.BOIRfieldsMissing);
     }
 
-    const isAllVerified = (data: any[]) => {
-      return data.every((item) => {
-        return Object.keys(item['_doc']).some((key) => {
-          const field = item['_doc'][key];
-          if (
-            ['_id', '$__', 'createdAt', 'updatedAt'].some(
-              (item) => item === key,
-            )
-          )
-            return true;
-          return (
-            typeof field !== 'object' ||
-            (typeof field.isVerified === 'boolean' && field.isVerified)
-          );
-        });
-      });
-    };
-
-    const allOwnersVerified = isAllVerified(company.forms.owners);
-
-    const isCompanyVerified = Object.keys(company.forms.company['_doc']).every(
-      (key) => {
-        const field = company.forms.company['_doc'][key];
-        if (
-          ['_id', '$__', 'createdAt', 'updatedAt'].some((item) => item === key)
-        )
-          return true;
-        return (
-          typeof field !== 'object' ||
-          (typeof field.isVerified === 'boolean' && field.isVerified)
-        );
-      },
-    );
-    if (!allOwnersVerified || !isCompanyVerified) {
-      throw new BadRequestException(companyResponseMsgs.BOIRNotAllVerified);
-    }
-
     company.isSubmitted = true;
 
     await company.save();
@@ -896,25 +860,27 @@ export class CompanyService {
       await company.save();
     }
   }
-  // need some changes after admin part creating
-  // async createNewCompany(payload: any) {
-  //   const existCompanyForm =
-  //     await this.companyFormService.getCompanyFormByTaxData(
-  //       payload.taxIdNumber,
-  //       payload.taxIdType,
-  //     );
 
-  //   if (existCompanyForm) {
-  //     throw new ConflictException(companyResponseMsgs.companyWasCreated);
-  //   }
+  async createNewCompany(payload: any) {
+    const existCompanyForm =
+      await this.companyFormService.getCompanyFormByTaxData(
+        payload.taxIdNumber,
+        payload.taxIdType,
+      );
 
-  //   const newCompanyForm = await this.companyFormService.create(payload);
-  //   const newCompany = new this.companyModel();
-  //   newCompany['forms.company'] = newCompanyForm['id'];
-  //   newCompany['reqFieldsCount'] = 9;
+    if (existCompanyForm) {
+      throw new ConflictException(companyResponseMsgs.companyWasCreated);
+    }
 
-  //   await newCompany.save();
+    const newCompanyForm =
+      await this.companyFormService.createCompanyFormFromCsv(payload);
+    const newCompany = new this.companyModel();
+    newCompany['forms.company'] = newCompanyForm['id'];
+    newCompany['reqFieldsCount'] = 9;
+    newCompany.name = payload.names.legalName;
 
-  //   return { message: companyResponseMsgs.companyCreated };
-  // }
+    await newCompany.save();
+
+    return { message: companyResponseMsgs.companyCreated };
+  }
 }
