@@ -1,16 +1,11 @@
 import {
   AllCountryEnum,
-  ApplicantData,
   CompanyData,
   OwnerData,
   StatesEnum,
   UserData,
 } from '@/company/constants';
-import {
-  ICompanyData,
-  IParticipantData,
-  ISanitizedData,
-} from '@/company/interfaces';
+import { ICompanyData, IOwnerData, ISanitizedData } from '@/company/interfaces';
 import { ICsvUser } from '@/company/interfaces/sanitized-data.interface';
 import { clearWrongFields, validateData } from './validator.util';
 
@@ -26,17 +21,14 @@ export async function sanitizeData(
   const sanitized: ISanitizedData = {
     user: {} as ICsvUser,
     company: {} as ICompanyData,
-    participants: [] as IParticipantData[],
+    owners: [] as IOwnerData[],
     BOIRExpTime: data['BOIR Submission Deadline'][0]
       ? new Date(data['BOIR Submission Deadline'][0])
       : null,
   };
- 
+
   const companyKeys = Object.keys(CompanyData) as (keyof typeof CompanyData)[];
   const userKeys = Object.keys(UserData) as (keyof typeof UserData)[];
-  const applicantKeys = Object.keys(
-    ApplicantData,
-  ) as (keyof typeof ApplicantData)[];
   const ownerKeys = Object.keys(OwnerData) as (keyof typeof OwnerData)[];
 
   function convertValue(key: string, value: string) {
@@ -72,7 +64,7 @@ export async function sanitizeData(
   function mapFieldToObject(
     mappedField: string,
     value: string,
-    targetObj: IParticipantData | ICompanyData | ICsvUser,
+    targetObj: IOwnerData | ICompanyData | ICsvUser,
   ) {
     const fieldParts = mappedField.split('.');
     let current = targetObj;
@@ -122,48 +114,11 @@ export async function sanitizeData(
     }
   });
 
-  if (
-    !(
-      sanitized.company.currentCompany.isExistingCompany ||
-      (sanitized.company.repCompanyInfo &&
-        sanitized.company.repCompanyInfo.foreignPooled)
-    )
-  ) {
-    const applicantCount =
-      (data['Applicant Document Type']?.filter(Boolean).length ?? 0) +
-      (data['Applicant FinCEN ID']?.filter(Boolean).length ?? 0);
-    for (let i = 0; i < applicantCount; i++) {
-      const participant: any = { isApplicant: true };
-      if (
-        data['Applicant FinCEN ID']?.length &&
-        data['Applicant FinCEN ID'][i] !== ''
-      ) {
-        const mappedField = ApplicantData['Applicant FinCEN ID'];
-        const value = data['Applicant FinCEN ID'][i];
-        if (value !== undefined && value !== '') {
-          mapFieldToObject(mappedField, value, participant);
-        }
-      } else {
-        applicantKeys.forEach((key) => {
-          if (key && typeof data[key] !== 'undefined') {
-            const mappedField = ApplicantData[key];
-            const value = data[key][i];
-            if (value !== undefined && value !== '') {
-              mapFieldToObject(mappedField, value, participant);
-            }
-          }
-        });
-      }
-
-      sanitized.participants.push(participant);
-    }
-  }
-
   const ownerCountBySanitizedData =
     (data['Owner Document Type']?.filter(Boolean).length ?? 0) +
     (data['Owner FinCEN ID']?.filter(Boolean).length ?? 0);
 
-  const ownerCount = sanitized.company.repCompanyInfo.foreignPooled
+  const ownerCount = sanitized.company.repCompanyInfo?.foreignPooled
     ? 1
     : ownerCountBySanitizedData;
 
@@ -215,7 +170,7 @@ export async function sanitizeData(
       });
     }
 
-    sanitized.participants.push(participant);
+    sanitized.owners.push(participant);
   }
 
   await createCSVData.create(sanitized);

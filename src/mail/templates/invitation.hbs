@@ -12,7 +12,12 @@
   </head>
 
   <body
-    style='font-family: Poppins, system-ui; margin: 0; padding: 0; box-sizing: border-box;'
+    style='
+      font-family: Poppins, system-ui;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    '
   >
     <table
       role='presentation'
@@ -20,21 +25,31 @@
       cellpadding='0'
       cellspacing='0'
       border='0'
-      style='background-color: #f3f6f9; margin-top: 145px; margin-bottom: 91px; max-width: 765px; width: 90%; margin-left: auto; margin-right: auto; border-radius: 10px;'
+      style='
+        background-color: #FFFAF7;
+        margin-top: 145px;
+        margin-bottom: 91px;
+        max-width: 765px;
+        width: 90%;
+        margin-left: auto;
+        margin-right: auto;
+        border-radius: 10px;
+        border: 3px solid #F18C30;
+      '
     >
       <tr>
-        <td align='center' style='padding: 50px 0 12px;'>
+        <td align='center' style='padding: 50px 0 12px'>
           <img
-            src='https://res.cloudinary.com/dr9wbnpyk/image/upload/v1727077815/email_ta5ibc.png'
             alt='email'
-            style='width: 194px; height: 194px; object-fit: cover;'
+            src='https://res.cloudinary.com/dr9wbnpyk/image/upload/v1734001621/email_ta5ibc.png'
+            style='width: 194px; height: 194px; object-fit: cover'
           />
         </td>
       </tr>
 
       <tr>
         <td
-          style='padding-left: 50px; padding-right: 50px; padding-bottom: 50px;'
+          style='padding-left: 50px; padding-right: 50px; padding-bottom: 50px'
         >
           <table
             role='presentation'
@@ -46,14 +61,27 @@
             <tr>
               <td
                 align='center'
-                style='font-size: 26px; line-height: 39px; font-weight: 600; color: #004195; padding-bottom: 36px;'
+                style='
+                  font-size: 26px;
+                  line-height: 39px;
+                  font-weight: 600;
+                  color: #F18C30;
+                  padding-bottom: 36px;
+                '
               >
                 Important Action Required
               </td>
             </tr>
             <tr>
               <td
-                style='font-size: 18px; font-weight: 600; line-height: 27px; color: #004195; text-align: left; padding-bottom: 24px;'
+                style='
+                  font-size: 18px;
+                  font-weight: 600;
+                  line-height: 27px;
+                  color: #F18C30;
+                  text-align: left;
+                  padding-bottom: 24px;
+                '
               >
                 Dear
                 {{fullName}},
@@ -61,17 +89,31 @@
             </tr>
             <tr>
               <td
-                style='font-size: 18px; font-weight: 400; line-height: 27px; color: #616e7c; text-align: left; padding-bottom: 36px;'
+                style='
+                  font-size: 18px;
+                  font-weight: 400;
+                  line-height: 27px;
+                  color: #616e7c;
+                  text-align: left;
+                  padding-bottom: 36px;
+                '
               >
                 You have been invited to fill out the Beneficial Ownership
                 Information Report (BOIR) for
-                <strong>{{companyName}}</strong>. Please complete the required
+                <strong>{{companyNames}}</strong>. Please complete the required
                 information to comply with regulatory requirements.
               </td>
             </tr>
             <tr>
               <td
-                style='font-size: 18px; font-weight: 400; line-height: 27px; color: #616e7c; text-align: left; padding-bottom: 24px;'
+                style='
+                  font-size: 18px;
+                  font-weight: 400;
+                  line-height: 27px;
+                  color: #616e7c;
+                  text-align: left;
+                  padding-bottom: 24px;
+                '
               >
                 Your prompt attention is essential to avoid any delays in
                 processing the report.
@@ -79,24 +121,31 @@
             </tr>
             <tr>
               <td
-                style='font-size: 18px; font-weight: 400; line-height: 27px; color: #616e7c; text-align: left; padding-bottom: 24px;'
+                style='
+                  font-size: 18px;
+                  font-weight: 400;
+                  line-height: 27px;
+                  color: #616e7c;
+                  text-align: left;
+                  padding-bottom: 24px;
+                '
               >
                 Please follow the link below to begin filling out the required
                 details for
-                <strong>{{companyName}}</strong>:
+                <strong>{{companyNames}}</strong>:
               </td>
             </tr>
             <tr>
               <td
                 align='center'
-                style='padding-top: 16px; padding-bottom: 24px;'
+                style='padding-top: 16px; padding-bottom: 24px'
               >
                 <a
-                  href={{link}}
+                  href='{{link}}'
                   style='
                     display: inline-block;
                     padding: 11px 44px;
-                    background-color: #004195;
+                    background-color: #F18C30;
                     color: #fff;
                     font-size: 16px;
                     font-weight: 600;
@@ -111,28 +160,46 @@
             </tr>
             <tr>
               <td
-                style='font-size: 16px; font-style: italic; font-weight: 400; color: #616e7c; text-align: left;'
+                style='
+                  font-size: 16px;
+                  font-style: italic;
+                  font-weight: 400;
+                  color: #616e7c;
+                  text-align: left;
+                '
               >
                 If the button above does not work, you can use the following
                 link:
-                <a href={{link}} style='color: #616e7c;'>
-                  {{link}}
-                </a>
+                <a href='{{link}}' style='color: #616e7c'> {{link}} </a>
               </td>
             </tr>
             <tr>
               <td
-                style='font-size: 18px; font-weight: 400; line-height: 27px; color: #616e7c; text-align: left; padding-top: 36px;'
+                style='
+                  font-size: 18px;
+                  font-weight: 400;
+                  line-height: 27px;
+                  color: #616e7c;
+                  text-align: left;
+                  padding-top: 36px;
+                '
               >
                 Thank you for your cooperation.
               </td>
             </tr>
             <tr>
               <td
-                style='font-size: 18px; font-weight: 400; line-height: 27px; color: #616e7c; text-align: left; padding-bottom: 24px;'
+                style='
+                  font-size: 18px;
+                  font-weight: 400;
+                  line-height: 27px;
+                  color: #616e7c;
+                  text-align: left;
+                  padding-bottom: 24px;
+                '
               >
                 Best regards,<br />
-                The BOIR Compliance Team
+                The Corpex Team
               </td>
             </tr>
           </table>

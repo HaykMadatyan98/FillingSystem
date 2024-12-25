@@ -1,4 +1,8 @@
 import { CompanyService } from '@/company/company.service';
+import {
+  GovernmentApiStatusEnum,
+  governmentStatusesAfterProcess,
+} from '@/government/constants';
 import { GovernmentService } from '@/government/government.service';
 import { MailService } from '@/mail/mail.service';
 import { forwardRef, Inject, NotFoundException } from '@nestjs/common';
@@ -21,12 +25,12 @@ export class TransactionService {
     @InjectModel(Transaction.name)
     private transactionModel: Model<TransactionDocument>,
     @Inject(forwardRef(() => CompanyService))
-    private readonly mailService: MailService,
     private readonly companyService: CompanyService,
     private readonly governmentService: GovernmentService,
+    private readonly mailService: MailService,
   ) {
     this.stripe = new Stripe(this.apiKey, {
-      apiVersion: '2024-09-30.acacia',
+      apiVersion: '2024-12-18.acacia',
     });
   }
 
@@ -177,20 +181,145 @@ export class TransactionService {
     );
 
     await this.governmentService.sendCompanyDataToGovernment(companyIds);
-    Promise.all(
+    const userEmailData: {
+      email?: string;
+      companyNames: string[];
+      invoice?: string;
+      fullName?: string;
+    } = {
+      companyNames: [],
+    };
+
+    await Promise.all(
       companyIds.map(async (companyId: string) => {
         const company = await this.companyService.getCompanyById(companyId);
+        await this.companyService.changeCompanySubmissionStatus(
+          company._id as string,
+          GovernmentApiStatusEnum.submission_initiated,
+        );
+
         await company.populate({ path: 'user', model: 'User' });
         const fullname = `${company.user.firstName} ${company.user.lastName}`;
 
-        await this.mailService.sendInvoiceData(
-          fullname,
-          company.name,
-          company.user.email,
-          paymentIntent.id,
+        const intervalId = setInterval(
+          async () => {
+            try {
+              const data =
+                await this.governmentService.checkGovernmentStatus(companyId);
+              const fullName = `${data.status.firstName} ${data.status.lastName}`;
+
+              if (
+                governmentStatusesAfterProcess.includes(
+                  data.status.submissionStatus,
+                )
+              ) {
+                if (data?.pdfBinary) {
+                  await this.mailService.sendPDFtoUsers(
+                    fullName,
+                    company.name,
+                    data.status.email,
+                    data.pdfBinary,
+                  );
+                }
+
+                if (
+                  data.status.submissionStatus ===
+                  GovernmentApiStatusEnum.submission_accepted
+                ) {
+                  await this.mailService.notifyAdminAboutCompanySubmissionStatus(
+                    company.name,
+                    fullName,
+                    true,
+                  );
+                }
+
+                if (
+                  data.status.submissionStatus ===
+                  GovernmentApiStatusEnum.submission_rejected
+                ) {
+                  await this.mailService.notifyUserAboutFail(
+                    company.name,
+
+                    fullName,
+                    data.status.email,
+                  );
+                  await this.mailService.notifyAdminAboutCompanySubmissionStatus(
+                    company.name,
+                    fullName,
+                    false,
+                  );
+                }
+
+                if (data.status.submissionStatus) {
+                  await this.companyService.changeCompanySubmissionStatus(
+                    company._id as string,
+                    data.status.submissionStatus,
+                  );
+                }
+
+                clearInterval(intervalId);
+              } else if (
+                !(
+                  data.status.submissionStatus ===
+                    GovernmentApiStatusEnum.submission_initiated &&
+                  data.status.submissionStatus ===
+                    GovernmentApiStatusEnum.not_presented
+                )
+              ) {
+                clearInterval(intervalId);
+
+                await this.companyService.changeCompanySubmissionStatus(
+                  company._id as string,
+                  GovernmentApiStatusEnum.submission_failed,
+                );
+
+                await this.mailService.notifyAdminAboutCompanySubmissionStatus(
+                  company.name,
+                  fullName,
+                  false,
+                );
+
+                throw new Error('something is wrong');
+              }
+            } catch (error) {
+              console.error('Error while making request:', error);
+
+              await this.companyService.changeCompanySubmissionStatus(
+                company._id as string,
+                GovernmentApiStatusEnum.submission_failed,
+              );
+
+              await this.mailService.notifyAdminAboutCompanySubmissionStatus(
+                company.name,
+                'Customer',
+                false,
+              );
+
+              clearInterval(intervalId);
+            }
+          },
+          3 * 60 * 1000,
         );
+
+        if (!userEmailData.email) {
+          userEmailData.email = company.user.email;
+        }
+
+        if (!userEmailData.invoice) {
+          userEmailData.invoice = paymentIntent.id;
+        }
+
+        if (company.name) {
+          userEmailData.companyNames.push(company.name);
+        }
+
+        if (!userEmailData.fullName) {
+          userEmailData.fullName = fullname;
+        }
       }),
     );
+
+    await this.mailService.sendInvoiceData(userEmailData);
 
     return { message: transactionMessages.statusChanged };
   }

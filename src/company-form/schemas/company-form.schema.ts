@@ -5,14 +5,11 @@ export type CompanyFormDocument = CompanyForm & Document;
 
 @Schema({ _id: false })
 class RepCompanyInfo {
-  @Prop({ default: false })
+  @Prop({ default: true })
   requestToReceiveFID: boolean;
 
   @Prop({ default: false })
   foreignPooled: boolean;
-
-  @Prop({ default: false })
-  isVerified: boolean;
 }
 
 @Schema({ _id: false })
@@ -23,7 +20,7 @@ class LegalAndAltNames {
   @Prop({ type: [String], maxlength: 150 })
   altName: string[];
 
-  @Prop({ default: false })
+  @Prop({})
   isVerified: boolean;
 }
 
@@ -38,7 +35,7 @@ class TaxInformation {
   @Prop()
   countryOrJurisdiction: string;
 
-  @Prop({ default: false })
+  @Prop()
   isVerified: boolean;
 }
 
@@ -56,7 +53,7 @@ class JurisdictionOfFormation {
   @Prop({ required: false })
   nameOfOtherTribal: string;
 
-  @Prop({ default: false })
+  @Prop()
   isVerified: boolean;
 }
 
@@ -77,7 +74,7 @@ class CompanyAddress {
   @Prop()
   zipCode: string;
 
-  @Prop({ default: false })
+  @Prop()
   isVerified: boolean;
 }
 

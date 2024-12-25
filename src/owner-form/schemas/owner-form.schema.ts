@@ -2,23 +2,13 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
 export type OwnerFormDocument = OwnerForm & Document;
-export type ApplicantFormDocument = ApplicantForm & Document;
 
 @Schema({ _id: false })
 class BeneficialOwner {
-  @Prop({ default: false })
+  @Prop({ default: true })
   isParentOrGuard: boolean;
 
-  @Prop({ default: false })
-  isVerified: boolean;
-}
-
-@Schema({ _id: false })
-class FinCENID {
-  @Prop({ maxlength: 12 })
-  finCENID: string;
-
-  @Prop({ default: false })
+  @Prop()
   isVerified: boolean;
 }
 
@@ -65,12 +55,6 @@ class OwnerAddress {
 }
 
 @Schema({ _id: false })
-class ApplicantAddress extends OwnerAddress {
-  @Prop({ required: true })
-  type: string;
-}
-
-@Schema({ _id: false })
 class IdentificationAndJurisdiction {
   @Prop()
   docType: string;
@@ -97,43 +81,10 @@ class IdentificationAndJurisdiction {
   isVerified: boolean;
 }
 
-@Schema({ _id: false })
-class ExemptEntity {
-  @Prop({ default: false })
-  isExemptEntity: boolean;
-
-  @Prop({ default: false })
-  isVerified: boolean;
-}
-
-@Schema({ timestamps: true })
-export class ApplicantForm {
-  @Prop()
-  finCENID: FinCENID;
-
-  @Prop()
-  personalInfo: PersonalInformation;
-
-  @Prop()
-  address: ApplicantAddress;
-
-  @Prop()
-  identificationDetails: IdentificationAndJurisdiction;
-
-  @Prop()
-  answerCount: number;
-}
-
 @Schema({ timestamps: true })
 export class OwnerForm {
-  @Prop({ required: false })
-  exemptEntity: ExemptEntity;
-
   @Prop()
   beneficialOwner: BeneficialOwner;
-
-  @Prop()
-  finCENID: FinCENID;
 
   @Prop()
   personalInfo: PersonalInformation;
@@ -149,21 +100,8 @@ export class OwnerForm {
 }
 
 export const OwnerFormSchema = SchemaFactory.createForClass(OwnerForm);
-OwnerFormSchema.index(
-  { 'finCENID.finCENID': 1 },
-  { partialFilterExpression: { 'finCENID.finCENID': { $exists: true } } },
-);
-OwnerFormSchema.index(
-  { 'identificationDetails.docType': 1, 'identificationDetails.docNumber': 1 },
-  { partialFilterExpression: { 'finCENID.finCENID': { $exists: false } } },
-);
 
-export const ApplicantFormSchema = SchemaFactory.createForClass(ApplicantForm);
-ApplicantFormSchema.index(
-  { 'finCENID.finCENID': 1 },
-  { partialFilterExpression: { 'finCENID.finCENID': { $exists: true } } },
-);
-ApplicantFormSchema.index(
-  { 'identificationDetails.docType': 1, 'identificationDetails.docNumber': 1 },
-  { partialFilterExpression: { 'finCENID.finCENID': { $exists: false } } },
-);
+OwnerFormSchema.index({
+  'identificationDetails.docType': 1,
+  'identificationDetails.docNumber': 1,
+});

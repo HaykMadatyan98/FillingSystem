@@ -1,5 +1,6 @@
 import { IRequestUser } from '@/auth/interfaces/request.interface';
 import { CompanyService } from '@/company/company.service';
+import { OwnerFormService } from '@/owner-form/owner-form.service';
 import { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
 import {
   BadRequestException,
@@ -19,6 +20,8 @@ export class AzureService {
     private containerClient: ContainerClient,
     @Inject(forwardRef(() => CompanyService))
     private readonly companyService: CompanyService,
+    @Inject(forwardRef(() => OwnerFormService))
+    private readonly ownerFormService: OwnerFormService,
   ) {
     this.connectionString = this.configService.get<string>(
       'AZURE.connectionString',
@@ -59,17 +62,13 @@ export class AzureService {
     return redactedFileName;
   }
 
-  async readStream(
-    fileName: string,
-    participantId?: string,
-    user?: IRequestUser,
-  ) {
+  async readStream(fileName: string, ownerId?: string, user?: IRequestUser) {
     try {
       if (user) {
         await this.companyService.checkUserCompanyPermission(
           user,
-          participantId,
-          'participantForm',
+          ownerId,
+          'ownerForm',
         );
       }
       const blockBlobClient = this.getBlockBlobClient(fileName);
@@ -77,6 +76,10 @@ export class AzureService {
       return blobDownload.readableStreamBody;
     } catch (error) {
       console.error('err', error);
+
+      if (ownerId) {
+        await this.ownerFormService.removeImageFromOwner(ownerId);
+      }
       throw new NotFoundException('Image not found');
     }
   }
