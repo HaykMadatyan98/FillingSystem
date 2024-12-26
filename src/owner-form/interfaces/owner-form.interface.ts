@@ -29,7 +29,6 @@ export interface IChangeOwnerForm {
 }
 
 export interface ICreateOwnerForm {
-  isApplicant: boolean;
   beneficialOwner?: {
     isParentOrGuard?: boolean;
   };

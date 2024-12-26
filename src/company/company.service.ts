@@ -726,26 +726,6 @@ export class CompanyService {
     return userCompanies;
   }
 
-  async changeExistingCompanyStatus(
-    companyId: string,
-    isExistingCompany: boolean,
-  ) {
-    const company = await this.companyModel.findById(companyId);
-
-    if (!company) {
-      throw new NotFoundException(companyResponseMsgs.companyNotFound);
-    }
-
-    if (company.isExistingCompany === isExistingCompany) {
-      return false;
-    }
-
-    company.isExistingCompany = isExistingCompany;
-    await company.save();
-
-    return true;
-  }
-
   async resetCompaniesStatus(): Promise<void> {
     const currentDate = new Date();
     const oneYearLater = new Date(

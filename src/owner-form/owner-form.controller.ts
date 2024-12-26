@@ -283,7 +283,7 @@ export class OwnerFormController {
     name: 'companyId',
   })
   @ApiOperation({
-    summary: 'Get all user companies applicant information',
+    summary: 'Get all user companies owner information',
   })
   @ApiOkResponse({
     description: ownerFormResponseMsgs.retrieved,
@@ -311,7 +311,7 @@ export class OwnerFormController {
     name: 'companyId',
   })
   @ApiOperation({
-    summary: 'Remove applicant document image',
+    summary: 'Remove owner document image',
   })
   @ApiOkResponse({
     description: 'image deleted',

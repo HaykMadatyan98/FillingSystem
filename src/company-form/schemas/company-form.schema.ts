@@ -4,15 +4,6 @@ import { Document } from 'mongoose';
 export type CompanyFormDocument = CompanyForm & Document;
 
 @Schema({ _id: false })
-class RepCompanyInfo {
-  @Prop({ default: true })
-  requestToReceiveFID: boolean;
-
-  @Prop({ default: false })
-  foreignPooled: boolean;
-}
-
-@Schema({ _id: false })
 class LegalAndAltNames {
   @Prop({ required: true, maxlength: 150 })
   legalName: string;
@@ -80,9 +71,6 @@ class CompanyAddress {
 
 @Schema({ timestamps: true })
 export class CompanyForm {
-  @Prop()
-  repCompanyInfo: RepCompanyInfo;
-
   @Prop()
   names: LegalAndAltNames;
 

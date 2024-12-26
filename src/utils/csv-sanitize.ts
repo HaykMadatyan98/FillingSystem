@@ -90,20 +90,6 @@ export async function sanitizeData(
     }
   });
 
-  if (data['Company Formation Date']) {
-    const formationDate = data['Company Formation Date'];
-    const targetDate = new Date('2024-01-01');
-    const date =
-      formationDate instanceof Date ? formationDate : new Date(formationDate);
-    if (!sanitized.company.currentCompany) {
-      sanitized.company.currentCompany = {
-        isExistingCompany: date < targetDate,
-      };
-    } else {
-      sanitized.company.currentCompany.isExistingCompany = date < targetDate;
-    }
-  }
-
   companyKeys.forEach((key) => {
     if (key && typeof data[key] !== 'undefined') {
       const mappedField = CompanyData[key];
@@ -114,80 +100,45 @@ export async function sanitizeData(
     }
   });
 
-  const ownerCountBySanitizedData =
-    (data['Owner Document Type']?.filter(Boolean).length ?? 0) +
-    (data['Owner FinCEN ID']?.filter(Boolean).length ?? 0);
-
-  const ownerCount = sanitized.company.repCompanyInfo?.foreignPooled
-    ? 1
-    : ownerCountBySanitizedData;
+  const ownerCount = data['Owner Document Type']?.filter(Boolean).length ?? 0;
 
   for (let i = 0; i < ownerCount; i++) {
-    const participant: any = { isApplicant: false };
+    const participant: any = {};
 
-    if (data['Owner FinCEN ID']?.length && data['Owner FinCEN ID'][i] !== '') {
-      const mappedField = OwnerData['Owner FinCEN ID'];
-      const value = data['Owner FinCEN ID'][i];
-      if (value !== undefined && value !== '') {
-        mapFieldToObject(mappedField, value, participant);
-      }
-    } else if (
-      data['Owner Is Exempt Entity']?.length &&
-      data['Owner Is Exempt Entity'][i] === 'true'
-    ) {
-      if (data['Owner Last or Legal Name'][i]) {
-        const mappedField = OwnerData['Owner Last or Legal Name'];
-        const value = data['Owner Last or Legal Name'][i];
+    ownerKeys.forEach((key) => {
+      if (key && typeof data[key] !== 'undefined') {
+        const mappedField = OwnerData[key];
+        const value = data[key][i];
         if (value !== undefined && value !== '') {
           mapFieldToObject(mappedField, value, participant);
         }
       }
-
-      if (data['Owner Is Parent or Guardian'][i]) {
-        const mappedField = OwnerData['Owner Is Parent or Guardian'];
-        const value = data['Owner Is Parent or Guardian'][i];
-        if (value !== undefined && value !== '') {
-          mapFieldToObject(mappedField, value, participant);
-        }
-      }
-
-      if (data['Owner Is Exempt Entity'][i]) {
-        const mappedField = OwnerData['Owner Is Exempt Entity'];
-        const value = data['Owner Is Exempt Entity'][i];
-        if (value !== undefined && value !== '') {
-          mapFieldToObject(mappedField, value, participant);
-        }
-      }
-    } else {
-      ownerKeys.forEach((key) => {
-        if (key && typeof data[key] !== 'undefined') {
-          const mappedField = OwnerData[key];
-          const value = data[key][i];
-          if (value !== undefined && value !== '') {
-            mapFieldToObject(mappedField, value, participant);
-          }
-        }
-      });
-    }
+    });
 
     sanitized.owners.push(participant);
   }
 
   await createCSVData.create(sanitized);
-  const { isDeletedCompany, errorData } = await validateData(sanitized);
+
+  const validatedData = await validateData(sanitized);
+  const { errorData } = validatedData;
+  let isDeletedCompany = validatedData.isDeletedCompany;
   const { reasons, companyDeleted } = await clearWrongFields(sanitized);
 
-  if (
-    ownerCountBySanitizedData !== ownerCount &&
-    ownerCountBySanitizedData > ownerCount
-  ) {
-    reasons.push({
-      fields: ['Company Foreign Pooled'],
-      problemDesc: 'Foreign pooled company need only one owner data',
-      affectedData: [
-        `Other ${ownerCountBySanitizedData - ownerCount} Owners Data`,
-      ],
-    });
+  if (data['Company Formation Date']) {
+    const formationDate = data['Company Formation Date'];
+    const targetDate = new Date('2024-01-01');
+    const date =
+      formationDate instanceof Date ? formationDate : new Date(formationDate);
+
+    if (targetDate < date) {
+      reasons.push({
+        fields: ['All Company Fields'],
+        problemDesc:
+          "Company can't be added because the application works only with existing companies which were added before January 1, 2024.",
+      });
+      if (!isDeletedCompany) isDeletedCompany = true;
+    }
   }
 
   if (isDeletedCompany) {

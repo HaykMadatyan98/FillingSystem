@@ -36,5 +36,4 @@ export interface ICompanyCSVRowData {
   'Owner Document State': string;
   'Owner Local or Tribal': string;
   'Owner Other Local or Tribal Description': string;
-  'Owner Document Image': string;
 }

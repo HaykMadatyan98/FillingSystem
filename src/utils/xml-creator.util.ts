@@ -55,7 +55,7 @@ export const createCompanyXml = async (
   });
   addDataElement(activityAssociation, 'InitialReportIndicator', 'Y');
 
-  seqNum = reportCompanyParty(activity, companyForm, companyData, seqNum);
+  seqNum = reportCompanyParty(activity, companyForm, seqNum);
   companyData.forms.owners.forEach((owner) => {
     seqNum = ownerFormParty(activity, owner, seqNum);
   });
@@ -191,23 +191,12 @@ function ownerFormParty(activity: any, ownerForm: any, seqNum: number) {
   return seqNum;
 }
 
-function reportCompanyParty(
-  activity: any,
-  companyForm: any,
-  companyData: any,
-  seqNum: number,
-) {
+function reportCompanyParty(activity: any, companyForm: any, seqNum: number) {
   const reportCompanyParty = activity.ele('fc2:Party', {
     SeqNum: `${++seqNum}`,
   });
   addDataElement(reportCompanyParty, 'ActivityPartyTypeCode', '62');
-  if (companyData.isExistingCompany) {
-    addDataElement(
-      reportCompanyParty,
-      'ExistingReportingCompanyIndicator',
-      'Y',
-    );
-  }
+  addDataElement(reportCompanyParty, 'ExistingReportingCompanyIndicator', 'Y');
 
   if (
     !(

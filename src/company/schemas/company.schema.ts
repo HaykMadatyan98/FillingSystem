@@ -57,7 +57,7 @@ export class Company {
   @Prop({ default: [] })
   transactions: Transaction[];
 
-  @Prop({ default: false })
+  @Prop({ default: true })
   isExistingCompany: boolean;
 
   @Prop({ default: GovernmentApiStatusEnum.not_presented })

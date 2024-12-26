@@ -198,11 +198,6 @@ export class ChangeCompanyFormDto {
   @ValidateNested({ each: true })
   @Type(() => CompanyAddressDto)
   address?: CompanyAddressDto;
-
-  @ApiProperty({ type: Boolean, required: false })
-  @IsOptional()
-  @IsBoolean()
-  isExistingCompany: boolean;
 }
 
 export class CreateCompanyFormDto {

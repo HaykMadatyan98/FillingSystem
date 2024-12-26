@@ -1,10 +1,8 @@
 import {
   AllCountryEnum,
   DocumentTypeEnum,
-  ForeignCountryEnum,
   StatesEnum,
   TribalDataEnum,
-  USTerritoryEnum,
 } from '@/company/constants';
 import {
   CountryStateValidator,
@@ -94,11 +92,6 @@ export class BeneficialOwnerDto {
   @IsOptional()
   @IsBoolean()
   isParentOrGuard?: boolean;
-}
-
-enum AddressTypeEnum {
-  BUSINESS = 'business',
-  RESIDENTIAL = 'residential',
 }
 
 class OwnerAddressDto {
@@ -238,10 +231,6 @@ export class OwnerFormDto extends BaseParticipantFormDto {
 }
 
 export class CSVOwnerFormDto extends OwnerFormDto {
-  @ApiProperty({ required: true })
-  @IsBoolean()
-  isApplicant: boolean;
-
   @ApiProperty({ required: true })
   @ValidateNested({ each: true })
   @Type(() => CSVIdentificationAndJurisdictionDto)
