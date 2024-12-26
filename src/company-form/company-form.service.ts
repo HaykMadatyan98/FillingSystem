@@ -4,7 +4,10 @@ import {
   countriesWithStates,
   requiredCompanyFields,
 } from '@/company/constants';
+<<<<<<< HEAD
+=======
 import { ParticipantFormService } from '@/participant-form/participant-form.service';
+>>>>>>> e8cea7f5a7972fd7669ad107efd860a68feaa62c
 import { calculateRequiredFieldsCount } from '@/utils/util';
 import {
   ConflictException,
@@ -32,8 +35,6 @@ export class CompanyFormService {
     private companyFormModel: Model<CompanyFormDocument>,
     @Inject(forwardRef(() => CompanyService))
     private readonly companyService: CompanyService,
-    @Inject(forwardRef(() => ParticipantFormService))
-    private readonly participantService: ParticipantFormService,
   ) {}
 
   async createCompanyFormFromCsv(companyFormData: ICompanyForm) {
@@ -52,7 +53,6 @@ export class CompanyFormService {
       companyName: companyData.names.legalName,
       answerCount,
       missingFormData,
-      isForeignPooled: companyData.repCompanyInfo?.foreignPooled,
     };
   }
 
@@ -62,7 +62,6 @@ export class CompanyFormService {
     companyId: string,
     user?: IRequestUser | boolean,
     missingCompanyForm?: any,
-    companyForeignPooled?: { isForeignPooled: boolean },
     isForCsv?: boolean,
     company?: any,
   ) {
@@ -80,11 +79,7 @@ export class CompanyFormService {
       throw new NotFoundException('Company Form not Found');
     }
 
-    const foreignPooledBefore = companyData.repCompanyInfo?.foreignPooled;
     const companyNameBefore = companyData.names.legalName;
-    const companyExistingData =
-      companyFormData?.currentCompany?.isExistingCompany || undefined;
-    delete companyFormData.currentCompany;
 
     if (companyFormData.taxInfo) {
       if (
@@ -110,12 +105,6 @@ export class CompanyFormService {
       requiredCompanyFields,
     );
 
-    if (foreignPooledBefore !== companyData.repCompanyInfo.foreignPooled) {
-      await this.participantService.changeForForeignPooled(
-        await this.companyService.getCompanyById(companyId),
-      );
-    }
-
     if (!isForCsv && companyNameBefore !== companyData.names.legalName) {
       await this.companyService.changeCompanyName(
         companyId,
@@ -127,18 +116,6 @@ export class CompanyFormService {
       }
     }
 
-    if (
-      !isForCsv &&
-      (typeof companyExistingData === 'boolean' ||
-        companyData.repCompanyInfo.foreignPooled)
-    ) {
-      await this.companyService.changeCompanyExistingApplicantData(
-        companyExistingData,
-        companyData.repCompanyInfo.foreignPooled,
-        companyId,
-      );
-    }
-
     await companyData.save();
     await this.companyService.changeCompanyCounts(companyId);
 
@@ -148,11 +125,6 @@ export class CompanyFormService {
       if (missingCompanyData.length) {
         missingCompanyForm.company = missingCompanyData;
       }
-    }
-
-    if (companyForeignPooled) {
-      companyForeignPooled.isForeignPooled =
-        companyData.repCompanyInfo.foreignPooled;
     }
 
     return {

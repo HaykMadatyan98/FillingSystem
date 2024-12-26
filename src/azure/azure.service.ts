@@ -1,6 +1,10 @@
 import { IRequestUser } from '@/auth/interfaces/request.interface';
 import { CompanyService } from '@/company/company.service';
+<<<<<<< HEAD
+import { OwnerFormService } from '@/owner-form/owner-form.service';
+=======
 import { ParticipantFormService } from '@/participant-form/participant-form.service';
+>>>>>>> e8cea7f5a7972fd7669ad107efd860a68feaa62c
 import { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
 import {
   BadRequestException,
@@ -20,8 +24,13 @@ export class AzureService {
     private containerClient: ContainerClient,
     @Inject(forwardRef(() => CompanyService))
     private readonly companyService: CompanyService,
+<<<<<<< HEAD
+    @Inject(forwardRef(() => OwnerFormService))
+    private readonly ownerFormService: OwnerFormService,
+=======
     @Inject(forwardRef(() => ParticipantFormService))
     private readonly participantService: ParticipantFormService,
+>>>>>>> e8cea7f5a7972fd7669ad107efd860a68feaa62c
   ) {
     this.connectionString = this.configService.get<string>(
       'AZURE.connectionString',
@@ -62,17 +71,13 @@ export class AzureService {
     return redactedFileName;
   }
 
-  async readStream(
-    fileName: string,
-    participantId?: string,
-    user?: IRequestUser,
-  ) {
+  async readStream(fileName: string, ownerId?: string, user?: IRequestUser) {
     try {
       if (user) {
         await this.companyService.checkUserCompanyPermission(
           user,
-          participantId,
-          'participantForm',
+          ownerId,
+          'ownerForm',
         );
       }
       const blockBlobClient = this.getBlockBlobClient(fileName);
@@ -81,8 +86,13 @@ export class AzureService {
     } catch (error) {
       console.error('err', error);
 
+<<<<<<< HEAD
+      if (ownerId) {
+        await this.ownerFormService.removeImageFromOwner(ownerId);
+=======
       if (participantId) {
        await this.participantService.removeImageFromParticipant(participantId)
+>>>>>>> e8cea7f5a7972fd7669ad107efd860a68feaa62c
       }
       throw new NotFoundException('Image not found');
     }

@@ -1,6 +1,5 @@
 import {
   AllCountryEnum,
-  BOIRBooleanTypeParser,
   BOIRDateParser,
   BOIRParticipantDocTypeParser,
   BOIRTaxIdTypeParser,
@@ -56,10 +55,7 @@ export const createCompanyXml = async (
   });
   addDataElement(activityAssociation, 'InitialReportIndicator', 'Y');
 
-  seqNum = reportCompanyParty(activity, companyForm, companyData, seqNum);
-  companyData.forms.applicants.forEach((applicant) => {
-    seqNum = applicantFormParty(activity, applicant, seqNum);
-  });
+  seqNum = reportCompanyParty(activity, companyForm, seqNum);
   companyData.forms.owners.forEach((owner) => {
     seqNum = ownerFormParty(activity, owner, seqNum);
   });
@@ -67,163 +63,116 @@ export const createCompanyXml = async (
   return xml.end({ prettyPrint: true });
 };
 
-function applicantFormParty(activity: any, applicantForm: any, seqNum: number) {
-  const applicantFormParty = activity.ele('fc2:Party', {
+function ownerFormParty(activity: any, ownerForm: any, seqNum: number) {
+  const ownerFormParty = activity.ele('fc2:Party', {
     SeqNum: `${++seqNum}`,
   });
-  addDataElement(applicantFormParty, 'ActivityPartyTypeCode', '63');
+  addDataElement(ownerFormParty, 'ActivityPartyTypeCode', '64');
 
-  if (applicantForm.finCENID) {
+  if (ownerForm.personalInfo.dateOfBirth) {
     addDataElement(
-      applicantFormParty,
-      'FinCENID',
-      applicantForm.finCENID.finCENID,
-    );
-  } else {
-    addDataElement(
-      applicantFormParty,
+      ownerFormParty,
       'IndividualBirthDateText',
-      BOIRDateParser(applicantForm.personalInfo.dateOfBirth),
-    );
-
-    const applicantPartyName = applicantFormParty.ele('fc2:PartyName', {
-      SeqNum: `${++seqNum}`,
-    });
-
-    addDataElement(applicantPartyName, 'PartyNameTypeCode', 'L');
-    addDataElement(
-      applicantPartyName,
-      'RawEntityIndividualLastName',
-      applicantForm.personalInfo.lastOrLegalName,
-    );
-    addDataElement(
-      applicantPartyName,
-      'RawIndividualFirstName',
-      applicantForm.personalInfo.firstName,
-    );
-
-    if (applicantForm.personalInfo.middleName) {
-      addDataElement(
-        applicantPartyName,
-        'RawIndividualMiddleName',
-        applicantForm.personalInfo.middleName,
-      );
-    }
-
-    if (applicantForm.personalInfo.suffix) {
-      addDataElement(
-        applicantPartyName,
-        'RawIndividualNameSuffixText',
-        applicantForm.personalInfo.suffix,
-      );
-    }
-
-    const applicantAddress = applicantFormParty.ele('fc2:Address', {
-      SeqNum: `${++seqNum}`,
-    });
-
-    if (applicantForm.address.type !== 'residential') {
-      addDataElement(applicantAddress, 'BusinessAddressIndicator', 'Y');
-    }
-
-    addDataElement(applicantAddress, 'RawCityText', applicantForm.address.city);
-
-    addDataElement(
-      applicantAddress,
-      'RawCountryCodeText',
-      getEnumKeyByValue(
-        applicantForm.address.countryOrJurisdiction,
-        AllCountryEnum,
-      ),
-    );
-    if (applicantForm.address.state) {
-      addDataElement(
-        applicantAddress,
-        'RawStateCodeText',
-        getEnumKeyByValue(applicantForm.address.state, StatesEnum),
-      );
-    }
-
-    addDataElement(
-      applicantAddress,
-      'RawStreetAddress1Text',
-      applicantForm.address.address,
-    );
-
-    addDataElement(
-      applicantAddress,
-      'RawZIPCode',
-      applicantForm.address.postalCode,
-    );
-
-    if (applicantForm.address.type === 'residential') {
-      addDataElement(applicantAddress, 'ResidentialAddressIndicator', 'Y');
-    }
-
-    const applicantPartyIdentification = applicantFormParty.ele(
-      'fc2:PartyIdentification',
-      {
-        SeqNum: `${++seqNum}`,
-      },
-    );
-
-    if (applicantForm.identificationDetails.localOrTribal) {
-      addDataElement(
-        applicantPartyIdentification,
-        'IssuerLocalTribalCodeText',
-        getEnumKeyByValue(
-          applicantForm.identificationDetails.localOrTribal,
-          TribalDataEnum,
-        ),
-      );
-    }
-
-    addDataElement(
-      applicantPartyIdentification,
-      'OriginalAttachmentFileName',
-      applicantForm.identificationDetails.docImg,
-    );
-
-    addDataElement(
-      applicantPartyIdentification,
-      'OtherIssuerCountryText',
-      getEnumKeyByValue(
-        applicantForm.identificationDetails.countryOrJurisdiction,
-        AllCountryEnum,
-      ),
-    );
-
-    if (applicantForm.identificationDetails.otherLocalOrTribalDesc) {
-      addDataElement(
-        applicantPartyIdentification,
-        'OtherIssuerLocalTribalText',
-        applicantForm.identificationDetails.otherLocalOrTribalDesc,
-      );
-    }
-
-    if (applicantForm.identificationDetails.state) {
-      addDataElement(
-        applicantPartyIdentification,
-        'OtherIssuerStateText',
-        getEnumKeyByValue(
-          applicantForm.identificationDetails.state,
-          StatesEnum,
-        ),
-      );
-    }
-
-    addDataElement(
-      applicantPartyIdentification,
-      'PartyIdentificationNumberText',
-      applicantForm.identificationDetails.docNumber,
-    );
-
-    addDataElement(
-      applicantPartyIdentification,
-      'PartyIdentificationTypeCode',
-      BOIRParticipantDocTypeParser(applicantForm.identificationDetails.docType),
+      BOIRDateParser(ownerForm.personalInfo.dateOfBirth),
     );
   }
+  if (ownerForm.beneficialOwner.isParentOrGuard) {
+    addDataElement(
+      ownerFormParty,
+      'ParentOrLegalGuardianForMinorChildIndicator',
+      'Y',
+    );
+  }
+  const ownerPartyName = ownerFormParty.ele('fc2:PartyName', {
+    SeqNum: `${++seqNum}`,
+  });
+  addDataElement(ownerPartyName, 'PartyNameTypeCode', 'L');
+  addDataElement(
+    ownerPartyName,
+    'RawEntityIndividualLastName',
+    ownerForm.personalInfo.lastOrLegalName,
+  );
+
+  addDataElement(
+    ownerPartyName,
+    'RawIndividualFirstName',
+    ownerForm.personalInfo.firstName,
+  );
+  if (ownerForm.personalInfo.middleName) {
+    addDataElement(
+      ownerPartyName,
+      'RawIndividualMiddleName',
+      ownerForm.personalInfo.middleName,
+    );
+  }
+  if (ownerForm.personalInfo.suffix) {
+    addDataElement(
+      ownerPartyName,
+      'RawIndividualNameSuffixText',
+      ownerForm.personalInfo.suffix,
+    );
+  }
+  const ownerAddress = ownerFormParty.ele('fc2:Address', {
+    SeqNum: `${++seqNum}`,
+  });
+  addDataElement(ownerAddress, 'RawCityText', ownerForm.address.city);
+  addDataElement(
+    ownerAddress,
+    'RawCountryCodeText',
+    getEnumKeyByValue(ownerForm.address.countryOrJurisdiction, AllCountryEnum),
+  );
+  if (ownerForm.address.state) {
+    addDataElement(
+      ownerAddress,
+      'RawStateCodeText',
+      getEnumKeyByValue(ownerForm.address.state, StatesEnum),
+    );
+  }
+  addDataElement(
+    ownerAddress,
+    'RawStreetAddress1Text',
+    ownerForm.address.address,
+  );
+  addDataElement(ownerAddress, 'RawZIPCode', ownerForm.address.postalCode);
+  const ownerPartyIdentification = ownerFormParty.ele(
+    'fc2:PartyIdentification',
+    {
+      SeqNum: `${++seqNum}`,
+    },
+  );
+  if (ownerForm.identificationDetails.localOrTribal) {
+    addDataElement(
+      ownerPartyIdentification,
+      'IssuerLocalTribalCodeText',
+      getEnumKeyByValue(
+        ownerForm.identificationDetails.localOrTribal,
+        TribalDataEnum,
+      ),
+    );
+  }
+  addDataElement(
+    ownerPartyIdentification,
+    'OriginalAttachmentFileName',
+    ownerForm.identificationDetails.docImg,
+  );
+  addDataElement(
+    ownerPartyIdentification,
+    'OtherIssuerCountryText',
+    getEnumKeyByValue(
+      ownerForm.identificationDetails.countryOrJurisdiction,
+      AllCountryEnum,
+    ),
+  );
+  if (ownerForm.identificationDetails.otherLocalOrTribalDesc) {
+    addDataElement(
+      ownerPartyIdentification,
+      'OtherIssuerLocalTribalText',
+      ownerForm.identificationDetails.otherLocalOrTribalDesc,
+    );
+  }
+<<<<<<< HEAD
+  if (ownerForm.identificationDetails.state) {
+=======
 
   return seqNum;
 }
@@ -276,131 +225,33 @@ function ownerFormParty(activity: any, ownerForm: any, seqNum: number) {
       SeqNum: `${++seqNum}`,
     });
     addDataElement(ownerPartyName, 'PartyNameTypeCode', 'L');
+>>>>>>> e8cea7f5a7972fd7669ad107efd860a68feaa62c
     addDataElement(
-      ownerPartyName,
-      'RawEntityIndividualLastName',
-      ownerForm.personalInfo.lastOrLegalName,
+      ownerPartyIdentification,
+      'OtherIssuerStateText',
+      getEnumKeyByValue(ownerForm.identificationDetails.state, StatesEnum),
     );
-    if (!ownerForm.exemptEntity.isExemptEntity) {
-      addDataElement(
-        ownerPartyName,
-        'RawIndividualFirstName',
-        ownerForm.personalInfo.firstName,
-      );
-      if (ownerForm.personalInfo.middleName) {
-        addDataElement(
-          ownerPartyName,
-          'RawIndividualMiddleName',
-          ownerForm.personalInfo.middleName,
-        );
-      }
-      if (ownerForm.personalInfo.suffix) {
-        addDataElement(
-          ownerPartyName,
-          'RawIndividualNameSuffixText',
-          ownerForm.personalInfo.suffix,
-        );
-      }
-      const ownerAddress = ownerFormParty.ele('fc2:Address', {
-        SeqNum: `${++seqNum}`,
-      });
-      addDataElement(ownerAddress, 'RawCityText', ownerForm.address.city);
-      addDataElement(
-        ownerAddress,
-        'RawCountryCodeText',
-        getEnumKeyByValue(
-          ownerForm.address.countryOrJurisdiction,
-          AllCountryEnum,
-        ),
-      );
-      if (ownerForm.address.state) {
-        addDataElement(
-          ownerAddress,
-          'RawStateCodeText',
-          getEnumKeyByValue(ownerForm.address.state, StatesEnum),
-        );
-      }
-      addDataElement(
-        ownerAddress,
-        'RawStreetAddress1Text',
-        ownerForm.address.address,
-      );
-      addDataElement(ownerAddress, 'RawZIPCode', ownerForm.address.postalCode);
-      const ownerPartyIdentification = ownerFormParty.ele(
-        'fc2:PartyIdentification',
-        {
-          SeqNum: `${++seqNum}`,
-        },
-      );
-      if (ownerForm.identificationDetails.localOrTribal) {
-        addDataElement(
-          ownerPartyIdentification,
-          'IssuerLocalTribalCodeText',
-          getEnumKeyByValue(
-            ownerForm.identificationDetails.localOrTribal,
-            TribalDataEnum,
-          ),
-        );
-      }
-      addDataElement(
-        ownerPartyIdentification,
-        'OriginalAttachmentFileName',
-        ownerForm.identificationDetails.docImg,
-      );
-      addDataElement(
-        ownerPartyIdentification,
-        'OtherIssuerCountryText',
-        getEnumKeyByValue(
-          ownerForm.identificationDetails.countryOrJurisdiction,
-          AllCountryEnum,
-        ),
-      );
-      if (ownerForm.identificationDetails.otherLocalOrTribalDesc) {
-        addDataElement(
-          ownerPartyIdentification,
-          'OtherIssuerLocalTribalText',
-          ownerForm.identificationDetails.otherLocalOrTribalDesc,
-        );
-      }
-      if (ownerForm.identificationDetails.state) {
-        addDataElement(
-          ownerPartyIdentification,
-          'OtherIssuerStateText',
-          getEnumKeyByValue(ownerForm.identificationDetails.state, StatesEnum),
-        );
-      }
-      addDataElement(
-        ownerPartyIdentification,
-        'PartyIdentificationNumberText',
-        ownerForm.identificationDetails.docNumber,
-      );
-      addDataElement(
-        ownerPartyIdentification,
-        'PartyIdentificationTypeCode',
-        BOIRParticipantDocTypeParser(ownerForm.identificationDetails.docType),
-      );
-    }
   }
+  addDataElement(
+    ownerPartyIdentification,
+    'PartyIdentificationNumberText',
+    ownerForm.identificationDetails.docNumber,
+  );
+  addDataElement(
+    ownerPartyIdentification,
+    'PartyIdentificationTypeCode',
+    BOIRParticipantDocTypeParser(ownerForm.identificationDetails.docType),
+  );
+
   return seqNum;
 }
 
-function reportCompanyParty(
-  activity: any,
-  companyForm: any,
-  companyData: any,
-  seqNum: number,
-) {
+function reportCompanyParty(activity: any, companyForm: any, seqNum: number) {
   const reportCompanyParty = activity.ele('fc2:Party', {
     SeqNum: `${++seqNum}`,
   });
   addDataElement(reportCompanyParty, 'ActivityPartyTypeCode', '62');
-  if (companyData.isExistingCompany) {
-    addDataElement(
-      reportCompanyParty,
-      'ExistingReportingCompanyIndicator',
-      'Y',
-    );
-  }
+  addDataElement(reportCompanyParty, 'ExistingReportingCompanyIndicator', 'Y');
 
   if (
     !(
@@ -490,9 +341,7 @@ function reportCompanyParty(
     }
   }
 
-  if (companyForm.repCompanyInfo.requestToReceiveFID) {
-    addDataElement(reportCompanyParty, 'RequestFinCENIDIndicator', 'Y');
-  }
+  addDataElement(reportCompanyParty, 'RequestFinCENIDIndicator', 'Y');
 
   const companyLegalPartyName = reportCompanyParty.ele('fc2:PartyName', {
     SeqNum: `${++seqNum}`,
@@ -565,17 +414,6 @@ function reportCompanyParty(
     'PartyIdentificationTypeCode',
     BOIRTaxIdTypeParser(companyForm.taxInfo.taxIdType),
   );
-
-  if (companyForm.repCompanyInfo.foreignPooled) {
-    const companyOrganizationTypeSubtype = reportCompanyParty.ele(
-      'fc2:OrganizationClassificationTypeSubtype',
-      {
-        SeqNum: `${++seqNum}`,
-      },
-    );
-
-    addDataElement(companyOrganizationTypeSubtype, 'OrganizationTypeID', '19');
-  }
 
   return seqNum;
 }
