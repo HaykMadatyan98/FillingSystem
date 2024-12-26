@@ -1,9 +1,9 @@
 import { CompanyModule } from '@/company/company.module';
+import { OwnerFormModule } from '@/owner-form/owner-form.module';
 import { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
 import { Module, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AzureService } from './azure.service';
-import { OwnerFormModule } from '@/owner-form/owner-form.module';
 
 @Module({
   imports: [forwardRef(() => CompanyModule), forwardRef(() => OwnerFormModule)],

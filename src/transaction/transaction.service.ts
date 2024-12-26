@@ -3,7 +3,6 @@ import {
   GovernmentApiStatusEnum,
   governmentStatusesAfterProcess,
 } from '@/government/constants';
-
 import { GovernmentService } from '@/government/government.service';
 import { MailService } from '@/mail/mail.service';
 import { forwardRef, Inject, NotFoundException } from '@nestjs/common';
@@ -240,6 +239,7 @@ export class TransactionService {
                 ) {
                   await this.mailService.notifyUserAboutFail(
                     company.name,
+
                     fullName,
                     data.status.email,
                   );

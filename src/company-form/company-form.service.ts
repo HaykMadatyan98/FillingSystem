@@ -4,10 +4,6 @@ import {
   countriesWithStates,
   requiredCompanyFields,
 } from '@/company/constants';
-<<<<<<< HEAD
-=======
-import { ParticipantFormService } from '@/participant-form/participant-form.service';
->>>>>>> e8cea7f5a7972fd7669ad107efd860a68feaa62c
 import { calculateRequiredFieldsCount } from '@/utils/util';
 import {
   ConflictException,

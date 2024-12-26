@@ -1,11 +1,7 @@
 import { IRequestUser } from '@/auth/interfaces/request.interface';
 import { CompanyFormService } from '@/company-form/company-form.service';
 import { CsvDataService } from '@/csv-data/csv-data.service';
-<<<<<<< HEAD
 import { GovernmentApiStatusEnum } from '@/government/constants';
-=======
-import { GovernmentApiStatusEnum } from '@/government/constants/statuses';
->>>>>>> e8cea7f5a7972fd7669ad107efd860a68feaa62c
 import { IUserInvitationEmail } from '@/mail/interfaces/mail.interface';
 import { MailService } from '@/mail/mail.service';
 import { OwnerFormService } from '@/owner-form/owner-form.service';
@@ -490,15 +486,7 @@ export class CompanyService {
     return companies;
   }
 
-<<<<<<< HEAD
   async getByOwnerId(ownerId: string): Promise<CompanyDocument> {
-=======
-  async getByParticipantId(
-    participantId: string,
-    isApplicant: boolean,
-  ): Promise<CompanyDocument> {
-    const formType = isApplicant ? 'forms.applicants' : 'forms.owners';
->>>>>>> e8cea7f5a7972fd7669ad107efd860a68feaa62c
     const company = await this.companyModel.findOne({
       ['forms.owners']: ownerId,
     });
@@ -541,22 +529,6 @@ export class CompanyService {
     }
   }
 
-<<<<<<< HEAD
-=======
-  private calculateReqFieldsCount(
-    company: CompanyDocument,
-    countOfExemptEntity?: number,
-  ): number {
-    countOfExemptEntity = countOfExemptEntity ? countOfExemptEntity : 0;
-    return (
-      company.forms.applicants.length * 12 +
-      (company.forms.owners.length - countOfExemptEntity) * 11 +
-      countOfExemptEntity * 1 +
-      9
-    );
-  }
-
->>>>>>> e8cea7f5a7972fd7669ad107efd860a68feaa62c
   async changeCompanyCounts(companyId: string | unknown): Promise<void> {
     const company = await this.companyModel.findById(companyId);
 
@@ -891,40 +863,4 @@ export class CompanyService {
 
     return { message: companyResponseMsgs.companyCreated };
   }
-<<<<<<< HEAD
-=======
-
-  async changeCompanySubmissionStatus(
-    companyId: string,
-    submissionStatus: any,
-  ) {
-    const company = await this.companyModel.findById(companyId);
-
-    if (company) {
-      company.boirSubmissionStatus = submissionStatus;
-      await company.save();
-    }
-  }
-  // need some changes after admin part creating
-  // async createNewCompany(payload: any) {
-  //   const existCompanyForm =
-  //     await this.companyFormService.getCompanyFormByTaxData(
-  //       payload.taxIdNumber,
-  //       payload.taxIdType,
-  //     );
-
-  //   if (existCompanyForm) {
-  //     throw new ConflictException(companyResponseMsgs.companyWasCreated);
-  //   }
-
-  //   const newCompanyForm = await this.companyFormService.create(payload);
-  //   const newCompany = new this.companyModel();
-  //   newCompany['forms.company'] = newCompanyForm['id'];
-  //   newCompany['reqFieldsCount'] = 9;
-
-  //   await newCompany.save();
-
-  //   return { message: companyResponseMsgs.companyCreated };
-  // }
->>>>>>> e8cea7f5a7972fd7669ad107efd860a68feaa62c
 }
