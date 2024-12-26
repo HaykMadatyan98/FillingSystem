@@ -2,7 +2,11 @@ import { CompanyService } from '@/company/company.service';
 import {
   GovernmentApiStatusEnum,
   governmentStatusesAfterProcess,
+<<<<<<< HEAD
 } from '@/government/constants';
+=======
+} from '@/government/constants/statuses';
+>>>>>>> e8cea7f5a7972fd7669ad107efd860a68feaa62c
 import { GovernmentService } from '@/government/government.service';
 import { MailService } from '@/mail/mail.service';
 import { forwardRef, Inject, NotFoundException } from '@nestjs/common';
@@ -239,7 +243,11 @@ export class TransactionService {
                 ) {
                   await this.mailService.notifyUserAboutFail(
                     company.name,
+<<<<<<< HEAD
 
+=======
+                    
+>>>>>>> e8cea7f5a7972fd7669ad107efd860a68feaa62c
                     fullName,
                     data.status.email,
                   );

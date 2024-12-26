@@ -100,7 +100,54 @@ export async function sanitizeData(
     }
   });
 
+<<<<<<< HEAD
   const ownerCount = data['Owner Document Type']?.filter(Boolean).length ?? 0;
+=======
+  if (
+    !(
+      sanitized.company.currentCompany?.isExistingCompany ||
+      (sanitized.company.repCompanyInfo &&
+        sanitized.company.repCompanyInfo?.foreignPooled)
+    )
+  ) {
+    const applicantCount =
+      (data['Applicant Document Type']?.filter(Boolean).length ?? 0) +
+      (data['Applicant FinCEN ID']?.filter(Boolean).length ?? 0);
+    for (let i = 0; i < applicantCount; i++) {
+      const participant: any = { isApplicant: true };
+      if (
+        data['Applicant FinCEN ID']?.length &&
+        data['Applicant FinCEN ID'][i] !== ''
+      ) {
+        const mappedField = ApplicantData['Applicant FinCEN ID'];
+        const value = data['Applicant FinCEN ID'][i];
+        if (value !== undefined && value !== '') {
+          mapFieldToObject(mappedField, value, participant);
+        }
+      } else {
+        applicantKeys.forEach((key) => {
+          if (key && typeof data[key] !== 'undefined') {
+            const mappedField = ApplicantData[key];
+            const value = data[key][i];
+            if (value !== undefined && value !== '') {
+              mapFieldToObject(mappedField, value, participant);
+            }
+          }
+        });
+      }
+
+      sanitized.participants.push(participant);
+    }
+  }
+
+  const ownerCountBySanitizedData =
+    (data['Owner Document Type']?.filter(Boolean).length ?? 0) +
+    (data['Owner FinCEN ID']?.filter(Boolean).length ?? 0);
+
+  const ownerCount = sanitized.company.repCompanyInfo?.foreignPooled
+    ? 1
+    : ownerCountBySanitizedData;
+>>>>>>> e8cea7f5a7972fd7669ad107efd860a68feaa62c
 
   for (let i = 0; i < ownerCount; i++) {
     const participant: any = {};

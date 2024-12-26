@@ -1,6 +1,14 @@
 import { CompanyForm } from '@/company-form/schemas/company-form.schema';
+<<<<<<< HEAD
 import { GovernmentApiStatusEnum } from '@/government/constants';
 import { OwnerForm } from '@/owner-form/schemas/owner-form.schema';
+=======
+import { GovernmentApiStatusEnum } from '@/government/constants/statuses';
+import {
+  ApplicantForm,
+  OwnerForm,
+} from '@/participant-form/schemas/participant-form.schema';
+>>>>>>> e8cea7f5a7972fd7669ad107efd860a68feaa62c
 import { Transaction } from '@/transaction/schemas/transaction.schema';
 import { User } from '@/user/schema/user.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';

@@ -170,7 +170,62 @@ function ownerFormParty(activity: any, ownerForm: any, seqNum: number) {
       ownerForm.identificationDetails.otherLocalOrTribalDesc,
     );
   }
+<<<<<<< HEAD
   if (ownerForm.identificationDetails.state) {
+=======
+
+  return seqNum;
+}
+
+function ownerFormParty(activity: any, ownerForm: any, seqNum: number) {
+  const ownerFormParty = activity.ele('fc2:Party', {
+    SeqNum: `${++seqNum}`,
+  });
+  addDataElement(ownerFormParty, 'ActivityPartyTypeCode', '64');
+  if (!ownerForm.finCENID) {
+    if (ownerForm.exemptEntity.isExemptEntity) {
+      addDataElement(
+        ownerFormParty,
+        'ExemptIndicator',
+        BOIRBooleanTypeParser(ownerForm.exemptEntity.isExemptEntity),
+      );
+    }
+  }
+  if (ownerForm.finCENID) {
+    addDataElement(ownerFormParty, 'FinCENID', ownerForm.finCENID.finCENID);
+    if (ownerForm.beneficialOwner.isParentOrGuard) {
+      addDataElement(
+        ownerFormParty,
+        'ParentOrLegalGuardianForMinorChildIndicator',
+        BOIRBooleanTypeParser(ownerForm.beneficialOwner.isParentOrGuard),
+      );
+    }
+  } else {
+    if (
+      !ownerForm.exemptEntity.isExemptEntity &&
+      ownerForm.personalInfo.dateOfBirth
+    ) {
+      addDataElement(
+        ownerFormParty,
+        'IndividualBirthDateText',
+        BOIRDateParser(ownerForm.personalInfo.dateOfBirth),
+      );
+    }
+    if (
+      ownerForm.beneficialOwner.isParentOrGuard &&
+      !ownerForm.exemptEntity.isExemptEntity
+    ) {
+      addDataElement(
+        ownerFormParty,
+        'ParentOrLegalGuardianForMinorChildIndicator',
+        BOIRBooleanTypeParser(ownerForm.beneficialOwner.isParentOrGuard),
+      );
+    }
+    const ownerPartyName = ownerFormParty.ele('fc2:PartyName', {
+      SeqNum: `${++seqNum}`,
+    });
+    addDataElement(ownerPartyName, 'PartyNameTypeCode', 'L');
+>>>>>>> e8cea7f5a7972fd7669ad107efd860a68feaa62c
     addDataElement(
       ownerPartyIdentification,
       'OtherIssuerStateText',
