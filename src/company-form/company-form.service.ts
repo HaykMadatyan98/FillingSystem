@@ -35,6 +35,7 @@ export class CompanyFormService {
 
   async createCompanyFormFromCsv(companyFormData: ICompanyForm) {
     const updatedFormData = this.addIsVerifiedFlag(companyFormData);
+    console.log(updatedFormData, 'updatedFormDEata');
     const companyData = new this.companyFormModel({ ...updatedFormData });
     const answerCount = await calculateRequiredFieldsCount(
       companyData,
@@ -247,9 +248,13 @@ export class CompanyFormService {
   }
 
   private addIsVerifiedFlag(data: any): any {
-    if (typeof data === 'object' && data !== null) {
+    if (typeof data === 'object' && !Array.isArray(data) && data !== null) {
       for (const key in data) {
-        if (typeof data[key] === 'object' && data[key] !== null) {
+        if (
+          typeof data[key] === 'object' &&
+          !Array.isArray(data) &&
+          data[key] !== null
+        ) {
           data[key] = this.addIsVerifiedFlag(data[key]);
         }
       }

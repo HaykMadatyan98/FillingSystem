@@ -39,6 +39,7 @@ export class OwnerFormService {
     missingFields?: any,
   ): Promise<[string, number]> {
     const updatedOwnerData = this.addIsVerifiedFlag(companyOwnerData);
+    console.log('in create owner', updatedOwnerData);
     const owner = new this.ownerFormModel(updatedOwnerData);
 
     owner.answerCount = await calculateRequiredFieldsCount(
@@ -535,7 +536,11 @@ export class OwnerFormService {
   private addIsVerifiedFlag(data: any): any {
     if (typeof data === 'object' && data !== null) {
       for (const key in data) {
-        if (typeof data[key] === 'object' && data[key] !== null) {
+        if (
+          typeof data[key] === 'object' &&
+          key !== 'dateOfBirth' &&
+          data[key] !== null
+        ) {
           data[key] = this.addIsVerifiedFlag(data[key]);
         }
       }
