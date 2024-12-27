@@ -29,7 +29,7 @@ class PersonalInformation {
   @Prop()
   dateOfBirth: Date;
 
-  @Prop({ default: false })
+  @Prop()
   isVerified: boolean;
 }
 
@@ -50,7 +50,7 @@ class OwnerAddress {
   @Prop()
   postalCode: string;
 
-  @Prop({ default: false })
+  @Prop()
   isVerified: boolean;
 }
 
@@ -77,7 +77,7 @@ class IdentificationAndJurisdiction {
   @Prop()
   docImg: string;
 
-  @Prop({ default: false })
+  @Prop()
   isVerified: boolean;
 }
 

@@ -38,7 +38,8 @@ export class OwnerFormService {
     companyOwnerData: any,
     missingFields?: any,
   ): Promise<[string, number]> {
-    const owner = new this.ownerFormModel(companyOwnerData);
+    const updatedOwnerData = this.addIsVerifiedFlag(companyOwnerData);
+    const owner = new this.ownerFormModel(updatedOwnerData);
 
     owner.answerCount = await calculateRequiredFieldsCount(
       owner,
@@ -503,7 +504,7 @@ export class OwnerFormService {
     await this.azureService.delete(owner.identificationDetails.docImg);
     owner.identificationDetails.docImg = undefined;
     owner.answerCount = owner.answerCount - 1;
-    if (owner.identificationDetails.isVerified)
+    if (owner.identificationDetails?.isVerified)
       owner.identificationDetails.isVerified = false;
     await owner.save();
 
@@ -522,11 +523,24 @@ export class OwnerFormService {
 
     owner.identificationDetails.docImg = undefined;
     owner.answerCount = owner.answerCount - 1;
-    owner.identificationDetails.isVerified = false;
+    if (owner.identificationDetails?.isVerified)
+      owner.identificationDetails.isVerified = false;
 
     await owner.save();
 
     const company = await this.companyService.getByOwnerId(ownerId);
     if (company) await this.companyService.changeCompanyCounts(company._id);
+  }
+
+  private addIsVerifiedFlag(data: any): any {
+    if (typeof data === 'object' && data !== null) {
+      for (const key in data) {
+        if (typeof data[key] === 'object' && data[key] !== null) {
+          data[key] = this.addIsVerifiedFlag(data[key]);
+        }
+      }
+      return { ...data, isVerified: false };
+    }
+    return data;
   }
 }

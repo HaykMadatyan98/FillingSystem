@@ -765,14 +765,12 @@ export class CompanyService {
       .populate({
         path: 'forms.company',
         model: 'CompanyForm',
-        select:
-          '-answerCount -_id -createdAt -updatedAt -__v -names.isVerified -formationJurisdiction.isVerified -taxInfo.isVerified -address.isVerified -repCompanyInfo.isVerified ',
+        select: '-answerCount -_id -createdAt -updatedAt -__v',
       })
       .populate({
         path: 'forms.owners',
         model: 'OwnerForm',
-        select:
-          '-answerCount -beneficialOwner.isVerified -address.isVerified -identificationDetails.isVerified -personalInfo.isVerified -_id -createdAt -updatedAt -__v',
+        select: '-answerCount -_id -createdAt -updatedAt -__v',
       })
       .exec();
 
