@@ -35,7 +35,6 @@ export class CompanyFormService {
 
   async createCompanyFormFromCsv(companyFormData: ICompanyForm) {
     const updatedFormData = this.addIsVerifiedFlag(companyFormData);
-    console.log(updatedFormData, 'updatedFormDEata');
     const companyData = new this.companyFormModel({ ...updatedFormData });
     const answerCount = await calculateRequiredFieldsCount(
       companyData,
