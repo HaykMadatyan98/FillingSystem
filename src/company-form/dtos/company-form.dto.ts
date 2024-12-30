@@ -135,25 +135,6 @@ class CompanyAddressDto {
   isVerified?: boolean;
 }
 
-class CreateLegalAndAltNamesDto {
-  @ApiProperty({ required: true })
-  @IsString()
-  @MaxLength(150)
-  legalName: string;
-}
-
-class TaxInformationForCreate {
-  @ApiProperty({ required: true })
-  @IsEnum(IdentificationTypesEnum)
-  taxIdType: IdentificationTypesEnum;
-
-  @ApiProperty({ required: true })
-  @IsString()
-  @ValidateIf((o) => o.taxIdType)
-  @IsTaxIdValid()
-  taxIdNumber: string;
-}
-
 class TaxInformation {
   @ApiProperty({ required: true })
   @IsEnum(IdentificationTypesEnum)
@@ -206,15 +187,20 @@ export class ChangeCompanyFormDto {
 }
 
 export class CreateCompanyFormDto {
-  @ApiProperty({ type: LegalAndAltNamesDto })
-  @ValidateNested({ each: true })
-  @Type(() => CreateLegalAndAltNamesDto)
-  names: CreateLegalAndAltNamesDto;
+  @ApiProperty({ required: true })
+  @IsString()
+  @MaxLength(150)
+  legalName: string;
 
-  @ApiProperty({ type: TaxInformationForCreate })
-  @ValidateNested({ each: true })
-  @Type(() => TaxInformationForCreate)
-  taxInfo: TaxInformationForCreate;
+  @ApiProperty({ required: true })
+  @IsEnum(IdentificationTypesEnum)
+  taxIdType: IdentificationTypesEnum;
+
+  @ApiProperty({ required: true })
+  @IsString()
+  @ValidateIf((o) => o.taxIdType)
+  @IsTaxIdValid()
+  taxIdNumber: string;
 }
 
 export class CSVCompanyFormDto {

@@ -839,26 +839,42 @@ export class CompanyService {
     }
   }
 
-  async createNewCompany(payload: any) {
+  async createNewCompany(payload: any, userId: string) {
     const existCompanyForm =
       await this.companyFormService.getCompanyFormByTaxData(
         payload.taxIdNumber,
         payload.taxIdType,
       );
 
+    console.log(payload, 'payload');
+    console.log(existCompanyForm, 'is existing company');
     if (existCompanyForm) {
       throw new ConflictException(companyResponseMsgs.companyWasCreated);
     }
 
-    const newCompanyForm =
-      await this.companyFormService.createCompanyFormFromCsv(payload);
-    const newCompany = new this.companyModel();
-    newCompany['forms.company'] = newCompanyForm['id'];
-    newCompany['reqFieldsCount'] = 9;
-    newCompany.name = payload.names.legalName;
+    const companyFormPayload = {
+      names: {
+        legalName: payload.legalName,
+      },
+      taxInfo: {
+        taxIdNumber: payload.taxIdNumber,
+        taxIdType: payload.taxIdType,
+      },
+    };
 
+    const newCompanyForm =
+      await this.companyFormService.createCompanyFormFromCsv(
+        companyFormPayload,
+      );
+    const newCompany = new this.companyModel({
+      ['forms.company']: newCompanyForm.id,
+      ['reqFieldsCount']: 9,
+      name: payload.legalName,
+    });
+    console.log(newCompanyForm);
     await newCompany.save();
 
+    await this.userService.addCompaniesToUser(userId, [newCompany['id']]);
     return { message: companyResponseMsgs.companyCreated };
   }
 }
